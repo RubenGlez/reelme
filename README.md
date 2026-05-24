@@ -4,7 +4,7 @@
 
 `reelme` is a Claude Code skill that generates animated explainer videos for open-source projects. Point it at any repo, answer a few questions, and get an MP4 and a GIF — ready to drop into your README, socials, or landing page.
 
-![reelme demo](template/out/video.gif)
+![reelme demo](showcase.gif)
 
 ---
 
