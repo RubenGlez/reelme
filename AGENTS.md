@@ -18,6 +18,8 @@ All commands run from `template/`:
 ```bash
 pnpm install && pnpm approve-builds --all  # first-time setup (esbuild needs approval)
 pnpm typecheck                             # TypeScript check, no emit
+pnpm lint                                  # ESLint
+pnpm test                                  # unit tests (vitest)
 pnpm start                                 # Remotion Studio at localhost:3000 for live preview
 pnpm render:mp4                            # render out/video.mp4
 pnpm render:gif                            # render out/video.gif

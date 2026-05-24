@@ -50,8 +50,6 @@ export const Terminal: React.FC<TerminalProps> = ({
     }
   }
 
-  const lastLine = visibleLines[visibleLines.length - 1];
-
   return (
     <div
       style={{

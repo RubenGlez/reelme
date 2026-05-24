@@ -1,7 +1,8 @@
 import React from "react";
-import { AbsoluteFill, Sequence, useVideoConfig } from "remotion";
-import { Brief, FeatureListScene, ProjectMeta, Scene } from "./brief";
+import { AbsoluteFill, Sequence } from "remotion";
+import { Brief, ProjectMeta, Scene } from "./brief";
 import { buildTheme } from "./theme";
+import { sceneDuration } from "./duration";
 import { Problem } from "./components/scenes/Problem";
 import { CodeReveal } from "./components/scenes/CodeReveal";
 import { TerminalScene } from "./components/scenes/TerminalScene";
@@ -10,25 +11,6 @@ import { CTA } from "./components/scenes/CTA";
 import { BrowserFrame } from "./components/scenes/BrowserFrame";
 import { SplitComparison } from "./components/scenes/SplitComparison";
 import { FeatureList } from "./components/scenes/FeatureList";
-
-const SCENE_DURATION_MAP: Record<Scene["type"], number> = {
-  problem: 120,
-  "code-reveal": 165,
-  terminal: 150,
-  "data-flow": 200,
-  cta: 120,
-  browser: 150,
-  split: 165,
-  "feature-list": 180,
-};
-
-function sceneDuration(scene: Scene): number {
-  if (scene.type === "feature-list") {
-    const s = scene as FeatureListScene;
-    return 20 + s.items.length * 25 + 60;
-  }
-  return SCENE_DURATION_MAP[scene.type];
-}
 
 interface ReelProps {
   brief: Brief;
@@ -85,6 +67,4 @@ const SceneRenderer: React.FC<SceneRendererProps> = ({ scene, theme, project }) 
   }
 };
 
-export function calcTotalDuration(brief: Brief): number {
-  return brief.scenes.reduce((sum, scene) => sum + sceneDuration(scene), 0);
-}
+export { calcTotalDuration } from "./duration";

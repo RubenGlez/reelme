@@ -7,7 +7,9 @@
     "render": "npx remotion render Reel out/video.mp4 && npx remotion render Reel out/video.gif --codec=gif",
     "render:mp4": "npx remotion render Reel out/video.mp4",
     "render:gif": "npx remotion render Reel out/video.gif --codec=gif",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "lint": "eslint src",
+    "test": "vitest run"
   },
   "dependencies": {
     "@remotion/cli": "4.0.290",
@@ -17,8 +19,12 @@
   "devDependencies": {
     "@types/chroma-js": "^2.4.4",
     "@types/react": "^18.3.0",
+    "@typescript-eslint/eslint-plugin": "^8.0.0",
+    "@typescript-eslint/parser": "^8.0.0",
+    "eslint": "^9.0.0",
     "react": "^18.3.0",
     "react-dom": "^18.3.0",
-    "typescript": "^5.4.0"
+    "typescript": "^5.4.0",
+    "vitest": "^2.0.0"
   }
 }

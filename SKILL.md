@@ -172,11 +172,11 @@ Wait for confirmation. Use `video/` if they say yes or don't respond with a path
 
 ## Step 6: Scaffold the Remotion project
 
-Copy the template:
+Copy the template (excluding dev-only files):
 
 ```bash
 SKILL_DIR=$(find "$HOME" -maxdepth 6 -name "SKILL.md" -path "*/reelme/SKILL.md" 2>/dev/null | head -1 | xargs dirname)
-cp -r "$SKILL_DIR/template/." "<chosen_path>/"
+rsync -a --exclude='src/__tests__' --exclude='eslint.config.mjs' --exclude='vitest.config.ts' "$SKILL_DIR/template/" "<chosen_path>/"
 ```
 
 Copy `brief.json` into the template:
