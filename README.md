@@ -2,34 +2,78 @@
 
 **Your README, but as a video.**
 
-`reelme` is a Claude Code skill that generates 2D animated explainer videos for open-source projects. Point it at any repo, answer a few questions, and get an MP4, a GIF, and the Remotion source — ready to drop into your README, Twitter, or landing page.
+`reelme` is a Claude Code skill that generates animated explainer videos for open-source projects. Point it at any repo, answer a few questions, and get an MP4 and a GIF — ready to drop into your README, socials, or landing page.
 
-## How it works
+![reelme demo](template/out/video.gif)
 
-1. Run `/reelme` inside a Claude Code session in your repo
-2. Claude reads your codebase and pre-fills what it can
-3. It asks about the gaps — key features, tone, brand color
-4. It scaffolds a Remotion project and renders your video locally
+---
 
-## Output
+## Install
 
-- `video.mp4` — for sharing on Twitter, LinkedIn, or embedding in a landing page
-- `video.gif` — for your README (renders inline everywhere)
-- Remotion source — tweak timing, copy, or colors and re-render yourself
+```bash
+git clone https://github.com/RubenGlez/reelme ~/.claude/skills/reelme
+```
 
-## V1 scene templates
+That's it. The `/reelme` command is now available in every Claude Code session.
+
+**Requirements:** Claude Code, Node.js ≥18, pnpm
+
+---
+
+## Usage
+
+Open Claude Code inside any repo and run:
+
+```
+/reelme
+```
+
+Claude will:
+1. Ask whether this is a **project intro** or a **feature announcement**
+2. Read your repo and pre-fill everything it can infer
+3. Ask only about the gaps (brand color, logo, anything uncertain)
+4. Scaffold a Remotion project and render your video locally
+
+Output lands at `video/out/video.mp4` and `video/out/video.gif` by default.
+
+---
+
+## Two modes
+
+**Project intro** — run once per project. Claude reads your README and source files, extracts the key value prop, and builds a full explainer from scratch.
+
+**Feature announcement** — run after a release. Claude reads your changelog and recent git history, leads with what changed and why it matters, and keeps your existing brand.
+
+---
+
+## Scene types
 
 | Scene | What it shows |
 |---|---|
-| Problem | The pain your project solves |
-| Code reveal | The key line of code, typing itself in |
-| Terminal | Commands running, output appearing progressively |
-| Data flow | How data moves through your system |
-| CTA | Install command + repo URL |
+| `problem` | The pain your project solves, or a release headline |
+| `feature-list` | Key features or changes, revealed one by one |
+| `code-reveal` | A code snippet typing itself in, key line highlighted |
+| `terminal` | Commands running, output appearing progressively |
+| `data-flow` | Nodes and arrows showing how data moves through your system |
+| `split` | Before/after contrast — great for DX improvements |
+| `browser` | A mock browser window with your URL or a screenshot |
+| `cta` | Install command and repo URL |
 
-## Status
+Claude picks the right scenes for your project. You can also edit `video/src/brief.json` directly and re-run `pnpm render` to tweak without restarting the interview.
 
-Early development. Design phase complete, implementation in progress.
+---
+
+## Customization
+
+Everything is driven by `video/src/brief.json`. After the first render, edit it and run:
+
+```bash
+cd video && pnpm render
+```
+
+The Remotion source is yours — adjust timing, copy, colors, or add scenes.
+
+---
 
 ## License
 

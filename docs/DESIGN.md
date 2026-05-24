@@ -39,19 +39,22 @@ A library with one killer feature might run 20 seconds. A platform with five dis
 
 Two layers:
 
-- **Shared primitives** — reusable components (terminal window, animated code block, arrow, label). These are the building blocks. Browser chrome, mobile frame, and IDE frame are planned for v2.
-- **Scene templates** — pre-composed full scenes built from primitives. What users actually get in v1.
+- **Shared primitives** — reusable components (terminal window, animated code block, arrow, label, caption pill). These are the building blocks.
+- **Scene templates** — pre-composed full scenes built from primitives.
 
 New scene templates can be contributed by the community using existing primitives.
 
-## V1 scene templates
+## Scene templates
 
 | Scene | Description |
 |---|---|
-| Problem | Text-based. Animated label establishing the pain point. |
+| Problem | Animated headline establishing the pain point or release headline. |
+| Feature list | Bullet points that reveal one by one with checkmark icons. |
 | Code reveal | IDE/editor window. Code types itself in line by line, key line highlighted. |
 | Terminal | Terminal window. Commands appear, output streams progressively. |
 | Data flow | Arrows and nodes showing how data moves through a system. |
+| Split | Side-by-side before/after panels that slide in from opposite sides. |
+| Browser | Mock browser window with typed URL animation and optional screenshot. |
 | CTA | Install command + repo URL. Clean exit. |
 
 ## Visual style
@@ -60,7 +63,7 @@ New scene templates can be contributed by the community using existing primitive
 
 ## Audio
 
-**Silent for v1.** No voiceover, no ElevenLabs dependency, no API keys required. Silent videos with strong motion and text work well on social and in READMEs. Animated captions are planned for v2.
+**Silent.** No voiceover, no ElevenLabs dependency, no API keys required. Silent videos with strong motion and text work well on social and in READMEs. Animated caption pills appear on each scene as a text reinforcement layer.
 
 ## Rendering
 

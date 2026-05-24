@@ -1,10 +1,12 @@
+---
+name: reelme
+description: Generate a 2D animated explainer video for any open-source project — MP4, GIF, and editable Remotion source. Use when the user wants to create a demo video, explainer video, or feature announcement video for their project.
+disable-model-invocation: true
+---
+
 # reelme
 
 Generate a 2D animated explainer video for any open-source project — as an MP4, a GIF, and editable Remotion source.
-
-## Trigger
-
-User runs `/reelme` inside a Claude Code session in their repo.
 
 ---
 
@@ -171,8 +173,7 @@ Wait for confirmation. Use `video/` if they say yes or don't respond with a path
 Copy the template:
 
 ```bash
-SKILL_DIR="$(dirname "$(realpath "${CLAUDE_SKILL_FILE}")")"
-cp -r "$SKILL_DIR/template/." "<chosen_path>/"
+cp -r "${CLAUDE_SKILL_DIR}/template/." "<chosen_path>/"
 ```
 
 Copy `brief.json` into the template:

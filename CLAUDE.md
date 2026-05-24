@@ -6,7 +6,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 `reelme` is a Claude Code skill (`/reelme`) that generates animated explainer videos for open-source projects. It has two parts:
 
-- **`skill.md`** — the skill definition; contains the full instructions Claude follows when a user runs `/reelme` in their repo
+- **`SKILL.md`** — the skill definition; contains the full instructions Claude follows when a user runs `/reelme` in their repo. Has YAML frontmatter (`name`, `description`, `disable-model-invocation`) per the Claude Code skills standard. Users install by cloning the repo to `~/.claude/skills/reelme/`.
 - **`template/`** — a Remotion project that gets copied into the user's repo and rendered locally
 
 The skill reads the user's repo, runs a brief interview, writes `brief.json`, copies `template/` into the chosen output path, and runs `pnpm render`.
@@ -60,7 +60,7 @@ The `Brief` type is the contract between the skill interview and the Remotion re
 
 `buildTheme(hex)` is the only theming entry point. It mixes the accent color toward a near-black or near-white base depending on luminance, so both light and dark primary colors produce a readable dark-background theme. All components receive a `Theme` object as a prop — no global CSS, no context.
 
-### Skill flow (`skill.md`)
+### Skill flow (`SKILL.md`)
 
 Steps: read repo → interview (only uncertain fields) → write `brief.json` → confirm output path → `cp -r template/ <path>` → `cp brief.json <path>/src/` → `pnpm install && pnpm approve-builds --all` → `pnpm render`.
 
