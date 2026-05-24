@@ -1,6 +1,6 @@
 import React from "react";
 import { AbsoluteFill, Sequence, useVideoConfig } from "remotion";
-import { Brief, Scene } from "./brief";
+import { Brief, ProjectMeta, Scene } from "./brief";
 import { buildTheme } from "./theme";
 import { Problem } from "./components/scenes/Problem";
 import { CodeReveal } from "./components/scenes/CodeReveal";
@@ -39,7 +39,7 @@ export const Reel: React.FC<ReelProps> = ({ brief }) => {
     <AbsoluteFill style={{ background: theme.bg }}>
       {sequenced.map(({ scene, from, duration }, i) => (
         <Sequence key={i} from={from} durationInFrames={duration}>
-          <SceneRenderer scene={scene} theme={theme} projectName={brief.project.name} />
+          <SceneRenderer scene={scene} theme={theme} project={brief.project} />
         </Sequence>
       ))}
     </AbsoluteFill>
@@ -49,13 +49,13 @@ export const Reel: React.FC<ReelProps> = ({ brief }) => {
 interface SceneRendererProps {
   scene: Scene;
   theme: ReturnType<typeof buildTheme>;
-  projectName: string;
+  project: ProjectMeta;
 }
 
-const SceneRenderer: React.FC<SceneRendererProps> = ({ scene, theme, projectName }) => {
+const SceneRenderer: React.FC<SceneRendererProps> = ({ scene, theme, project }) => {
   switch (scene.type) {
     case "problem":
-      return <Problem scene={scene} theme={theme} />;
+      return <Problem scene={scene} theme={theme} project={project} />;
     case "code-reveal":
       return <CodeReveal scene={scene} theme={theme} />;
     case "terminal":
@@ -63,7 +63,7 @@ const SceneRenderer: React.FC<SceneRendererProps> = ({ scene, theme, projectName
     case "data-flow":
       return <DataFlow scene={scene} theme={theme} />;
     case "cta":
-      return <CTA scene={scene} theme={theme} projectName={projectName} />;
+      return <CTA scene={scene} theme={theme} project={project} />;
     default:
       return null;
   }

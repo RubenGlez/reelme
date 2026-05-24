@@ -6,6 +6,9 @@ export interface ProjectMeta {
   repoUrl: string;
   primaryColor: string;
   tone: "professional" | "playful" | "technical";
+  mode?: "intro" | "announcement";
+  version?: string;
+  logo?: string;
 }
 
 export interface ProblemScene {

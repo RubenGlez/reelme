@@ -1,27 +1,33 @@
 import React from "react";
-import { AbsoluteFill, useCurrentFrame, useVideoConfig, spring, interpolate } from "remotion";
-import { CTAScene as CTABrief } from "../../brief";
+import { AbsoluteFill, useCurrentFrame, useVideoConfig, spring, interpolate, Img, staticFile } from "remotion";
+import { CTAScene as CTABrief, ProjectMeta } from "../../brief";
 import { Theme } from "../../theme";
 
 interface Props {
   scene: CTABrief;
   theme: Theme;
-  projectName: string;
+  project: ProjectMeta;
 }
 
-export const CTA: React.FC<Props> = ({ scene, theme, projectName }) => {
+export const CTA: React.FC<Props> = ({ scene, theme, project }) => {
   const frame = useCurrentFrame();
   const { fps } = useVideoConfig();
 
-  const titleProgress = spring({ frame, fps, config: { damping: 19, stiffness: 90 } });
-  const cmdProgress = spring({ frame: frame - 16, fps, config: { damping: 19, stiffness: 90 } });
-  const urlProgress = spring({ frame: frame - 31, fps, config: { damping: 19, stiffness: 90 } });
+  const logoProgress = spring({ frame, fps, config: { damping: 19, stiffness: 90 } });
+  const titleProgress = spring({ frame: frame - (project.logo ? 16 : 0), fps, config: { damping: 19, stiffness: 90 } });
+  const cmdProgress = spring({ frame: frame - (project.logo ? 32 : 16), fps, config: { damping: 19, stiffness: 90 } });
+  const urlProgress = spring({ frame: frame - (project.logo ? 48 : 31), fps, config: { damping: 19, stiffness: 90 } });
 
   const titleOpacity = interpolate(titleProgress, [0, 1], [0, 1]);
   const titleY = interpolate(titleProgress, [0, 1], [24, 0]);
   const cmdOpacity = interpolate(cmdProgress, [0, 1], [0, 1]);
   const cmdScale = interpolate(cmdProgress, [0, 1], [0.92, 1]);
   const urlOpacity = interpolate(urlProgress, [0, 1], [0, 1]);
+
+  const isAnnouncement = project.mode === "announcement";
+  const displayName = isAnnouncement && project.version
+    ? `${project.name} ${project.version}`
+    : project.name;
 
   return (
     <AbsoluteFill
@@ -31,10 +37,19 @@ export const CTA: React.FC<Props> = ({ scene, theme, projectName }) => {
         flexDirection: "column",
         alignItems: "center",
         justifyContent: "center",
-        gap: 40,
+        gap: 32,
         padding: "0 120px",
       }}
     >
+      {project.logo && (
+        <div style={{ opacity: interpolate(logoProgress, [0, 1], [0, 1]), transform: `scale(${interpolate(logoProgress, [0, 1], [0.85, 1])})` }}>
+          <Img
+            src={staticFile(project.logo)}
+            style={{ height: 72, width: "auto", objectFit: "contain" }}
+          />
+        </div>
+      )}
+
       <div
         style={{
           opacity: titleOpacity,
@@ -47,8 +62,9 @@ export const CTA: React.FC<Props> = ({ scene, theme, projectName }) => {
           textAlign: "center",
         }}
       >
-        Get started with{" "}
-        <span style={{ color: theme.accent }}>{projectName}</span>
+        {isAnnouncement ? "" : "Get started with "}
+        <span style={{ color: theme.accent }}>{displayName}</span>
+        {isAnnouncement ? " is here." : ""}
       </div>
 
       <div

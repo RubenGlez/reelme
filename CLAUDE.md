@@ -43,6 +43,11 @@ template/node_modules/.bin/remotion still Reel out/frame_N.png --frame=N
 
 The `Brief` type is the contract between the skill interview and the Remotion render. Scene types: `problem`, `code-reveal`, `terminal`, `data-flow`, `cta`. Adding a new scene type means: adding to the union in `brief.ts`, creating a scene component, adding a case in `SceneRenderer`, and adding a duration entry in `SCENE_DURATION_MAP`.
 
+`ProjectMeta` has two optional fields that drive mode-specific rendering:
+- `mode: "intro" | "announcement"` — switches Problem scene between accent bar and version badge; switches CTA copy between "Get started with X" and "X is here"
+- `version` — shown in the version badge and CTA title when `mode === "announcement"`
+- `logo` — filename in `template/public/` (e.g. `"logo.svg"`); rendered via Remotion's `<Img src={staticFile(logo)} />` in the CTA scene
+
 ### Primitives (`src/components/primitives/`)
 
 - `Terminal` — types input lines character-by-character, output lines appear at once; driven by `useCurrentFrame()`
