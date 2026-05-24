@@ -4,9 +4,9 @@
   "private": true,
   "scripts": {
     "start": "npx remotion studio",
-    "render": "npx remotion render Reel out/video.mp4 && npx remotion gif Reel out/video.gif",
+    "render": "npx remotion render Reel out/video.mp4 && npx remotion render Reel out/video.gif --codec=gif",
     "render:mp4": "npx remotion render Reel out/video.mp4",
-    "render:gif": "npx remotion gif Reel out/video.gif",
+    "render:gif": "npx remotion render Reel out/video.gif --codec=gif",
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
