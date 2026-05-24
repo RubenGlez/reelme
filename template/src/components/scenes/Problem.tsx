@@ -3,6 +3,7 @@ import { AbsoluteFill, useCurrentFrame, useVideoConfig, spring, interpolate } fr
 import { ProblemScene as ProblemBrief, ProjectMeta } from "../../brief";
 import { Theme } from "../../theme";
 import { Label } from "../primitives/Label";
+import { Caption } from "../primitives/Caption";
 
 interface Props {
   scene: ProblemBrief;
@@ -36,7 +37,6 @@ export const Problem: React.FC<Props> = ({ scene, theme, project }) => {
       }}
     >
       {isAnnouncement ? (
-        // Version badge for announcement mode
         <div
           style={{
             opacity: badgeOpacity,
@@ -55,7 +55,6 @@ export const Problem: React.FC<Props> = ({ scene, theme, project }) => {
           {project.name} {project.version}
         </div>
       ) : (
-        // Accent bar for intro mode
         <div
           style={{
             width: accentBarWidth,
@@ -70,6 +69,7 @@ export const Problem: React.FC<Props> = ({ scene, theme, project }) => {
       {scene.subtext && (
         <Label text={scene.subtext} theme={theme} size="md" muted startFrame={16} />
       )}
+      {scene.caption && <Caption text={scene.caption} theme={theme} startFrame={40} />}
     </AbsoluteFill>
   );
 };

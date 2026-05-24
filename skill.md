@@ -87,9 +87,11 @@ Write `video/brief.json` to the repo root.
     "logo": ""
   },
   "scenes": [
-    { "type": "problem", "headline": "", "subtext": "" },
+    { "type": "problem", "headline": "", "subtext": "", "caption": "" },
     { "type": "code-reveal", "language": "", "code": "", "highlightLine": 1, "caption": "" },
-    { "type": "cta", "installCommand": "", "repoUrl": "" }
+    { "type": "terminal", "commands": [], "caption": "" },
+    { "type": "data-flow", "nodes": [], "edges": [], "caption": "" },
+    { "type": "cta", "installCommand": "", "repoUrl": "", "caption": "" }
   ]
 }
 ```
@@ -111,9 +113,9 @@ Write `video/brief.json` to the repo root.
     "logo": ""
   },
   "scenes": [
-    { "type": "problem", "headline": "", "subtext": "" },
+    { "type": "problem", "headline": "", "subtext": "", "caption": "" },
     { "type": "code-reveal", "language": "", "code": "", "highlightLine": 1, "caption": "" },
-    { "type": "cta", "installCommand": "", "repoUrl": "" }
+    { "type": "cta", "installCommand": "", "repoUrl": "", "caption": "" }
   ]
 }
 ```
@@ -134,6 +136,15 @@ For announcement:
 - Include `terminal` if the key change is a new command or CLI flow.
 - Skip `data-flow` unless the architecture changed.
 - Always end with `cta`.
+
+**Captions:** write a short caption (5–10 words) for each scene. Captions appear as a pill overlay near the bottom of the scene after the main animation settles. They reinforce the scene's point — not a description of what's shown, but the takeaway. Omit the `caption` field or leave it as `""` to skip it for a scene.
+
+Examples:
+- problem → "Developers judge a project in seconds."
+- code-reveal → "One command. One video."
+- terminal → "Works in any repo, no config needed."
+- data-flow → "Claude writes the brief. Remotion does the rest."
+- cta → "Star it, share it, ship it."
 
 **Logo:** if the user provided a logo path, set `"logo": "<filename-only>"` (e.g. `"logo.png"`). Leave as `""` if none.
 

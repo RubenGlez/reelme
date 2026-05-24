@@ -17,7 +17,7 @@ The core loop: install the skill, run `/reelme` in any repo, get a video.
 
 ## V2 — polish and reach
 
-- [ ] Animated captions synced to timeline
+- [x] Animated captions synced to timeline
 - [ ] `npx reelme` CLI entry point (wraps the same Remotion core)
 - [ ] More scene templates — browser demo, mobile screen, side-by-side comparison
 - [x] Logo support in theming

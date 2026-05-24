@@ -15,6 +15,7 @@ export interface ProblemScene {
   type: "problem";
   headline: string;
   subtext?: string;
+  caption?: string;
 }
 
 export interface CodeRevealScene {
@@ -33,6 +34,7 @@ export interface TerminalCommand {
 export interface TerminalScene {
   type: "terminal";
   commands: TerminalCommand[];
+  caption?: string;
 }
 
 export interface DataFlowNode {
@@ -50,12 +52,14 @@ export interface DataFlowScene {
   type: "data-flow";
   nodes: DataFlowNode[];
   edges: DataFlowEdge[];
+  caption?: string;
 }
 
 export interface CTAScene {
   type: "cta";
   installCommand: string;
   repoUrl: string;
+  caption?: string;
 }
 
 export type Scene =

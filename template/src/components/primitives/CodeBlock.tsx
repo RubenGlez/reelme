@@ -6,7 +6,6 @@ interface CodeBlockProps {
   code: string;
   language?: string;
   highlightLine?: number;
-  caption?: string;
   theme: Theme;
   startFrame?: number;
   framesPerLine?: number;
@@ -57,7 +56,6 @@ export const CodeBlock: React.FC<CodeBlockProps> = ({
   code,
   language = "ts",
   highlightLine,
-  caption,
   theme,
   startFrame = 0,
   framesPerLine = 9,
@@ -149,19 +147,6 @@ export const CodeBlock: React.FC<CodeBlockProps> = ({
         </div>
       </div>
 
-      {caption && visibleCount >= lines.length && (
-        <div
-          style={{
-            marginTop: 16,
-            textAlign: "center",
-            color: theme.textMuted,
-            fontSize: 18,
-            fontFamily: theme.fontSans,
-          }}
-        >
-          {caption}
-        </div>
-      )}
     </div>
   );
 };

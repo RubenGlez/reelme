@@ -2,6 +2,7 @@ import React from "react";
 import { AbsoluteFill, useCurrentFrame, useVideoConfig, spring, interpolate, Img, staticFile } from "remotion";
 import { CTAScene as CTABrief, ProjectMeta } from "../../brief";
 import { Theme } from "../../theme";
+import { Caption } from "../primitives/Caption";
 
 interface Props {
   scene: CTABrief;
@@ -99,6 +100,8 @@ export const CTA: React.FC<Props> = ({ scene, theme, project }) => {
           {scene.repoUrl}
         </div>
       )}
+
+      {scene.caption && <Caption text={scene.caption} theme={theme} startFrame={60} />}
     </AbsoluteFill>
   );
 };

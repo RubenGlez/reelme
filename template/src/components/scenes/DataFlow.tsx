@@ -3,6 +3,7 @@ import { AbsoluteFill, useCurrentFrame, useVideoConfig, spring, interpolate } fr
 import { DataFlowScene as DataFlowBrief } from "../../brief";
 import { Theme } from "../../theme";
 import { Arrow } from "../primitives/Arrow";
+import { Caption } from "../primitives/Caption";
 
 interface Props {
   scene: DataFlowBrief;
@@ -28,15 +29,15 @@ export const DataFlow: React.FC<Props> = ({ scene, theme }) => {
     positions[node.id] = { x: startX + i * spacing, y: centerY };
   });
 
-  // Sequential chain: node appears → arrow draws → next node → ...
-  // NODE_SETTLE: frames to wait after a node pops in before its arrow starts
-  // ARROW_DRAW: frames for the arrow spring to finish before the next node appears
   const NODE_SETTLE = 18;
   const ARROW_DRAW = 22;
   const STEP = NODE_SETTLE + ARROW_DRAW; // 40 frames per pair
 
   const nodeStartFrame = (i: number) => i * STEP;
   const arrowStartFrame = (i: number) => i * STEP + NODE_SETTLE;
+
+  // Caption appears after the last node settles
+  const captionStart = (nodeCount - 1) * STEP + NODE_SETTLE + 20;
 
   return (
     <AbsoluteFill style={{ background: theme.bg }}>
@@ -96,6 +97,8 @@ export const DataFlow: React.FC<Props> = ({ scene, theme }) => {
           </div>
         );
       })}
+
+      {scene.caption && <Caption text={scene.caption} theme={theme} startFrame={captionStart} />}
     </AbsoluteFill>
   );
 };
