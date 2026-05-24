@@ -6,7 +6,8 @@
     "installCommand": "npx reelme",
     "repoUrl": "github.com/you/reelme",
     "primaryColor": "#6366f1",
-    "tone": "professional"
+    "tone": "professional",
+    "logo": "logo.svg"
   },
   "scenes": [
     {
@@ -39,16 +40,44 @@
       "caption": "Show, don't tell."
     },
     {
-      "type": "browser",
-      "url": "github.com/you/reelme",
-      "caption": "Ships as a shareable MP4 or GIF."
-    },
-    {
       "type": "code-reveal",
       "language": "ts",
       "code": "// Run /reelme in any Claude Code session\n// Claude reads your repo and asks a few questions\n// Then generates an animated explainer video\n\nconst video = await reelme({\n  repo: '.',\n  primaryColor: '#6366f1',\n});\n\nconsole.log(video.mp4); // video/out/video.mp4",
       "highlightLine": 5,
       "caption": "One command. One video."
+    },
+    {
+      "type": "terminal",
+      "commands": [
+        { "input": "npx reelme", "output": "Reading repo..." },
+        { "input": "", "output": "✔ Inferred: name, tagline, install command" },
+        { "input": "", "output": "? Primary color: #6366f1" },
+        { "input": "", "output": "Rendering video/out/video.mp4 ..." },
+        { "input": "", "output": "✔ Done in 18s" }
+      ],
+      "caption": "Works in any repo, no config needed."
+    },
+    {
+      "type": "data-flow",
+      "nodes": [
+        { "id": "repo", "label": "Your repo" },
+        { "id": "claude", "label": "Claude" },
+        { "id": "brief", "label": "brief.json" },
+        { "id": "remotion", "label": "Remotion" },
+        { "id": "video", "label": "video.mp4" }
+      ],
+      "edges": [
+        { "from": "repo", "to": "claude", "label": "reads" },
+        { "from": "claude", "to": "brief", "label": "writes" },
+        { "from": "brief", "to": "remotion", "label": "drives" },
+        { "from": "remotion", "to": "video", "label": "renders" }
+      ],
+      "caption": "Claude handles the brief. Remotion handles the rendering."
+    },
+    {
+      "type": "browser",
+      "url": "github.com/you/reelme",
+      "caption": "Ships as a shareable MP4 or GIF."
     },
     {
       "type": "cta",
