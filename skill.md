@@ -88,9 +88,12 @@ Write `video/brief.json` to the repo root.
   },
   "scenes": [
     { "type": "problem", "headline": "", "subtext": "", "caption": "" },
+    { "type": "feature-list", "headline": "", "items": [], "caption": "" },
     { "type": "code-reveal", "language": "", "code": "", "highlightLine": 1, "caption": "" },
     { "type": "terminal", "commands": [], "caption": "" },
     { "type": "data-flow", "nodes": [], "edges": [], "caption": "" },
+    { "type": "split", "before": { "label": "", "content": "" }, "after": { "label": "", "content": "" }, "caption": "" },
+    { "type": "browser", "url": "", "caption": "" },
     { "type": "cta", "installCommand": "", "repoUrl": "", "caption": "" }
   ]
 }
@@ -124,17 +127,22 @@ Write `video/brief.json` to the repo root.
 
 For intro:
 - Always include `problem` first and `cta` last.
+- Include `feature-list` to enumerate what the project does (3–5 items max).
 - Include `code-reveal` if there is a good code example.
 - Include `terminal` if the project is a CLI tool or the install/run flow is the main demo.
 - Include `data-flow` if the project has a clear pipeline.
+- Include `split` if the core value is a before/after contrast (DX improvement, verbosity reduction, etc).
+- Include `browser` if the project has a web UI or produces a visual output worth showing.
 - The middle can have 1–3 scenes. Prefer fewer; clarity beats completeness.
 
 For announcement:
 - The `problem` scene acts as the "what's new" opener. Headline = punchy release statement. Subtext = why it matters.
 - Do NOT use the pain-framing for `problem` — use it as a release headline instead.
+- Include `feature-list` if the release has multiple notable changes.
 - Include `code-reveal` if the key change is best shown as code.
 - Include `terminal` if the key change is a new command or CLI flow.
-- Skip `data-flow` unless the architecture changed.
+- Include `split` if the release fixes a pain point that's easy to show as before/after.
+- Skip `data-flow` and `browser` unless directly relevant to what changed.
 - Always end with `cta`.
 
 **Captions:** write a short caption (5–10 words) for each scene. Captions appear as a pill overlay near the bottom of the scene after the main animation settles. They reinforce the scene's point — not a description of what's shown, but the takeaway. Omit the `caption` field or leave it as `""` to skip it for a scene.

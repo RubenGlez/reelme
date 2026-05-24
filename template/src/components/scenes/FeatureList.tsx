@@ -1,0 +1,100 @@
+import React from "react";
+import { AbsoluteFill, useCurrentFrame, useVideoConfig, spring, interpolate } from "remotion";
+import { FeatureListScene as FeatureListBrief } from "../../brief";
+import { Theme } from "../../theme";
+import { Label } from "../primitives/Label";
+import { Caption } from "../primitives/Caption";
+
+interface Props {
+  scene: FeatureListBrief;
+  theme: Theme;
+}
+
+const HEADLINE_FRAMES = 20;
+const FRAMES_PER_ITEM = 25;
+
+export const FeatureList: React.FC<Props> = ({ scene, theme }) => {
+  const frame = useCurrentFrame();
+  const { fps } = useVideoConfig();
+
+  const captionStart = HEADLINE_FRAMES + scene.items.length * FRAMES_PER_ITEM + 20;
+
+  return (
+    <AbsoluteFill
+      style={{
+        background: theme.bg,
+        display: "flex",
+        flexDirection: "column",
+        alignItems: "center",
+        justifyContent: "center",
+        padding: "0 200px",
+      }}
+    >
+      {scene.headline && (
+        <div style={{ marginBottom: 48 }}>
+          <Label text={scene.headline} theme={theme} size="lg" startFrame={0} />
+        </div>
+      )}
+
+      <div style={{ display: "flex", flexDirection: "column", gap: 28, width: "100%" }}>
+        {scene.items.map((item, i) => {
+          const itemStart = HEADLINE_FRAMES + i * FRAMES_PER_ITEM;
+          const progress = spring({ frame: frame - itemStart, fps, config: { damping: 20, stiffness: 100 } });
+          const opacity = interpolate(Math.max(0, progress), [0, 1], [0, 1]);
+          const translateX = interpolate(Math.max(0, progress), [0, 1], [-24, 0]);
+
+          return (
+            <div
+              key={i}
+              style={{
+                display: "flex",
+                alignItems: "center",
+                gap: 24,
+                opacity,
+                transform: `translateX(${translateX}px)`,
+              }}
+            >
+              <div
+                style={{
+                  width: 36,
+                  height: 36,
+                  borderRadius: "50%",
+                  background: theme.accentMuted,
+                  border: `1.5px solid ${theme.accent}`,
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  flexShrink: 0,
+                }}
+              >
+                <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+                  <polyline
+                    points="3,8.5 6.5,12 13,4"
+                    stroke={theme.accent}
+                    strokeWidth="2"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  />
+                </svg>
+              </div>
+              <span
+                style={{
+                  fontFamily: theme.fontSans,
+                  fontSize: 28,
+                  fontWeight: 500,
+                  color: theme.text,
+                  lineHeight: 1.4,
+                  letterSpacing: "-0.01em",
+                }}
+              >
+                {item}
+              </span>
+            </div>
+          );
+        })}
+      </div>
+
+      {scene.caption && <Caption text={scene.caption} theme={theme} startFrame={captionStart} />}
+    </AbsoluteFill>
+  );
+};

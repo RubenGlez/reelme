@@ -62,12 +62,41 @@ export interface CTAScene {
   caption?: string;
 }
 
+export interface BrowserScene {
+  type: "browser";
+  url: string;
+  image?: string;
+  caption?: string;
+}
+
+export interface SplitPanel {
+  label: string;
+  content: string;
+}
+
+export interface SplitScene {
+  type: "split";
+  before: SplitPanel;
+  after: SplitPanel;
+  caption?: string;
+}
+
+export interface FeatureListScene {
+  type: "feature-list";
+  headline?: string;
+  items: string[];
+  caption?: string;
+}
+
 export type Scene =
   | ProblemScene
   | CodeRevealScene
   | TerminalScene
   | DataFlowScene
-  | CTAScene;
+  | CTAScene
+  | BrowserScene
+  | SplitScene
+  | FeatureListScene;
 
 export interface Brief {
   project: ProjectMeta;

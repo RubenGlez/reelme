@@ -41,7 +41,7 @@ template/node_modules/.bin/remotion still Reel out/frame_N.png --frame=N
 
 ### Brief schema (`src/brief.ts`)
 
-The `Brief` type is the contract between the skill interview and the Remotion render. Scene types: `problem`, `code-reveal`, `terminal`, `data-flow`, `cta`. All scene types share an optional `caption?: string` field that renders as a `Caption` pill after the scene's main animation settles. Adding a new scene type means: adding to the union in `brief.ts`, creating a scene component, adding a case in `SceneRenderer`, and adding a duration entry in `SCENE_DURATION_MAP`.
+The `Brief` type is the contract between the skill interview and the Remotion render. Scene types: `problem`, `code-reveal`, `terminal`, `data-flow`, `cta`, `browser`, `split`, `feature-list`. All scene types share an optional `caption?: string` field that renders as a `Caption` pill after the scene's main animation settles. Adding a new scene type means: adding to the union in `brief.ts`, creating a scene component, adding a case in `SceneRenderer`, and adding a duration entry in `SCENE_DURATION_MAP`. `feature-list` duration is computed dynamically from `items.length` in `sceneDuration()` rather than from the map.
 
 `ProjectMeta` has two optional fields that drive mode-specific rendering:
 - `mode: "intro" | "announcement"` — switches Problem scene between accent bar and version badge; switches CTA copy between "Get started with X" and "X is here"

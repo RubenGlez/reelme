@@ -19,7 +19,8 @@ The core loop: install the skill, run `/reelme` in any repo, get a video.
 
 - [x] Animated captions synced to timeline
 - [ ] `npx reelme` CLI entry point (wraps the same Remotion core)
-- [ ] More scene templates — browser demo, mobile screen, side-by-side comparison
+- [x] More scene templates — browser frame, split comparison, feature list
+- [ ] More scene templates — mobile screen, stat callout, file tree
 - [x] Logo support in theming
 - [ ] Remotion Lambda as opt-in for faster rendering
 - [x] Feature announcement mode — interview reads git diff, changelog, or release notes instead of the full README; version badge on Problem scene, "X is here" CTA

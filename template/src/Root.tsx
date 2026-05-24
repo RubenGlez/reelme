@@ -1,12 +1,15 @@
 import React from "react";
 import { AbsoluteFill, Sequence, useVideoConfig } from "remotion";
-import { Brief, ProjectMeta, Scene } from "./brief";
+import { Brief, FeatureListScene, ProjectMeta, Scene } from "./brief";
 import { buildTheme } from "./theme";
 import { Problem } from "./components/scenes/Problem";
 import { CodeReveal } from "./components/scenes/CodeReveal";
 import { TerminalScene } from "./components/scenes/TerminalScene";
 import { DataFlow } from "./components/scenes/DataFlow";
 import { CTA } from "./components/scenes/CTA";
+import { BrowserFrame } from "./components/scenes/BrowserFrame";
+import { SplitComparison } from "./components/scenes/SplitComparison";
+import { FeatureList } from "./components/scenes/FeatureList";
 
 const SCENE_DURATION_MAP: Record<Scene["type"], number> = {
   problem: 120,
@@ -14,9 +17,16 @@ const SCENE_DURATION_MAP: Record<Scene["type"], number> = {
   terminal: 150,
   "data-flow": 200,
   cta: 120,
+  browser: 150,
+  split: 165,
+  "feature-list": 180,
 };
 
 function sceneDuration(scene: Scene): number {
+  if (scene.type === "feature-list") {
+    const s = scene as FeatureListScene;
+    return 20 + s.items.length * 25 + 60;
+  }
   return SCENE_DURATION_MAP[scene.type];
 }
 
@@ -64,6 +74,12 @@ const SceneRenderer: React.FC<SceneRendererProps> = ({ scene, theme, project }) 
       return <DataFlow scene={scene} theme={theme} />;
     case "cta":
       return <CTA scene={scene} theme={theme} project={project} />;
+    case "browser":
+      return <BrowserFrame scene={scene} theme={theme} />;
+    case "split":
+      return <SplitComparison scene={scene} theme={theme} />;
+    case "feature-list":
+      return <FeatureList scene={scene} theme={theme} />;
     default:
       return null;
   }
