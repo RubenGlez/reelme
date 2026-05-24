@@ -11,10 +11,10 @@
 ## Install
 
 ```bash
-git clone https://github.com/RubenGlez/reelme ~/.claude/skills/reelme
+npx skills add RubenGlez/reelme
 ```
 
-That's it. The `/reelme` command is now available in every Claude Code session.
+This installs the `/reelme` skill into Claude Code via [skills.sh](https://skills.sh). The command becomes available in every Claude Code session immediately.
 
 **Requirements:** Claude Code, Node.js ≥18, pnpm
 
