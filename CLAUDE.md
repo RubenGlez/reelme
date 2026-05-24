@@ -6,7 +6,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 `reelme` is a Claude Code skill (`/reelme`) that generates animated explainer videos for open-source projects. It has two parts:
 
-- **`SKILL.md`** — the skill definition; contains the full instructions Claude follows when a user runs `/reelme` in their repo. Has YAML frontmatter (`name`, `description`, `disable-model-invocation`) per the Claude Code skills standard. Users install by cloning the repo to `~/.claude/skills/reelme/`.
+- **`SKILL.md`** — the skill definition; follows the open [Agent Skills](https://agentskills.io) standard, so it works in any compatible agent (Claude Code, Cursor, Gemini CLI, Codex, etc.). Installed via `npx skills add RubenGlez/reelme`. Step 6 locates the skill directory portably with `find "$HOME" -name "SKILL.md" -path "*/reelme/SKILL.md"` rather than any agent-specific variable.
 - **`template/`** — a Remotion project that gets copied into the user's repo and rendered locally
 
 The skill reads the user's repo, runs a brief interview, writes `brief.json`, copies `template/` into the chosen output path, and runs `pnpm render`.

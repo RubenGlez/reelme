@@ -11,7 +11,7 @@ Decisions made before implementation started, resolved through a structured desi
 
 ## Entry point
 
-**Claude Code skill only** (`/reelme`). No npm package, no global install for v1. The target audience is already using Claude Code. A `npx reelme` CLI is a natural v2 if there's demand.
+**Agent skill** (`/reelme`). Follows the open [Agent Skills](https://agentskills.io) standard — works in any compatible agent (Claude Code, Cursor, Gemini CLI, Codex, etc.). Installed via `npx skills add RubenGlez/reelme` through [skills.sh](https://skills.sh). A `npx reelme` standalone CLI is a natural v2 if there's demand.
 
 ## Interview approach
 

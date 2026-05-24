@@ -14,15 +14,15 @@
 npx skills add RubenGlez/reelme
 ```
 
-This installs the `/reelme` skill into Claude Code via [skills.sh](https://skills.sh). The command becomes available in every Claude Code session immediately.
+This installs the `/reelme` skill via [skills.sh](https://skills.sh) into any compatible agent. Works with Claude Code, Cursor, Gemini CLI, OpenAI Codex, and any other [Agent Skills](https://agentskills.io)-compatible tool.
 
-**Requirements:** Claude Code, Node.js ≥18, pnpm
+**Requirements:** Node.js ≥18, pnpm
 
 ---
 
 ## Usage
 
-Open Claude Code inside any repo and run:
+Open your agent inside any repo and run:
 
 ```
 /reelme
