@@ -1,0 +1,30 @@
+{
+  "project": {
+    "name": "reelme",
+    "tagline": "Your README, but as a video.",
+    "problem": "OSS projects go unnoticed because text READMEs don't grab attention.",
+    "installCommand": "npx reelme",
+    "repoUrl": "github.com/you/reelme",
+    "primaryColor": "#6366f1",
+    "tone": "professional"
+  },
+  "scenes": [
+    {
+      "type": "problem",
+      "headline": "Your README doesn't grab attention.",
+      "subtext": "Most people skim past walls of text."
+    },
+    {
+      "type": "code-reveal",
+      "language": "ts",
+      "code": "// Run /reelme in any Claude Code session\n// Claude reads your repo and asks a few questions\n// Then generates an animated explainer video\n\nconst video = await reelme({\n  repo: '.',\n  primaryColor: '#6366f1',\n});\n\nconsole.log(video.mp4); // video/out/video.mp4",
+      "highlightLine": 5,
+      "caption": "One command. One video."
+    },
+    {
+      "type": "cta",
+      "installCommand": "npx reelme",
+      "repoUrl": "github.com/you/reelme"
+    }
+  ]
+}

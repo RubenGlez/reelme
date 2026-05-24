@@ -4,7 +4,10 @@ Decisions made before implementation started, resolved through a structured desi
 
 ## User
 
-**OSS maintainer** — someone who built a library or tool, wants visibility, and has no time or budget for professional video production. Runs this once per project, not repeatedly.
+**OSS maintainer** — someone who built a library or tool, wants visibility, and has no time or budget for professional video production. Two use cases:
+
+- **Project intro** — run once per project to explain what it does. Targets README, landing page, and social sharing.
+- **Feature announcement** — run after shipping a notable release or feature. Reads git diff, changelog, or release notes instead of the full README. Skips the Problem scene; leads with what changed and why it matters. Keeps the same brand/style as previous videos for that project.
 
 ## Entry point
 

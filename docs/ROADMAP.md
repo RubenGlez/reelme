@@ -4,16 +4,16 @@
 
 The core loop: install the skill, run `/reelme` in any repo, get a video.
 
-- [ ] Claude Code skill scaffold (`/reelme` command)
-- [ ] Repo reader — parses README, package.json, key source files
-- [ ] Interview flow — hybrid pre-fill + targeted questions
-- [ ] Brief schema — structured output from the interview that drives rendering
-- [ ] Remotion project scaffolder — generates the project from the brief
-- [ ] Shared primitives — terminal, browser, IDE, mobile, code block, arrow, label
-- [ ] V1 scene templates — Problem, Code reveal, Terminal, Data flow, CTA
-- [ ] Brand-aware theming — color palette from a single hex input via chroma-js
-- [ ] Local render — MP4 + GIF output via `npx remotion render`
-- [ ] Project location prompt — defaults to `video/` in repo
+- [x] Claude Code skill scaffold (`/reelme` command)
+- [x] Repo reader — parses README, package.json, key source files
+- [x] Interview flow — hybrid pre-fill + targeted questions
+- [x] Brief schema — structured output from the interview that drives rendering
+- [x] Remotion project scaffolder — generates the project from the brief
+- [x] Shared primitives — terminal, code block, arrow, label
+- [x] V1 scene templates — Problem, Code reveal, Terminal, Data flow, CTA
+- [x] Brand-aware theming — color palette from a single hex input via chroma-js
+- [x] Local render — MP4 + GIF output via `npx remotion render`
+- [x] Project location prompt — defaults to `video/` in repo
 
 ## V2 — polish and reach
 
@@ -22,6 +22,7 @@ The core loop: install the skill, run `/reelme` in any repo, get a video.
 - [ ] More scene templates — browser demo, mobile screen, side-by-side comparison
 - [ ] Logo support in theming
 - [ ] Remotion Lambda as opt-in for faster rendering
+- [ ] Feature announcement mode — interview reads git diff, changelog, or release notes instead of the full README; skips Problem scene, leads with what changed
 
 ## V3 — ecosystem
 
