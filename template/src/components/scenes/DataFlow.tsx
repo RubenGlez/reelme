@@ -28,6 +28,16 @@ export const DataFlow: React.FC<Props> = ({ scene, theme }) => {
     positions[node.id] = { x: startX + i * spacing, y: centerY };
   });
 
+  // Sequential chain: node appears → arrow draws → next node → ...
+  // NODE_SETTLE: frames to wait after a node pops in before its arrow starts
+  // ARROW_DRAW: frames for the arrow spring to finish before the next node appears
+  const NODE_SETTLE = 18;
+  const ARROW_DRAW = 22;
+  const STEP = NODE_SETTLE + ARROW_DRAW; // 40 frames per pair
+
+  const nodeStartFrame = (i: number) => i * STEP;
+  const arrowStartFrame = (i: number) => i * STEP + NODE_SETTLE;
+
   return (
     <AbsoluteFill style={{ background: theme.bg }}>
       {/* SVG layer for arrows */}
@@ -45,7 +55,7 @@ export const DataFlow: React.FC<Props> = ({ scene, theme }) => {
               y2={to.y + NODE_H / 2}
               label={edge.label}
               theme={theme}
-              startFrame={8 + i * 12}
+              startFrame={arrowStartFrame(i)}
             />
           );
         })}
@@ -54,7 +64,7 @@ export const DataFlow: React.FC<Props> = ({ scene, theme }) => {
       {/* Node boxes */}
       {scene.nodes.map((node, i) => {
         const pos = positions[node.id];
-        const progress = spring({ frame: frame - i * 8, fps, config: { damping: 20, stiffness: 120 } });
+        const progress = spring({ frame: frame - nodeStartFrame(i), fps, config: { damping: 20, stiffness: 120 } });
         const opacity = interpolate(progress, [0, 1], [0, 1]);
         const scale = interpolate(progress, [0, 1], [0.85, 1]);
 

@@ -27,8 +27,8 @@ export const CodeReveal: React.FC<Props> = ({ scene, theme }) => {
           highlightLine={scene.highlightLine}
           caption={scene.caption}
           theme={theme}
-          startFrame={8}
-          framesPerLine={5}
+          startFrame={14}
+          framesPerLine={9}
         />
       </div>
     </AbsoluteFill>

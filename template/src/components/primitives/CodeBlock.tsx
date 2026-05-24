@@ -60,13 +60,13 @@ export const CodeBlock: React.FC<CodeBlockProps> = ({
   caption,
   theme,
   startFrame = 0,
-  framesPerLine = 6,
+  framesPerLine = 9,
 }) => {
   const frame = useCurrentFrame();
   const { fps } = useVideoConfig();
   const elapsed = frame - startFrame;
   const lines = code.split("\n");
-  const visibleCount = Math.min(lines.length, Math.floor(elapsed / framesPerLine) + 1);
+  const visibleCount = Math.max(0, Math.min(lines.length, Math.floor(elapsed / framesPerLine) + 1));
 
   return (
     <div style={{ fontFamily: theme.fontMono, fontSize: 20, lineHeight: 1.7 }}>

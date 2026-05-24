@@ -13,9 +13,9 @@ export const CTA: React.FC<Props> = ({ scene, theme, projectName }) => {
   const frame = useCurrentFrame();
   const { fps } = useVideoConfig();
 
-  const titleProgress = spring({ frame, fps, config: { damping: 18, stiffness: 120 } });
-  const cmdProgress = spring({ frame: frame - 12, fps, config: { damping: 18, stiffness: 120 } });
-  const urlProgress = spring({ frame: frame - 22, fps, config: { damping: 18, stiffness: 120 } });
+  const titleProgress = spring({ frame, fps, config: { damping: 19, stiffness: 90 } });
+  const cmdProgress = spring({ frame: frame - 16, fps, config: { damping: 19, stiffness: 90 } });
+  const urlProgress = spring({ frame: frame - 31, fps, config: { damping: 19, stiffness: 90 } });
 
   const titleOpacity = interpolate(titleProgress, [0, 1], [0, 1]);
   const titleY = interpolate(titleProgress, [0, 1], [24, 0]);

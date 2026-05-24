@@ -25,7 +25,7 @@ export const Label: React.FC<LabelProps> = ({
   const { fps } = useVideoConfig();
   const elapsed = frame - startFrame;
 
-  const progress = spring({ frame: elapsed, fps, config: { damping: 18, stiffness: 120, mass: 0.8 } });
+  const progress = spring({ frame: elapsed, fps, config: { damping: 19, stiffness: 90, mass: 0.9 } });
   const opacity = interpolate(progress, [0, 1], [0, 1]);
   const translateY = interpolate(progress, [0, 1], [20, 0]);
 

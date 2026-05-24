@@ -39,7 +39,7 @@ A library with one killer feature might run 20 seconds. A platform with five dis
 
 Two layers:
 
-- **Shared primitives** — reusable components (terminal window, browser chrome, IDE frame, mobile frame, animated code block, arrow, label). These are the building blocks.
+- **Shared primitives** — reusable components (terminal window, animated code block, arrow, label). These are the building blocks. Browser chrome, mobile frame, and IDE frame are planned for v2.
 - **Scene templates** — pre-composed full scenes built from primitives. What users actually get in v1.
 
 New scene templates can be contributed by the community using existing primitives.

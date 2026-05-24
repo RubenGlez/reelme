@@ -22,6 +22,32 @@
       "caption": "One command. One video."
     },
     {
+      "type": "terminal",
+      "commands": [
+        { "input": "npx reelme", "output": "Reading repo..." },
+        { "input": "", "output": "✔ Inferred: name, tagline, install command" },
+        { "input": "", "output": "? Primary color: #6366f1" },
+        { "input": "", "output": "Rendering video/out/video.mp4 ..." },
+        { "input": "", "output": "✔ Done in 18s" }
+      ]
+    },
+    {
+      "type": "data-flow",
+      "nodes": [
+        { "id": "repo", "label": "Your repo" },
+        { "id": "claude", "label": "Claude" },
+        { "id": "brief", "label": "brief.json" },
+        { "id": "remotion", "label": "Remotion" },
+        { "id": "video", "label": "video.mp4" }
+      ],
+      "edges": [
+        { "from": "repo", "to": "claude", "label": "reads" },
+        { "from": "claude", "to": "brief", "label": "writes" },
+        { "from": "brief", "to": "remotion", "label": "drives" },
+        { "from": "remotion", "to": "video", "label": "renders" }
+      ]
+    },
+    {
       "type": "cta",
       "installCommand": "npx reelme",
       "repoUrl": "github.com/you/reelme"

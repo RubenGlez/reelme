@@ -9,11 +9,11 @@ import { DataFlow } from "./components/scenes/DataFlow";
 import { CTA } from "./components/scenes/CTA";
 
 const SCENE_DURATION_MAP: Record<Scene["type"], number> = {
-  problem: 90,
-  "code-reveal": 120,
-  terminal: 120,
-  "data-flow": 100,
-  cta: 90,
+  problem: 120,
+  "code-reveal": 165,
+  terminal: 150,
+  "data-flow": 200,
+  cta: 120,
 };
 
 function sceneDuration(scene: Scene): number {

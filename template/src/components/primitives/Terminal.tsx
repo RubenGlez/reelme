@@ -19,8 +19,8 @@ export const Terminal: React.FC<TerminalProps> = ({
   lines,
   theme,
   startFrame = 0,
-  framesPerLine = 18,
-  framesPerChar = 1.5,
+  framesPerLine = 23,
+  framesPerChar = 2.0,
 }) => {
   const frame = useCurrentFrame();
   const elapsed = frame - startFrame;
