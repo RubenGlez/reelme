@@ -41,7 +41,7 @@ template/node_modules/.bin/remotion still Reel out/frame_N.png --frame=N
 
 ### Brief schema (`src/brief.ts`)
 
-The `Brief` type is the contract between the skill interview and the Remotion render. Scene types: `problem`, `code-reveal`, `terminal`, `data-flow`, `cta`. Adding a new scene type means: adding to the union in `brief.ts`, creating a scene component, adding a case in `SceneRenderer`, and adding a duration entry in `SCENE_DURATION_MAP`.
+The `Brief` type is the contract between the skill interview and the Remotion render. Scene types: `problem`, `code-reveal`, `terminal`, `data-flow`, `cta`. All scene types share an optional `caption?: string` field that renders as a `Caption` pill after the scene's main animation settles. Adding a new scene type means: adding to the union in `brief.ts`, creating a scene component, adding a case in `SceneRenderer`, and adding a duration entry in `SCENE_DURATION_MAP`.
 
 `ProjectMeta` has two optional fields that drive mode-specific rendering:
 - `mode: "intro" | "announcement"` — switches Problem scene between accent bar and version badge; switches CTA copy between "Get started with X" and "X is here"
@@ -54,6 +54,7 @@ The `Brief` type is the contract between the skill interview and the Remotion re
 - `CodeBlock` — reveals lines progressively, tokenizes for syntax highlighting, highlights a specific line with a spring-animated accent glow
 - `Label` — spring-entrance text with size/muted variants
 - `Arrow` — SVG line with animated `strokeDashoffset` draw-on effect; arrowhead is a separate `<polygon>` that fades in only at `progress > 0.85` to avoid the tip appearing before the line reaches it
+- `Caption` — frosted-glass pill that slides up and fades in via a spring; accepts a `startFrame` so each scene can delay it until after its main animation settles
 
 ### Theming
 
