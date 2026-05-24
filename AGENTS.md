@@ -6,8 +6,8 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 `reelme` is a Claude Code skill (`/reelme`) that generates animated explainer videos for open-source projects. It has two parts:
 
-- **`SKILL.md`** — the skill definition; follows the open [Agent Skills](https://agentskills.io) standard, so it works in any compatible agent (Claude Code, Cursor, Gemini CLI, Codex, etc.). Installed via `npx skills add RubenGlez/reelme`. Step 6 locates the skill directory portably with `find "$HOME" -name "SKILL.md" -path "*/reelme/SKILL.md"` rather than any agent-specific variable.
-- **`template/`** — a Remotion project that gets copied into the user's repo and rendered locally
+- **`SKILL.md`**: the skill definition; follows the open [Agent Skills](https://agentskills.io) standard, so it works in any compatible agent (Claude Code, Cursor, Gemini CLI, Codex, etc.). Installed via `npx skills add RubenGlez/reelme`. Step 6 locates the skill directory portably with `find "$HOME" -name "SKILL.md" -path "*/reelme/SKILL.md"` rather than any agent-specific variable.
+- **`template/`**: a Remotion project that gets copied into the user's repo and rendered locally
 
 The skill reads the user's repo, runs a brief interview, writes `brief.json`, copies `template/` into the chosen output path, and runs `pnpm render`.
 
@@ -44,21 +44,21 @@ template/node_modules/.bin/remotion still Reel out/frame_N.png --frame=N
 The `Brief` type is the contract between the skill interview and the Remotion render. Scene types: `problem`, `code-reveal`, `terminal`, `data-flow`, `cta`, `browser`, `split`, `feature-list`. All scene types share an optional `caption?: string` field that renders as a `Caption` pill after the scene's main animation settles. Adding a new scene type means: adding to the union in `brief.ts`, creating a scene component, adding a case in `SceneRenderer`, and adding a duration entry in `SCENE_DURATION_MAP`. `feature-list` duration is computed dynamically from `items.length` in `sceneDuration()` rather than from the map.
 
 `ProjectMeta` has two optional fields that drive mode-specific rendering:
-- `mode: "intro" | "announcement"` — switches Problem scene between accent bar and version badge; switches CTA copy between "Get started with X" and "X is here"
-- `version` — shown in the version badge and CTA title when `mode === "announcement"`
-- `logo` — filename in `template/public/` (e.g. `"logo.svg"`); rendered via Remotion's `<Img src={staticFile(logo)} />` in the CTA scene
+- `mode: "intro" | "announcement"`: switches Problem scene between accent bar and version badge; switches CTA copy between "Get started with X" and "X is here"
+- `version`: shown in the version badge and CTA title when `mode === "announcement"`
+- `logo`: filename in `template/public/` (e.g. `"logo.svg"`); rendered via Remotion's `<Img src={staticFile(logo)} />` in the CTA scene
 
 ### Primitives (`src/components/primitives/`)
 
-- `Terminal` — types input lines character-by-character, output lines appear at once; driven by `useCurrentFrame()`
-- `CodeBlock` — reveals lines progressively, tokenizes for syntax highlighting, highlights a specific line with a spring-animated accent glow
-- `Label` — spring-entrance text with size/muted variants
-- `Arrow` — SVG line with animated `strokeDashoffset` draw-on effect; arrowhead is a separate `<polygon>` that fades in only at `progress > 0.85` to avoid the tip appearing before the line reaches it
-- `Caption` — frosted-glass pill that slides up and fades in via a spring; accepts a `startFrame` so each scene can delay it until after its main animation settles
+- `Terminal`: types input lines character-by-character, output lines appear at once; driven by `useCurrentFrame()`
+- `CodeBlock`: reveals lines progressively, tokenizes for syntax highlighting, highlights a specific line with a spring-animated accent glow
+- `Label`: spring-entrance text with size/muted variants
+- `Arrow`: SVG line with animated `strokeDashoffset` draw-on effect; arrowhead is a separate `<polygon>` that fades in only at `progress > 0.85` to avoid the tip appearing before the line reaches it
+- `Caption`: frosted-glass pill that slides up and fades in via a spring; accepts a `startFrame` so each scene can delay it until after its main animation settles
 
 ### Theming
 
-`buildTheme(hex)` is the only theming entry point. It mixes the accent color toward a near-black or near-white base depending on luminance, so both light and dark primary colors produce a readable dark-background theme. All components receive a `Theme` object as a prop — no global CSS, no context.
+`buildTheme(hex)` is the only theming entry point. It mixes the accent color toward a near-black or near-white base depending on luminance, so both light and dark primary colors produce a readable dark-background theme. All components receive a `Theme` object as a prop; no global CSS, no context.
 
 ### Skill flow (`SKILL.md`)
 

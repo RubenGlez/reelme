@@ -1,6 +1,6 @@
 ---
 name: reelme
-description: Generate a 2D animated explainer video for any open-source project — MP4, GIF, and editable Remotion source. Use when the user wants to create a demo video, explainer video, or feature announcement video for their project.
+description: Generate a 2D animated explainer video for any open-source project: MP4, GIF, and editable Remotion source. Use when the user wants to create a demo video, explainer video, or feature announcement video for their project.
 license: MIT
 compatibility: Works with any Agent Skills-compatible agent. Requires Node.js >=18 and pnpm on the host machine.
 disable-model-invocation: true
@@ -8,11 +8,11 @@ disable-model-invocation: true
 
 # reelme
 
-Generate a 2D animated explainer video for any open-source project — as an MP4, a GIF, and editable Remotion source.
+Generate a 2D animated explainer video for any open-source project: MP4, GIF, and editable Remotion source.
 
 ---
 
-## Step 1 — Determine mode
+## Step 1: Determine mode
 
 Ask the user one question before reading anything:
 
@@ -22,7 +22,7 @@ Wait for the answer. This determines what to read and how to build the brief.
 
 ---
 
-## Step 2 — Read the repo
+## Step 2: Read the repo
 
 **For intro mode**, read:
 - `README.md`
@@ -30,13 +30,13 @@ Wait for the answer. This determines what to read and how to build the brief.
 - Up to 3 key source files (infer from the README or entry point)
 
 Extract and hold in memory:
-- **name** — project name
-- **tagline** — one sentence describing what it does
-- **problem** — the pain it solves (infer from README "why" sections, motivation, background)
-- **install_command** — the primary install/get-started command
-- **repo_url** — from package.json `repository`, or leave blank
-- **key_feature** — the one thing that makes this project worth using
-- **code_example** — a short, representative code snippet (5–15 lines max) showing the key feature
+- **name**: project name
+- **tagline**: one sentence describing what it does
+- **problem**: the pain it solves (infer from README "why" sections, motivation, background)
+- **install_command**: the primary install/get-started command
+- **repo_url**: from package.json `repository`, or leave blank
+- **key_feature**: the one thing that makes this project worth using
+- **code_example**: a short, representative code snippet (5-15 lines max) showing the key feature
 
 **For announcement mode**, read:
 - `CHANGELOG.md` or `CHANGELOG` (if it exists)
@@ -44,23 +44,23 @@ Extract and hold in memory:
 - `git diff <latest-tag>..HEAD --stat` (to understand what changed)
 
 Extract and hold in memory:
-- **name** — project name (from package.json or git remote)
-- **version** — latest tag or the version being announced (e.g. `v2.0.0`)
-- **headline** — one punchy sentence: what's new ("Feature announcement mode and logo support")
-- **subtext** — one sentence on why it matters
-- **key_change** — the most important change: a code snippet, a command, or a description
-- **install_command** — current install/upgrade command
-- **repo_url** — from package.json `repository`, or leave blank
+- **name**: project name (from package.json or git remote)
+- **version**: latest tag or the version being announced (e.g. `v2.0.0`)
+- **headline**: one punchy sentence: what's new ("Feature announcement mode and logo support")
+- **subtext**: one sentence on why it matters
+- **key_change**: the most important change: a code snippet, a command, or a description
+- **install_command**: current install/upgrade command
+- **repo_url**: from package.json `repository`, or leave blank
 
 Mark each field as `confident` or `uncertain`.
 
 ---
 
-## Step 3 — Interview
+## Step 3: Interview
 
 **Always ask (both modes):**
-- **primary_color** — "What's the project's primary brand color? (hex code, e.g. #6366f1)"
-- **logo** — "Do you have a logo file? (optional — provide a path relative to the repo root, e.g. `assets/logo.png`)"
+- **primary_color**: "What's the project's primary brand color? (hex code, e.g. #6366f1)"
+- **logo**: "Do you have a logo file? (optional; provide a path relative to the repo root, e.g. `assets/logo.png`)"
 
 **Ask only if uncertain:**
 - For each uncertain field, ask a single, direct question. Pre-fill with your best guess.
@@ -71,7 +71,7 @@ Wait for the user's answers before proceeding.
 
 ---
 
-## Step 4 — Build the brief
+## Step 4: Build the brief
 
 Write `video/brief.json` to the repo root.
 
@@ -141,7 +141,7 @@ For intro:
 
 For announcement:
 - The `problem` scene acts as the "what's new" opener. Headline = punchy release statement. Subtext = why it matters.
-- Do NOT use the pain-framing for `problem` — use it as a release headline instead.
+- Do NOT use the pain-framing for `problem`; use it as a release headline instead.
 - Include `feature-list` if the release has multiple notable changes.
 - Include `code-reveal` if the key change is best shown as code.
 - Include `terminal` if the key change is a new command or CLI flow.
@@ -149,7 +149,7 @@ For announcement:
 - Skip `data-flow` and `browser` unless directly relevant to what changed.
 - Always end with `cta`.
 
-**Captions:** write a short caption (5–10 words) for each scene. Captions appear as a pill overlay near the bottom of the scene after the main animation settles. They reinforce the scene's point — not a description of what's shown, but the takeaway. Omit the `caption` field or leave it as `""` to skip it for a scene.
+**Captions:** write a short caption (5-10 words) for each scene. Captions appear as a pill overlay near the bottom of the scene after the main animation settles. They reinforce the scene's point, not a description of what's shown, but the takeaway. Omit the `caption` field or leave it as `""` to skip it for a scene.
 
 Examples:
 - problem → "Developers judge a project in seconds."
@@ -162,7 +162,7 @@ Examples:
 
 ---
 
-## Step 5 — Ask where to put the video project
+## Step 5: Ask where to put the video project
 
 Tell the user: "I'll scaffold the Remotion project at `video/` inside this repo. Is that OK, or do you want a different path?"
 
@@ -170,7 +170,7 @@ Wait for confirmation. Use `video/` if they say yes or don't respond with a path
 
 ---
 
-## Step 6 — Scaffold the Remotion project
+## Step 6: Scaffold the Remotion project
 
 Copy the template:
 
@@ -199,7 +199,7 @@ cd <chosen_path> && pnpm install && pnpm approve-builds --all
 
 ---
 
-## Step 7 — Render
+## Step 7: Render
 
 ```bash
 cd <chosen_path>

@@ -4,34 +4,34 @@ Decisions made before implementation started, resolved through a structured desi
 
 ## User
 
-**OSS maintainer** — someone who built a library or tool, wants visibility, and has no time or budget for professional video production. Two use cases:
+**OSS maintainer**: someone who built a library or tool, wants visibility, and has no time or budget for professional video production. Two use cases:
 
-- **Project intro** — run once per project to explain what it does. Targets README, landing page, and social sharing.
-- **Feature announcement** — run after shipping a notable release or feature. Reads git diff, changelog, or release notes instead of the full README. Skips the Problem scene; leads with what changed and why it matters. Keeps the same brand/style as previous videos for that project.
+- **Project intro**: run once per project to explain what it does. Targets README, landing page, and social sharing.
+- **Feature announcement**: run after shipping a notable release or feature. Reads git diff, changelog, or release notes instead of the full README. Skips the Problem scene, leads with what changed and why it matters. Keeps the same brand/style as previous videos for that project.
 
 ## Entry point
 
-**Agent skill** (`/reelme`). Follows the open [Agent Skills](https://agentskills.io) standard — works in any compatible agent (Claude Code, Cursor, Gemini CLI, Codex, etc.). Installed via `npx skills add RubenGlez/reelme` through [skills.sh](https://skills.sh). A `npx reelme` standalone CLI is a natural v2 if there's demand.
+**Agent skill** (`/reelme`). Follows the open [Agent Skills](https://agentskills.io) standard, works in any compatible agent (Claude Code, Cursor, Gemini CLI, Codex, etc.). Installed via `npx skills add RubenGlez/reelme` through [skills.sh](https://skills.sh). A `npx reelme` standalone CLI is a natural v2 if there's demand.
 
 ## Interview approach
 
-**Hybrid** — Claude reads the repo first (README, package.json, key source files) and pre-fills everything it can confidently infer. Then it asks only about the gaps: things it couldn't determine from the code. The goal is fewer questions with higher-quality answers, not a blank form.
+**Hybrid**: the agent reads the repo first (README, package.json, key source files) and pre-fills everything it can confidently infer. Then it asks only about the gaps, things it couldn't determine from the code. The goal is fewer questions with higher-quality answers, not a blank form.
 
 ## Output
 
 Three artifacts per render:
 
-- `video.mp4` — primary output, for social sharing and landing pages
-- `video.gif` — for README embedding (renders inline on GitHub without click)
-- Remotion source project — so the maintainer can tweak and re-render without rerunning the full flow
+- `video.mp4`: primary output, for social sharing and landing pages
+- `video.gif`: for README embedding (renders inline on GitHub without click)
+- Remotion source project: so the maintainer can tweak and re-render without rerunning the full flow
 
 ## Video structure
 
 Fixed narrative arc, variable length:
 
-1. Problem — establish the pain
-2. Solution/demo — one or more scenes showing the fix (length varies by project complexity)
-3. CTA — install command + repo URL
+1. Problem: establish the pain
+2. Solution/demo: one or more scenes showing the fix (length varies by project complexity)
+3. CTA: install command + repo URL
 
 A library with one killer feature might run 20 seconds. A platform with five distinct use cases might run 45 seconds. The arc is always the same; the middle expands.
 
@@ -39,8 +39,8 @@ A library with one killer feature might run 20 seconds. A platform with five dis
 
 Two layers:
 
-- **Shared primitives** — reusable components (terminal window, animated code block, arrow, label, caption pill). These are the building blocks.
-- **Scene templates** — pre-composed full scenes built from primitives.
+- **Shared primitives**: reusable components (terminal window, animated code block, arrow, label, caption pill). These are the building blocks.
+- **Scene templates**: pre-composed full scenes built from primitives.
 
 New scene templates can be contributed by the community using existing primitives.
 
