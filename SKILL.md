@@ -91,14 +91,82 @@ Write `video/brief.json` to the repo root.
     "logo": ""
   },
   "scenes": [
-    { "type": "problem", "headline": "", "subtext": "", "caption": "" },
-    { "type": "feature-list", "headline": "", "items": [], "caption": "" },
-    { "type": "code-reveal", "language": "", "code": "", "highlightLine": 1, "caption": "" },
-    { "type": "terminal", "commands": [], "caption": "" },
-    { "type": "data-flow", "nodes": [], "edges": [], "caption": "" },
-    { "type": "split", "before": { "label": "", "content": "" }, "after": { "label": "", "content": "" }, "caption": "" },
-    { "type": "browser", "url": "", "caption": "" },
-    { "type": "cta", "installCommand": "", "repoUrl": "", "caption": "" }
+    {
+      "type": "problem",
+      "headline": "",
+      "subtext": "",
+      "caption": ""
+    },
+    {
+      "type": "feature-list",
+      "headline": "",
+      "items": ["", ""],
+      "caption": ""
+    },
+    {
+      "type": "code-reveal",
+      "language": "",
+      "code": "",
+      "highlightLine": 1,
+      "caption": ""
+    },
+    {
+      "type": "terminal",
+      "commands": [
+        { "input": "", "output": "" }
+      ],
+      "caption": ""
+    },
+    {
+      "type": "data-flow",
+      "nodes": [
+        { "id": "", "label": "" }
+      ],
+      "edges": [
+        { "from": "", "to": "", "label": "" }
+      ],
+      "caption": ""
+    },
+    {
+      "type": "split",
+      "before": { "label": "", "content": "" },
+      "after": { "label": "", "content": "" },
+      "caption": ""
+    },
+    {
+      "type": "browser",
+      "url": "",
+      "image": "",
+      "caption": ""
+    },
+    {
+      "type": "stat-callout",
+      "headline": "",
+      "stats": [
+        { "value": "", "label": "" }
+      ],
+      "caption": ""
+    },
+    {
+      "type": "file-tree",
+      "headline": "",
+      "entries": [
+        { "path": "", "type": "file", "highlight": false }
+      ],
+      "caption": ""
+    },
+    {
+      "type": "mobile",
+      "title": "",
+      "image": "",
+      "caption": ""
+    },
+    {
+      "type": "cta",
+      "installCommand": "",
+      "repoUrl": "",
+      "caption": ""
+    }
   ]
 }
 ```
@@ -120,9 +188,52 @@ Write `video/brief.json` to the repo root.
     "logo": ""
   },
   "scenes": [
-    { "type": "problem", "headline": "", "subtext": "", "caption": "" },
-    { "type": "code-reveal", "language": "", "code": "", "highlightLine": 1, "caption": "" },
-    { "type": "cta", "installCommand": "", "repoUrl": "", "caption": "" }
+    {
+      "type": "problem",
+      "headline": "",
+      "subtext": "",
+      "caption": ""
+    },
+    {
+      "type": "feature-list",
+      "headline": "",
+      "items": ["", ""],
+      "caption": ""
+    },
+    {
+      "type": "code-reveal",
+      "language": "",
+      "code": "",
+      "highlightLine": 1,
+      "caption": ""
+    },
+    {
+      "type": "terminal",
+      "commands": [
+        { "input": "", "output": "" }
+      ],
+      "caption": ""
+    },
+    {
+      "type": "split",
+      "before": { "label": "", "content": "" },
+      "after": { "label": "", "content": "" },
+      "caption": ""
+    },
+    {
+      "type": "stat-callout",
+      "headline": "",
+      "stats": [
+        { "value": "", "label": "" }
+      ],
+      "caption": ""
+    },
+    {
+      "type": "cta",
+      "installCommand": "",
+      "repoUrl": "",
+      "caption": ""
+    }
   ]
 }
 ```
@@ -137,6 +248,9 @@ For intro:
 - Include `data-flow` if the project has a clear pipeline.
 - Include `split` if the core value is a before/after contrast (DX improvement, verbosity reduction, etc).
 - Include `browser` if the project has a web UI or produces a visual output worth showing.
+- Include `stat-callout` if the project has compelling numbers (performance, adoption, reduction in code).
+- Include `file-tree` if the project's structure or generated output is itself a selling point.
+- Include `mobile` if the project is a mobile app or has a mobile UI.
 - The middle can have 1–3 scenes. Prefer fewer; clarity beats completeness.
 
 For announcement:
@@ -146,7 +260,8 @@ For announcement:
 - Include `code-reveal` if the key change is best shown as code.
 - Include `terminal` if the key change is a new command or CLI flow.
 - Include `split` if the release fixes a pain point that's easy to show as before/after.
-- Skip `data-flow` and `browser` unless directly relevant to what changed.
+- Include `stat-callout` if the release has measurable improvements (speed, size, lines of code).
+- Skip `data-flow`, `browser`, `file-tree`, and `mobile` unless directly relevant to what changed.
 - Always end with `cta`.
 
 **Captions:** write a short caption (5-10 words) for each scene. Captions appear as a pill overlay near the bottom of the scene after the main animation settles. They reinforce the scene's point, not a description of what's shown, but the takeaway. Omit the `caption` field or leave it as `""` to skip it for a scene.

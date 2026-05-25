@@ -88,6 +88,38 @@ export interface FeatureListScene {
   caption?: string;
 }
 
+export interface StatItem {
+  value: string;
+  label: string;
+}
+
+export interface StatCalloutScene {
+  type: "stat-callout";
+  headline?: string;
+  stats: StatItem[];
+  caption?: string;
+}
+
+export interface FileTreeEntry {
+  path: string;
+  type?: "file" | "dir";
+  highlight?: boolean;
+}
+
+export interface FileTreeScene {
+  type: "file-tree";
+  headline?: string;
+  entries: FileTreeEntry[];
+  caption?: string;
+}
+
+export interface MobileScene {
+  type: "mobile";
+  title?: string;
+  image?: string;
+  caption?: string;
+}
+
 export type Scene =
   | ProblemScene
   | CodeRevealScene
@@ -96,7 +128,10 @@ export type Scene =
   | CTAScene
   | BrowserScene
   | SplitScene
-  | FeatureListScene;
+  | FeatureListScene
+  | StatCalloutScene
+  | FileTreeScene
+  | MobileScene;
 
 export interface Brief {
   project: ProjectMeta;

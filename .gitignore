@@ -1,0 +1,4 @@
+node_modules/
+dist/
+template/node_modules/
+template/out/

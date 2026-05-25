@@ -11,6 +11,9 @@ import { CTA } from "./components/scenes/CTA";
 import { BrowserFrame } from "./components/scenes/BrowserFrame";
 import { SplitComparison } from "./components/scenes/SplitComparison";
 import { FeatureList } from "./components/scenes/FeatureList";
+import { StatCallout } from "./components/scenes/StatCallout";
+import { FileTree } from "./components/scenes/FileTree";
+import { MobileScreen } from "./components/scenes/MobileScreen";
 
 interface ReelProps {
   brief: Brief;
@@ -62,6 +65,12 @@ const SceneRenderer: React.FC<SceneRendererProps> = ({ scene, theme, project }) 
       return <SplitComparison scene={scene} theme={theme} />;
     case "feature-list":
       return <FeatureList scene={scene} theme={theme} />;
+    case "stat-callout":
+      return <StatCallout scene={scene} theme={theme} />;
+    case "file-tree":
+      return <FileTree scene={scene} theme={theme} />;
+    case "mobile":
+      return <MobileScreen scene={scene} theme={theme} />;
     default:
       return null;
   }

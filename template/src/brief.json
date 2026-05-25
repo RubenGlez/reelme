@@ -75,6 +75,35 @@
       "caption": "Claude handles the brief. Remotion handles the rendering."
     },
     {
+      "type": "stat-callout",
+      "headline": "Built for speed.",
+      "stats": [
+        { "value": "10x", "label": "Faster than manual editing" },
+        { "value": "30s", "label": "Average render time" },
+        { "value": "0", "label": "Config files needed" }
+      ],
+      "caption": "Numbers that speak for themselves."
+    },
+    {
+      "type": "file-tree",
+      "headline": "Clean output.",
+      "entries": [
+        { "path": "video/", "type": "dir" },
+        { "path": "video/src/", "type": "dir" },
+        { "path": "video/src/brief.json", "type": "file", "highlight": true },
+        { "path": "video/src/Root.tsx", "type": "file" },
+        { "path": "video/out/", "type": "dir" },
+        { "path": "video/out/video.mp4", "type": "file", "highlight": true },
+        { "path": "video/out/video.gif", "type": "file", "highlight": true }
+      ],
+      "caption": "Edit brief.json, re-run, done."
+    },
+    {
+      "type": "mobile",
+      "title": "reelme",
+      "caption": "Looks great everywhere."
+    },
+    {
       "type": "browser",
       "url": "github.com/you/reelme",
       "caption": "Ships as a shareable MP4 or GIF."
