@@ -5,8 +5,9 @@ import { Brief, Scene } from "../brief";
 describe("sceneDuration", () => {
   it("returns fixed durations for non-dynamic scene types", () => {
     const types = Object.keys(SCENE_DURATION_MAP) as Scene["type"][];
+    const dynamicTypes: Scene["type"][] = ["feature-list", "stat-callout", "file-tree"];
     for (const type of types) {
-      if (type === "feature-list") continue;
+      if (dynamicTypes.includes(type)) continue;
       const scene = { type } as Scene;
       expect(sceneDuration(scene)).toBe(SCENE_DURATION_MAP[type]);
     }
