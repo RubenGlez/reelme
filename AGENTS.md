@@ -67,3 +67,11 @@ The `Brief` type is the contract between the skill interview and the Remotion re
 Steps: read repo → interview (only uncertain fields) → write `brief.json` → confirm output path → `cp -r template/ <path>` → `cp brief.json <path>/src/` → `pnpm install && pnpm approve-builds --all` → `pnpm render`.
 
 The `pnpm approve-builds --all` step is required because esbuild (a Remotion dependency) needs a post-install script. `template/pnpm-workspace.yaml` persists this approval so subsequent installs don't re-prompt.
+
+## Releasing
+
+```bash
+pnpm version patch   # or minor / major
+```
+
+The `postversion` hook pushes the commit and tag automatically. The publish workflow on GitHub Actions fires from the tag and handles building, typechecking, and publishing to npm.

@@ -14,15 +14,13 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
 
-      - uses: pnpm/action-setup@v4
-        with:
-          version: 9
+      - uses: pnpm/action-setup@v5
 
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v5
         with:
-          node-version: 22
+          node-version: 24
           cache: pnpm
           cache-dependency-path: pnpm-lock.yaml
           registry-url: "https://registry.npmjs.org"
@@ -40,6 +38,6 @@ jobs:
         run: pnpm audit --audit-level=high --prod
 
       - name: Publish
-        run: pnpm publish --access public --no-git-checks --provenance
+        run: pnpm publish --access public --provenance --no-git-checks
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
