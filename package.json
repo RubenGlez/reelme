@@ -1,6 +1,6 @@
 {
   "name": "reelme",
-  "version": "0.1.2",
+  "version": "0.1.3",
   "description": "Generate animated explainer videos for any open-source project",
   "bin": {
     "reelme": "./dist/index.js"
