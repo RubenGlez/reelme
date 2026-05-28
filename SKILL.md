@@ -73,7 +73,7 @@ Wait for the user's answers before proceeding.
 
 ## Step 4: Build the brief
 
-Write `video/brief.json` to the repo root.
+Write `.reelme/brief.json` to the repo root.
 
 **Intro mode shape:**
 
@@ -277,11 +277,11 @@ Examples:
 
 ---
 
-## Step 5: Ask where to put the video project
+## Step 5: Ask about gitignore
 
-Tell the user: "I'll scaffold the Remotion project at `video/` inside this repo. Is that OK, or do you want a different path?"
+Tell the user: "I'll scaffold the Remotion project at `.reelme/` in this repo. Do you want to keep it for future edits? If not, I'll add it to `.gitignore`."
 
-Wait for confirmation. Use `video/` if they say yes or don't respond with a path.
+Wait for their answer. If they say no (don't want to keep it), add `.reelme/` to `.gitignore` after scaffolding. If yes, skip that step.
 
 ---
 
@@ -291,25 +291,31 @@ Copy the template (excluding dev-only files):
 
 ```bash
 SKILL_DIR=$(find "$HOME" -maxdepth 6 -name "SKILL.md" -path "*/reelme/SKILL.md" 2>/dev/null | head -1 | xargs dirname)
-rsync -a --exclude='src/__tests__' --exclude='eslint.config.mjs' --exclude='vitest.config.ts' "$SKILL_DIR/template/" "<chosen_path>/"
+rsync -a --exclude='src/__tests__' --exclude='eslint.config.mjs' --exclude='vitest.config.ts' "$SKILL_DIR/template/" ".reelme/"
 ```
 
 Copy `brief.json` into the template:
 
 ```bash
-cp video/brief.json <chosen_path>/src/brief.json
+cp .reelme/brief.json .reelme/src/brief.json
 ```
 
 If the user provided a logo, copy it to the `public/` directory:
 
 ```bash
-cp <logo_path_in_repo> <chosen_path>/public/<logo_filename>
+cp <logo_path_in_repo> .reelme/public/<logo_filename>
+```
+
+If the user chose not to keep the project for future edits, add it to `.gitignore`:
+
+```bash
+echo ".reelme/" >> .gitignore
 ```
 
 Install dependencies:
 
 ```bash
-cd <chosen_path> && pnpm install && pnpm approve-builds --all
+cd .reelme && pnpm install && pnpm approve-builds --all
 ```
 
 ---
@@ -317,15 +323,15 @@ cd <chosen_path> && pnpm install && pnpm approve-builds --all
 ## Step 7: Render
 
 ```bash
-cd <chosen_path>
+cd .reelme
 pnpm render
 ```
 
 This produces:
-- `out/video.mp4`
-- `out/video.gif`
+- `.reelme/out/video.mp4`
+- `.reelme/out/video.gif`
 
-Tell the user where to find the output files and mention they can edit `src/brief.json` + re-run `pnpm render` to tweak without re-running the full interview.
+Tell the user where to find the output files and mention they can edit `.reelme/src/brief.json` + re-run `pnpm render` to tweak without re-running the full interview.
 
 ---
 
