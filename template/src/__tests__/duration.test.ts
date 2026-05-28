@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { sceneDuration, calcTotalDuration, SCENE_DURATION_MAP } from "../duration";
+import { sceneDuration, calcTotalDuration, SCENE_DURATION_MAP, SCENE_TAIL } from "../duration";
 import { Brief, Scene } from "../brief";
 
 describe("sceneDuration", () => {
@@ -9,25 +9,25 @@ describe("sceneDuration", () => {
     for (const type of types) {
       if (dynamicTypes.includes(type)) continue;
       const scene = { type } as Scene;
-      expect(sceneDuration(scene)).toBe(SCENE_DURATION_MAP[type]);
+      expect(sceneDuration(scene)).toBe(SCENE_DURATION_MAP[type] + SCENE_TAIL);
     }
   });
 
   it("computes feature-list duration from item count", () => {
-    expect(sceneDuration({ type: "feature-list", items: [] })).toBe(80);
-    expect(sceneDuration({ type: "feature-list", items: ["a"] })).toBe(105);
-    expect(sceneDuration({ type: "feature-list", items: ["a", "b", "c"] })).toBe(155);
+    expect(sceneDuration({ type: "feature-list", items: [] })).toBe(80 + SCENE_TAIL);
+    expect(sceneDuration({ type: "feature-list", items: ["a"] })).toBe(105 + SCENE_TAIL);
+    expect(sceneDuration({ type: "feature-list", items: ["a", "b", "c"] })).toBe(155 + SCENE_TAIL);
   });
 
   it("computes hotkey duration from key count", () => {
-    expect(sceneDuration({ type: "hotkey", keys: ["⌘"] })).toBe(110);
-    expect(sceneDuration({ type: "hotkey", keys: ["⌘", "⇧", "Space"] })).toBe(150);
+    expect(sceneDuration({ type: "hotkey", keys: ["⌘"] })).toBe(110 + SCENE_TAIL);
+    expect(sceneDuration({ type: "hotkey", keys: ["⌘", "⇧", "Space"] })).toBe(150 + SCENE_TAIL);
   });
 
   it("computes os-window duration from items and search query", () => {
-    expect(sceneDuration({ type: "os-window", items: [] })).toBe(80);
-    expect(sceneDuration({ type: "os-window", items: [{ label: "A" }, { label: "B" }] })).toBe(120);
-    expect(sceneDuration({ type: "os-window", searchQuery: "test", items: [{ label: "A" }] })).toBe(20 + (4 * 3 + 10) + 20 + 60);
+    expect(sceneDuration({ type: "os-window", items: [] })).toBe(80 + SCENE_TAIL);
+    expect(sceneDuration({ type: "os-window", items: [{ label: "A" }, { label: "B" }] })).toBe(120 + SCENE_TAIL);
+    expect(sceneDuration({ type: "os-window", searchQuery: "test", items: [{ label: "A" }] })).toBe(20 + (4 * 3 + 10) + 20 + 60 + SCENE_TAIL);
   });
 });
 
@@ -64,7 +64,7 @@ describe("calcTotalDuration", () => {
         { type: "cta", installCommand: "npx x", repoUrl: "github.com/x" },
       ],
     };
-    expect(calcTotalDuration(brief)).toBe(120 + 120);
+    expect(calcTotalDuration(brief)).toBe((120 + SCENE_TAIL) + (120 + SCENE_TAIL));
   });
 
   it("handles feature-list scenes with dynamic duration", () => {
@@ -82,6 +82,6 @@ describe("calcTotalDuration", () => {
         { type: "feature-list", items: ["a", "b"] },
       ],
     };
-    expect(calcTotalDuration(brief)).toBe(20 + 2 * 25 + 60);
+    expect(calcTotalDuration(brief)).toBe(20 + 2 * 25 + 60 + SCENE_TAIL);
   });
 });

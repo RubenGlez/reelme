@@ -1,5 +1,9 @@
 import { Brief, FeatureListScene, FileTreeScene, HotkeyScene, OSWindowScene, Scene, StatCalloutScene } from "./brief";
 
+// Frames appended after each scene's content animation settles.
+// Gives content time to breathe and provides room for the fade-out.
+export const SCENE_TAIL = 30;
+
 export const SCENE_DURATION_MAP: Record<Scene["type"], number> = {
   problem: 120,
   "code-reveal": 165,
@@ -17,28 +21,27 @@ export const SCENE_DURATION_MAP: Record<Scene["type"], number> = {
 };
 
 export function sceneDuration(scene: Scene): number {
+  let content: number;
   if (scene.type === "feature-list") {
     const s = scene as FeatureListScene;
-    return 20 + s.items.length * 25 + 60;
-  }
-  if (scene.type === "stat-callout") {
+    content = 20 + s.items.length * 25 + 60;
+  } else if (scene.type === "stat-callout") {
     const s = scene as StatCalloutScene;
-    return 20 + s.stats.length * 35 + 60;
-  }
-  if (scene.type === "file-tree") {
+    content = 20 + s.stats.length * 35 + 60;
+  } else if (scene.type === "file-tree") {
     const s = scene as FileTreeScene;
-    return 20 + s.entries.length * 20 + 60;
-  }
-  if (scene.type === "os-window") {
+    content = 20 + s.entries.length * 20 + 60;
+  } else if (scene.type === "os-window") {
     const s = scene as OSWindowScene;
     const searchDuration = s.searchQuery ? s.searchQuery.length * 3 + 10 : 0;
-    return 20 + searchDuration + (s.items?.length ?? 0) * 20 + 60;
-  }
-  if (scene.type === "hotkey") {
+    content = 20 + searchDuration + (s.items?.length ?? 0) * 20 + 60;
+  } else if (scene.type === "hotkey") {
     const s = scene as HotkeyScene;
-    return 20 + s.keys.length * 20 + 70;
+    content = 20 + s.keys.length * 20 + 70;
+  } else {
+    content = SCENE_DURATION_MAP[scene.type];
   }
-  return SCENE_DURATION_MAP[scene.type];
+  return content + SCENE_TAIL;
 }
 
 export function calcTotalDuration(brief: Brief): number {

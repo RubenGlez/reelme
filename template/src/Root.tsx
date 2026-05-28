@@ -1,5 +1,5 @@
 import React from "react";
-import { AbsoluteFill, Sequence } from "remotion";
+import { AbsoluteFill, Sequence, useCurrentFrame, interpolate } from "remotion";
 import { Brief, ProjectMeta, Scene } from "./brief";
 import { buildTheme } from "./theme";
 import { sceneDuration } from "./duration";
@@ -17,6 +17,23 @@ import { FileTree } from "./components/scenes/FileTree";
 import { MobileScreen } from "./components/scenes/MobileScreen";
 import { OSWindow } from "./components/scenes/OSWindowScene";
 import { Hotkey } from "./components/scenes/HotkeyScene";
+
+const FADE_IN = 12;
+const FADE_OUT = 15;
+
+const FadeEnvelope: React.FC<{ durationInFrames: number; children: React.ReactNode }> = ({
+  durationInFrames,
+  children,
+}) => {
+  const frame = useCurrentFrame();
+  const opacity = interpolate(
+    frame,
+    [0, FADE_IN, durationInFrames - FADE_OUT, durationInFrames],
+    [0, 1, 1, 0],
+    { extrapolateLeft: "clamp", extrapolateRight: "clamp" }
+  );
+  return <AbsoluteFill style={{ opacity }}>{children}</AbsoluteFill>;
+};
 
 interface ReelProps {
   brief: Brief;
@@ -37,7 +54,9 @@ export const Reel: React.FC<ReelProps> = ({ brief }) => {
     <AbsoluteFill style={{ background: theme.bg }}>
       {sequenced.map(({ scene, from, duration }, i) => (
         <Sequence key={i} from={from} durationInFrames={duration}>
-          <SceneRenderer scene={scene} theme={theme} project={brief.project} />
+          <FadeEnvelope durationInFrames={duration}>
+            <SceneRenderer scene={scene} theme={theme} project={brief.project} />
+          </FadeEnvelope>
         </Sequence>
       ))}
     </AbsoluteFill>
