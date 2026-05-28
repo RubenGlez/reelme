@@ -49,7 +49,7 @@ The `Brief` type is the contract between the skill interview and the Remotion re
 - `mode: "intro" | "announcement"`: switches Problem scene between accent bar and version badge; switches CTA copy between "Get started with X" and "X is here"
 - `version`: shown in the version badge and CTA title when `mode === "announcement"`
 - `logo`: filename in `template/public/` (e.g. `"logo.svg"`); rendered via Remotion's `<Img src={staticFile(logo)} />` in the CTA scene
-- `tone: "professional" | "playful" | "technical"`: drives the `motion` profile in the theme — spring configs for all animations. professional = moderate (damping 22, stiffness 100), playful = bouncy (damping 11, stiffness 130), technical = tight (damping 30, stiffness 140)
+- `tone: "professional" | "playful" | "technical"`: drives both the `motion` profile (spring configs) and the default font pair. professional = Inter + JetBrains Mono, moderate springs. playful = Nunito + JetBrains Mono, bouncy springs. technical = IBM Plex Sans + Space Mono, tight springs. Explicit `font`/`monoFont` fields override the tone defaults.
 - `bgStyle?: "deep" | "branded" | "light"`: controls background mix ratio. deep = near-black (default, 0.92 mix). branded = visibly tinted (0.76 mix). light = white-based with dark text
 - `format?: "16:9" | "1:1" | "9:16"`: sets composition dimensions. 16:9 = 1920×1080 (default), 1:1 = 1080×1080, 9:16 = 1080×1920
 

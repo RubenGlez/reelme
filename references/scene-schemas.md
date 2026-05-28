@@ -91,18 +91,27 @@ When in doubt, use `"fade"`. A single consistent transition style across all sce
 
 ## Fonts
 
-`font` (sans): `"Inter"` · `"Space Grotesk"` · `"DM Sans"` · `"Syne"` · `"Plus Jakarta Sans"` · `"Nunito"` · `"IBM Plex Sans"`
+`font` and `monoFont` are optional. When omitted, `tone` picks the defaults:
 
-Pick by project character:
-- **Inter** — clean, neutral; safe default
-- **Space Grotesk** — geometric, techy; CLI tools, dev utilities, startups
+| tone | sans default | mono default |
+|---|---|---|
+| `professional` | Inter | JetBrains Mono |
+| `playful` | Nunito | JetBrains Mono |
+| `technical` | IBM Plex Sans | Space Mono |
+
+Override only when the tone default doesn't match the project's brand.
+
+`font` (sans) options: `"Inter"` · `"Space Grotesk"` · `"DM Sans"` · `"Syne"` · `"Plus Jakarta Sans"` · `"Nunito"` · `"IBM Plex Sans"`
+
+- **Inter** — clean, neutral
+- **Space Grotesk** — geometric, techy; CLI tools, startups
 - **DM Sans** — warm, rounded; libraries, friendly APIs
 - **Syne** — bold, display; announcements, product launches
 - **Plus Jakarta Sans** — modern, professional; SaaS, design tools
 - **Nunito** — playful; educational tools, creative projects
 - **IBM Plex Sans** — precise; infrastructure, databases, enterprise
 
-`monoFont`: `"JetBrains Mono"` (default) · `"Space Mono"` (retro/hacker feel, good for CLI-first tools)
+`monoFont` options: `"JetBrains Mono"` · `"Space Mono"` (retro/hacker feel)
 
 ---
 

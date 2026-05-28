@@ -62,6 +62,33 @@ describe("buildTheme", () => {
     });
   });
 
+  describe("tone → font defaults", () => {
+    it("professional defaults to Inter", () => {
+      const theme = buildTheme("#6366f1", undefined, undefined, "professional");
+      expect(theme.fontSans).toContain("Inter");
+    });
+
+    it("playful defaults to Nunito", () => {
+      const theme = buildTheme("#6366f1", undefined, undefined, "playful");
+      expect(theme.fontSans).toContain("Nunito");
+    });
+
+    it("technical defaults to IBM Plex Sans", () => {
+      const theme = buildTheme("#6366f1", undefined, undefined, "technical");
+      expect(theme.fontSans).toContain("IBM Plex");
+    });
+
+    it("technical defaults to Space Mono for mono", () => {
+      const theme = buildTheme("#6366f1", undefined, undefined, "technical");
+      expect(theme.fontMono).toContain("Space Mono");
+    });
+
+    it("explicit font overrides the tone default", () => {
+      const theme = buildTheme("#6366f1", "Syne", undefined, "playful");
+      expect(theme.fontSans).toContain("Syne");
+    });
+  });
+
   describe("bgStyle → background darkness", () => {
     it("deep produces dark text (near-black bg)", () => {
       const theme = buildTheme("#6366f1", undefined, undefined, undefined, "deep");

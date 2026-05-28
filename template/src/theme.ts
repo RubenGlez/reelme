@@ -27,6 +27,12 @@ const MOTION_PROFILES: Record<string, MotionProfile> = {
   technical:    { damping: 30, stiffness: 140, mass: 1.2 },
 };
 
+const TONE_FONTS: Record<string, { sans: string; mono: string }> = {
+  professional: { sans: "Inter",        mono: "JetBrains Mono" },
+  playful:      { sans: "Nunito",        mono: "JetBrains Mono" },
+  technical:    { sans: "IBM Plex Sans", mono: "Space Mono" },
+};
+
 export function buildTheme(
   primaryHex: string,
   font?: string,
@@ -62,7 +68,9 @@ export function buildTheme(
   }
 
   const accentMuted = accent.alpha(0.18).css();
-  const motion = MOTION_PROFILES[tone ?? "professional"] ?? MOTION_PROFILES.professional;
+  const toneKey = tone ?? "professional";
+  const motion = MOTION_PROFILES[toneKey] ?? MOTION_PROFILES.professional;
+  const toneFont = TONE_FONTS[toneKey] ?? TONE_FONTS.professional;
 
   return {
     bg,
@@ -73,8 +81,8 @@ export function buildTheme(
     textMuted,
     textInverse,
     border,
-    fontMono: resolveMonoFont(monoFont),
-    fontSans: resolveSansFont(font),
+    fontMono: resolveMonoFont(monoFont ?? toneFont.mono),
+    fontSans: resolveSansFont(font ?? toneFont.sans),
     motion,
   };
 }
