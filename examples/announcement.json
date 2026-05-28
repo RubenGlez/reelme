@@ -1,0 +1,52 @@
+{
+  "project": {
+    "name": "reelme",
+    "tagline": "Your README, but as a video.",
+    "problem": "OSS projects go unnoticed because text READMEs don't grab attention.",
+    "installCommand": "npx skills add RubenGlez/reelme",
+    "repoUrl": "github.com/RubenGlez/reelme",
+    "primaryColor": "#6366f1",
+    "tone": "playful",
+    "mode": "announcement",
+    "version": "v0.2",
+    "logo": "logo.png",
+    "transition": "zoom",
+    "bgStyle": "branded",
+    "format": "16:9"
+  },
+  "scenes": [
+    {
+      "type": "problem",
+      "headline": "reelme v0.2 is here.",
+      "hero": true,
+      "caption": "Smarter videos, more personality."
+    },
+    {
+      "type": "feature-list",
+      "headline": "What's new",
+      "items": [
+        { "text": "Tone drives fonts and physics automatically", "icon": "zap" },
+        { "text": "Three background styles: deep, branded, light", "icon": "eye" },
+        { "text": "Square and vertical formats for social", "icon": "globe" },
+        { "text": "Hero mode for high-impact openers", "icon": "star" }
+      ],
+      "caption": "Less config. More character."
+    },
+    {
+      "type": "terminal",
+      "commands": [
+        { "input": "npx skills add RubenGlez/reelme", "output": "✔ Skill installed" },
+        { "input": "/reelme", "output": "Reading repo..." },
+        { "input": "", "output": "✔ Brief written. Rendering..." },
+        { "input": "", "output": "✔ out/video.mp4 ready in 24s" }
+      ],
+      "caption": "Same one command. Now with more soul."
+    },
+    {
+      "type": "cta",
+      "installCommand": "npx skills add RubenGlez/reelme",
+      "repoUrl": "github.com/RubenGlez/reelme",
+      "caption": "Upgrade today."
+    }
+  ]
+}

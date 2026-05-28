@@ -10,29 +10,17 @@
 
 ## Install
 
-**As an agent skill (recommended):**
-
 ```bash
 npx skills add RubenGlez/reelme
 ```
 
-This installs the `/reelme` skill via [skills.sh](https://skills.sh) into any compatible agent: Claude Code, Cursor, Gemini CLI, OpenAI Codex, and any other [Agent Skills](https://agentskills.io)-compatible tool.
-
-**As a standalone CLI:**
-
-```bash
-npx reelme
-```
-
-No agent required. Scaffold and render from a `brief.json` you write or generate yourself.
+Installs the `/reelme` skill via [skills.sh](https://skills.sh) into any compatible agent: Claude Code, Cursor, Gemini CLI, OpenAI Codex, and any other [Agent Skills](https://agentskills.io)-compatible tool.
 
 **Requirements:** Node.js >=18, pnpm
 
 ---
 
 ## Usage
-
-### With an agent (AI-powered)
 
 Open your agent inside any repo and run:
 
@@ -43,31 +31,32 @@ Open your agent inside any repo and run:
 The agent will:
 1. Ask whether this is a **project intro** or a **feature announcement**
 2. Read your repo and pre-fill everything it can infer
-3. Ask only about the gaps (brand color, logo, anything uncertain)
-4. Scaffold a Remotion project and render your video locally
+3. Ask only about the gaps (brand color, logo, background style, output format, anything uncertain)
+4. Propose a scene outline for your approval
+5. Scaffold a Remotion project at `.reelme/` and render locally
 
-Output lands at `video/out/video.mp4` and `video/out/video.gif` by default.
+Output: `.reelme/out/video.mp4` and `.reelme/out/video.gif`
 
-### With the CLI (manual)
-
-```bash
-# Create a starter brief.json in the current directory
-npx reelme init
-
-# Edit brief.json, then render
-npx reelme render
-
-# Options
-npx reelme render --brief path/to/brief.json --out path/to/output
-```
+After the first render, edit `.reelme/src/brief.json` and run `cd .reelme && pnpm render` to iterate without restarting the interview.
 
 ---
 
 ## Two modes
 
-**Project intro:** run once per project. The agent reads your README and source files, figures out what makes it worth using, and builds a full explainer.
+**Project intro** — run once per project. The agent reads your README and source files, figures out what makes it worth using, and builds a full explainer.
 
-**Feature announcement:** run after a release. The agent reads your changelog and recent git history, focuses on what changed and why it matters, and keeps your existing brand.
+**Feature announcement** — run after a release. The agent reads your changelog and recent git history, focuses on what changed and why it matters, and keeps your existing brand.
+
+---
+
+## Examples
+
+See the [`examples/`](./examples/) directory for ready-to-use `brief.json` files:
+
+- [`examples/intro.json`](./examples/intro.json) — project intro (professional tone, deep background, 16:9)
+- [`examples/announcement.json`](./examples/announcement.json) — feature announcement (playful tone, branded background, feature-list with icons)
+
+Copy either file to `.reelme/src/brief.json`, drop your logo in `.reelme/public/`, then run `cd .reelme && pnpm render`.
 
 ---
 
@@ -76,30 +65,18 @@ npx reelme render --brief path/to/brief.json --out path/to/output
 | Scene | What it shows |
 |---|---|
 | `problem` | The pain your project solves, or a release headline |
-| `feature-list` | Key features or changes, revealed one by one |
+| `feature-list` | Features or changes revealed one by one; each item can have an icon |
 | `code-reveal` | A code snippet typing itself in, key line highlighted |
 | `terminal` | Commands running, output appearing progressively |
 | `data-flow` | Nodes and arrows showing how data moves through your system |
-| `split` | Before/after contrast, great for DX improvements |
+| `split` | Before/after contrast — great for DX improvements |
 | `browser` | A mock browser window with your URL or a screenshot |
 | `stat-callout` | Big animated numbers — great for benchmarks or milestones |
 | `file-tree` | A directory tree that reveals entry by entry |
 | `mobile` | A phone frame with your app UI or a screenshot |
-| `cta` | Install command and repo URL |
-
-The agent picks the right scenes for your project. You can also edit `video/src/brief.json` directly and re-run `pnpm render` to tweak without restarting the interview.
-
----
-
-## Customization
-
-Everything is driven by `video/src/brief.json`. After the first render, edit it and run:
-
-```bash
-cd video && pnpm render
-```
-
-The Remotion source is yours to adjust: timing, copy, colors, scenes.
+| `os-window` | A macOS-style spotlight/command palette window |
+| `hotkey` | A keyboard shortcut with animated key presses |
+| `cta` | Install command and repo URL — always last |
 
 ---
 
@@ -112,26 +89,41 @@ The Remotion source is yours to adjust: timing, copy, colors, scenes.
 | `name` | string | Project name |
 | `tagline` | string | One-line description |
 | `primaryColor` | string | Hex color, e.g. `#6366f1` |
-| `tone` | `"professional"` \| `"playful"` \| `"technical"` | |
+| `tone` | `"professional"` \| `"playful"` \| `"technical"` | Drives font and animation physics. professional → Inter + moderate springs. playful → Nunito + bouncy springs. technical → IBM Plex Sans + Space Mono + tight springs. |
 | `mode` | `"intro"` \| `"announcement"` | Default: `"intro"` |
+| `bgStyle` | `"deep"` \| `"branded"` \| `"light"` | Background darkness. deep = near-black (default). branded = accent tints the background. light = white-based. |
+| `format` | `"16:9"` \| `"1:1"` \| `"9:16"` | Output dimensions. 16:9 = 1920×1080 (default). 1:1 = 1080×1080. 9:16 = 1080×1920. |
+| `transition` | `"fade"` \| `"slide"` \| `"zoom"` | Scene transition style. Default: `"fade"` |
 | `installCommand` | string | e.g. `npm install mylib` |
 | `repoUrl` | string | e.g. `github.com/you/mylib` |
-| `logo` | string | Filename in `video/public/`, e.g. `logo.svg` |
+| `logo` | string | Filename in `.reelme/public/`, e.g. `logo.png` |
+| `font` | string | Sans font override. Overrides the tone default. |
+| `monoFont` | string | Mono font override. Overrides the tone default. |
 | `version` | string | Announcement mode only, e.g. `v2.0.0` |
 
 ### `scenes`
 
-Each scene has a `type` plus type-specific fields. All scenes accept an optional `caption` (5–10 word takeaway shown as a pill overlay).
+All scenes accept an optional `caption` — a 5–10 word takeaway shown as a pill overlay after the animation settles.
 
-**`problem`** — animated headline, good for opening or release announcements
+**`problem`** — animated headline; use as the opening scene
 ```json
-{ "type": "problem", "headline": "", "subtext": "", "caption": "" }
+{ "type": "problem", "headline": "", "hero": true, "subtext": "", "caption": "" }
 ```
+Set `"hero": true` for a full-bleed 104px headline with no subtext. Omit for the standard layout with a subtext line.
 
-**`feature-list`** — bullet points that reveal one by one
+**`feature-list`** — items revealed one by one
 ```json
-{ "type": "feature-list", "headline": "", "items": ["", ""], "caption": "" }
+{
+  "type": "feature-list",
+  "headline": "",
+  "items": [
+    { "text": "Zero config needed", "icon": "zap" },
+    { "text": "Works with any language", "icon": "globe" }
+  ],
+  "caption": ""
+}
 ```
+Items can be plain strings or `{ text, icon }` objects. When `icon` is set, the bullet shows the icon; otherwise it shows the item number. Available icon names: `zap` `star` `globe` `check` `code` `terminal` `database` `server` `lock` `shield` `eye` `download` `upload` `user` `users` `settings` `clock` `package` `file` `folder` `search` `arrow-right` and more — see [`references/scene-schemas.md`](./references/scene-schemas.md).
 
 **`code-reveal`** — code that types itself in, one line highlighted
 ```json
@@ -147,8 +139,8 @@ Each scene has a `type` plus type-specific fields. All scenes accept an optional
 ```json
 {
   "type": "data-flow",
-  "nodes": [{ "id": "", "label": "" }],
-  "edges": [{ "from": "", "to": "", "label": "" }],
+  "nodes": [{ "id": "a", "label": "Input" }, { "id": "b", "label": "Output" }],
+  "edges": [{ "from": "a", "to": "b", "label": "transforms" }],
   "caption": ""
 }
 ```
@@ -158,12 +150,12 @@ Each scene has a `type` plus type-specific fields. All scenes accept an optional
 { "type": "split", "before": { "label": "", "content": "" }, "after": { "label": "", "content": "" }, "caption": "" }
 ```
 
-**`browser`** — mock browser window; provide `image` (filename in `video/public/`) or leave blank for a wireframe
+**`browser`** — mock browser window; provide `image` (filename in `.reelme/public/`) or leave blank for a wireframe
 ```json
 { "type": "browser", "url": "", "image": "", "caption": "" }
 ```
 
-**`stat-callout`** — big animated numbers, great for benchmarks
+**`stat-callout`** — big animated numbers; use as the penultimate scene (proof before the CTA)
 ```json
 { "type": "stat-callout", "headline": "", "stats": [{ "value": "10x", "label": "faster" }], "caption": "" }
 ```
@@ -173,14 +165,33 @@ Each scene has a `type` plus type-specific fields. All scenes accept an optional
 {
   "type": "file-tree",
   "headline": "",
-  "entries": [{ "path": "src/", "type": "dir" }, { "path": "src/index.ts", "type": "file", "highlight": true }],
+  "entries": [
+    { "path": "src/", "type": "dir" },
+    { "path": "src/index.ts", "type": "file", "highlight": true }
+  ],
   "caption": ""
 }
 ```
 
-**`mobile`** — phone frame; provide `image` (filename in `video/public/`) or leave blank for a wireframe
+**`mobile`** — phone frame; provide `image` or leave blank for a wireframe
 ```json
 { "type": "mobile", "title": "", "image": "", "caption": "" }
+```
+
+**`os-window`** — macOS-style spotlight/command palette window
+```json
+{
+  "type": "os-window",
+  "title": "",
+  "searchQuery": "",
+  "items": [{ "icon": "key", "label": "", "value": "", "highlighted": false }],
+  "caption": ""
+}
+```
+
+**`hotkey`** — animated keyboard shortcut
+```json
+{ "type": "hotkey", "keys": ["⌘", "⇧", "P"], "action": "Open command palette", "caption": "" }
 ```
 
 **`cta`** — install command and repo URL, always last

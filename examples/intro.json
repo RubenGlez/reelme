@@ -1,0 +1,52 @@
+{
+  "project": {
+    "name": "reelme",
+    "tagline": "Your README, but as a video.",
+    "problem": "OSS projects go unnoticed because text READMEs don't grab attention.",
+    "installCommand": "npx skills add RubenGlez/reelme",
+    "repoUrl": "github.com/RubenGlez/reelme",
+    "primaryColor": "#6366f1",
+    "tone": "professional",
+    "mode": "intro",
+    "logo": "logo.png",
+    "transition": "fade",
+    "bgStyle": "deep",
+    "format": "16:9"
+  },
+  "scenes": [
+    {
+      "type": "problem",
+      "headline": "Your README doesn't grab attention.",
+      "hero": true,
+      "caption": "Developers judge a project in seconds."
+    },
+    {
+      "type": "split",
+      "before": {
+        "label": "Without reelme",
+        "content": "# My Project\n\nA tool that does X.\n\n## Install\n\nnpm install my-project\n\n## Usage\n\n..."
+      },
+      "after": {
+        "label": "With reelme",
+        "content": "▶  30-second animated video\n   showing exactly what it does,\n   how to install it, and why\n   it's worth your time."
+      },
+      "caption": "Show, don't tell."
+    },
+    {
+      "type": "stat-callout",
+      "headline": "Built for speed.",
+      "stats": [
+        { "value": "30s", "label": "Average render time" },
+        { "value": "0", "label": "Config files needed" },
+        { "value": "13", "label": "Scene types" }
+      ],
+      "caption": "One command. One video."
+    },
+    {
+      "type": "cta",
+      "installCommand": "npx skills add RubenGlez/reelme",
+      "repoUrl": "github.com/RubenGlez/reelme",
+      "caption": "Star it, share it, ship it."
+    }
+  ]
+}

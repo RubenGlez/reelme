@@ -49,7 +49,7 @@ New scene templates can be contributed by the community using existing primitive
 | Scene | Description |
 |---|---|
 | Problem | Animated headline establishing the pain point or release headline. |
-| Feature list | Bullet points that reveal one by one with checkmark icons. |
+| Feature list | Bullet points that reveal one by one; each item shows a numbered bullet or an icon from the registry. |
 | Code reveal | IDE/editor window. Code types itself in line by line, key line highlighted. |
 | Terminal | Terminal window. Commands appear, output streams progressively. |
 | Data flow | Arrows and nodes showing how data moves through a system. |
