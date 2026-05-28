@@ -1,6 +1,6 @@
 ---
 name: reelme
-description: Generate a 2D animated explainer video for any open-source project: MP4, GIF, and editable Remotion source. Use when the user wants to create a demo video, explainer video, or feature announcement video for their project.
+description: "Generate a 2D animated explainer video for any open-source project: MP4, GIF, and editable Remotion source. Use when the user wants to create a demo video, explainer video, or feature announcement video for their project."
 license: MIT
 compatibility: Works with any Agent Skills-compatible agent. Requires Node.js >=18 and pnpm on the host machine.
 disable-model-invocation: true
