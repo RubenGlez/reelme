@@ -55,7 +55,7 @@ Rules: use plain language; name actual content (not abstractions); keep to 3–6
 
 ## Step 5: Build the brief
 
-Read [`references/scene-schemas.md`](references/scene-schemas.md) for the full JSON shapes, font options, caption guidance, and icon registry.
+Read [`references/scene-schemas.md`](references/scene-schemas.md) for the full JSON shapes, transition options, font options, caption guidance, and icon registry.
 
 Write `.reelme/brief.json` using only the scenes the user approved in Step 4.
 

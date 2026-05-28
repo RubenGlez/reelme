@@ -19,7 +19,8 @@ Read this file during Step 5 (Build the brief) to get the full JSON shapes, scen
     "mode": "intro",
     "logo": "",
     "font": "",
-    "monoFont": ""
+    "monoFont": "",
+    "transition": "fade"
   },
   "scenes": [
     { "type": "problem", "headline": "", "subtext": "", "caption": "" },
@@ -55,7 +56,8 @@ Read this file during Step 5 (Build the brief) to get the full JSON shapes, scen
     "version": "",
     "logo": "",
     "font": "",
-    "monoFont": ""
+    "monoFont": "",
+    "transition": "fade"
   },
   "scenes": [
     { "type": "problem", "headline": "", "subtext": "", "caption": "" },
@@ -68,6 +70,18 @@ Read this file during Step 5 (Build the brief) to get the full JSON shapes, scen
   ]
 }
 ```
+
+---
+
+## Transition
+
+One global transition style applied to every scene cut. Pick based on `tone` + `mode`:
+
+- `"fade"` — dissolve to background. Default. Suits professional intros, neutral tones, most libraries and dev tools.
+- `"slide"` — content slides up in, out to top. More kinetic. Suits energetic projects, vibrant colors, CLI tools with a bold personality.
+- `"zoom"` — slight scale-in + fade. Punchy. Suits announcements and bold product launches.
+
+When in doubt, use `"fade"`. A single consistent transition style across all scenes always beats mixing multiple types.
 
 ---
 

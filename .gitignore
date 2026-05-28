@@ -6,3 +6,4 @@ template/public/logo.svg
 .playwright-mcp/
 .agents/
 skills-lock.json
+.reelme/

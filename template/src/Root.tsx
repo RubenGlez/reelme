@@ -21,17 +21,27 @@ import { Hotkey } from "./components/scenes/HotkeyScene";
 const FADE_IN = 12;
 const FADE_OUT = 15;
 
-const FadeEnvelope: React.FC<{ durationInFrames: number; children: React.ReactNode }> = ({
-  durationInFrames,
-  children,
-}) => {
+const TransitionEnvelope: React.FC<{
+  durationInFrames: number;
+  transition: "fade" | "slide" | "zoom";
+  children: React.ReactNode;
+}> = ({ durationInFrames, transition, children }) => {
   const frame = useCurrentFrame();
-  const opacity = interpolate(
-    frame,
-    [0, FADE_IN, durationInFrames - FADE_OUT, durationInFrames],
-    [0, 1, 1, 0],
-    { extrapolateLeft: "clamp", extrapolateRight: "clamp" }
-  );
+  const keys = [0, FADE_IN, durationInFrames - FADE_OUT, durationInFrames];
+  const opts = { extrapolateLeft: "clamp" as const, extrapolateRight: "clamp" as const };
+
+  const opacity = interpolate(frame, keys, [0, 1, 1, 0], opts);
+
+  if (transition === "slide") {
+    const translateY = interpolate(frame, keys, [30, 0, 0, -30], opts);
+    return <AbsoluteFill style={{ opacity, transform: `translateY(${translateY}px)` }}>{children}</AbsoluteFill>;
+  }
+
+  if (transition === "zoom") {
+    const scale = interpolate(frame, keys, [0.95, 1, 1, 1.04], opts);
+    return <AbsoluteFill style={{ opacity, transform: `scale(${scale})` }}>{children}</AbsoluteFill>;
+  }
+
   return <AbsoluteFill style={{ opacity }}>{children}</AbsoluteFill>;
 };
 
@@ -54,9 +64,9 @@ export const Reel: React.FC<ReelProps> = ({ brief }) => {
     <AbsoluteFill style={{ background: theme.bg }}>
       {sequenced.map(({ scene, from, duration }, i) => (
         <Sequence key={i} from={from} durationInFrames={duration}>
-          <FadeEnvelope durationInFrames={duration}>
+          <TransitionEnvelope durationInFrames={duration} transition={brief.project.transition ?? "fade"}>
             <SceneRenderer scene={scene} theme={theme} project={brief.project} />
-          </FadeEnvelope>
+          </TransitionEnvelope>
         </Sequence>
       ))}
     </AbsoluteFill>

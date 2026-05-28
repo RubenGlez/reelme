@@ -11,6 +11,7 @@ export interface ProjectMeta {
   logo?: string;
   font?: string;
   monoFont?: string;
+  transition?: "fade" | "slide" | "zoom";
 }
 
 export interface ProblemScene {
