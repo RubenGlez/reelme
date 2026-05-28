@@ -100,7 +100,6 @@ rsync -a \
   --exclude='.gitignore' \
   --exclude='src/__tests__' \
   --exclude='src/brief.json' \
-  --exclude='src/showcase.json' \
   --exclude='eslint.config.mjs' \
   --exclude='vitest.config.ts' \
   --exclude='out' \
