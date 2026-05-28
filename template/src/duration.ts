@@ -1,4 +1,4 @@
-import { Brief, FeatureListScene, FileTreeScene, Scene, StatCalloutScene } from "./brief";
+import { Brief, FeatureListScene, FileTreeScene, HotkeyScene, OSWindowScene, Scene, StatCalloutScene } from "./brief";
 
 export const SCENE_DURATION_MAP: Record<Scene["type"], number> = {
   problem: 120,
@@ -12,6 +12,8 @@ export const SCENE_DURATION_MAP: Record<Scene["type"], number> = {
   "stat-callout": 180,
   "file-tree": 200,
   mobile: 150,
+  "os-window": 180,
+  hotkey: 120,
 };
 
 export function sceneDuration(scene: Scene): number {
@@ -26,6 +28,15 @@ export function sceneDuration(scene: Scene): number {
   if (scene.type === "file-tree") {
     const s = scene as FileTreeScene;
     return 20 + s.entries.length * 20 + 60;
+  }
+  if (scene.type === "os-window") {
+    const s = scene as OSWindowScene;
+    const searchDuration = s.searchQuery ? s.searchQuery.length * 3 + 10 : 0;
+    return 20 + searchDuration + (s.items?.length ?? 0) * 20 + 60;
+  }
+  if (scene.type === "hotkey") {
+    const s = scene as HotkeyScene;
+    return 20 + s.keys.length * 20 + 70;
   }
   return SCENE_DURATION_MAP[scene.type];
 }

@@ -3,6 +3,7 @@ import { AbsoluteFill, Sequence } from "remotion";
 import { Brief, ProjectMeta, Scene } from "./brief";
 import { buildTheme } from "./theme";
 import { sceneDuration } from "./duration";
+import "./fonts";
 import { Problem } from "./components/scenes/Problem";
 import { CodeReveal } from "./components/scenes/CodeReveal";
 import { TerminalScene } from "./components/scenes/TerminalScene";
@@ -14,13 +15,15 @@ import { FeatureList } from "./components/scenes/FeatureList";
 import { StatCallout } from "./components/scenes/StatCallout";
 import { FileTree } from "./components/scenes/FileTree";
 import { MobileScreen } from "./components/scenes/MobileScreen";
+import { OSWindow } from "./components/scenes/OSWindowScene";
+import { Hotkey } from "./components/scenes/HotkeyScene";
 
 interface ReelProps {
   brief: Brief;
 }
 
 export const Reel: React.FC<ReelProps> = ({ brief }) => {
-  const theme = buildTheme(brief.project.primaryColor || "#6366f1");
+  const theme = buildTheme(brief.project.primaryColor || "#6366f1", brief.project.font, brief.project.monoFont);
 
   let cursor = 0;
   const sequenced = brief.scenes.map((scene) => {
@@ -71,6 +74,10 @@ const SceneRenderer: React.FC<SceneRendererProps> = ({ scene, theme, project }) 
       return <FileTree scene={scene} theme={theme} />;
     case "mobile":
       return <MobileScreen scene={scene} theme={theme} />;
+    case "os-window":
+      return <OSWindow scene={scene} theme={theme} />;
+    case "hotkey":
+      return <Hotkey scene={scene} theme={theme} />;
     default:
       return null;
   }

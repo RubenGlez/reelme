@@ -116,7 +116,9 @@ Write `.reelme/brief.json` to the repo root.
     "primaryColor": "",
     "tone": "professional",
     "mode": "intro",
-    "logo": ""
+    "logo": "",
+    "font": "",
+    "monoFont": ""
   },
   "scenes": [
     {
@@ -190,6 +192,21 @@ Write `.reelme/brief.json` to the repo root.
       "caption": ""
     },
     {
+      "type": "os-window",
+      "title": "",
+      "searchQuery": "",
+      "items": [
+        { "icon": "key", "label": "", "value": "", "highlighted": false }
+      ],
+      "caption": ""
+    },
+    {
+      "type": "hotkey",
+      "keys": ["⌘", "⇧", "Space"],
+      "action": "",
+      "caption": ""
+    },
+    {
       "type": "cta",
       "installCommand": "",
       "repoUrl": "",
@@ -213,7 +230,9 @@ Write `.reelme/brief.json` to the repo root.
     "tone": "professional",
     "mode": "announcement",
     "version": "",
-    "logo": ""
+    "logo": "",
+    "font": "",
+    "monoFont": ""
   },
   "scenes": [
     {
@@ -279,6 +298,8 @@ For intro:
 - Include `stat-callout` if the project has compelling numbers (performance, adoption, reduction in code).
 - Include `file-tree` if the project's structure or generated output is itself a selling point.
 - Include `mobile` if the project is a mobile app or has a mobile UI.
+- Include `os-window` if the project has a native desktop app UI (macOS/Windows app, menu bar app, settings panel). Populate `items` with real entries (secrets, files, options) using icon names from the registry: `lock`, `key`, `shield`, `database`, `server`, `globe`, `file`, `folder`, `terminal`, `code`, `user`, `settings`, `star`, `zap`, `clock`, `copy`, `check`, `search`.
+- Include `hotkey` if the project has a signature keyboard shortcut or quick-access flow (e.g. ⌘⇧Space, Ctrl+K, ⌘P). Use `keys` as an array of individual key labels. Set `action` to the one-line description of what happens.
 - The middle can have 1–3 scenes. Prefer fewer; clarity beats completeness.
 
 For announcement:
@@ -302,6 +323,21 @@ Examples:
 - cta → "Star it, share it, ship it."
 
 **Logo:** if the user provided a logo path, set `"logo": "<filename-only>"` (e.g. `"logo.png"`). Leave as `""` if none.
+
+**Fonts:** pick a `font` and optionally a `monoFont` that matches the project's character. Leave as `""` to use the defaults (Inter + JetBrains Mono).
+
+Available sans fonts (`font` field):
+- `"Inter"` — clean, neutral; good default for most projects
+- `"Space Grotesk"` — geometric, techy; CLI tools, dev utilities, startups
+- `"DM Sans"` — warm, rounded; libraries, friendly APIs
+- `"Syne"` — bold, display; announcements, product launches
+- `"Plus Jakarta Sans"` — modern, professional; SaaS, design tools
+- `"Nunito"` — playful, rounded; educational tools, creative projects
+- `"IBM Plex Sans"` — precise, technical; infrastructure, databases, enterprise
+
+Available mono fonts (`monoFont` field):
+- `"JetBrains Mono"` — default; excellent for code and terminal output
+- `"Space Mono"` — retro, hacker feel; CLI-first tools, developer utilities
 
 ---
 

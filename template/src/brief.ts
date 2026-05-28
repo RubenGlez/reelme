@@ -9,6 +9,8 @@ export interface ProjectMeta {
   mode?: "intro" | "announcement";
   version?: string;
   logo?: string;
+  font?: string;
+  monoFont?: string;
 }
 
 export interface ProblemScene {
@@ -120,6 +122,28 @@ export interface MobileScene {
   caption?: string;
 }
 
+export interface OSWindowItem {
+  icon?: string;
+  label: string;
+  value?: string;
+  highlighted?: boolean;
+}
+
+export interface OSWindowScene {
+  type: "os-window";
+  title?: string;
+  searchQuery?: string;
+  items: OSWindowItem[];
+  caption?: string;
+}
+
+export interface HotkeyScene {
+  type: "hotkey";
+  keys: string[];
+  action?: string;
+  caption?: string;
+}
+
 export type Scene =
   | ProblemScene
   | CodeRevealScene
@@ -131,7 +155,9 @@ export type Scene =
   | FeatureListScene
   | StatCalloutScene
   | FileTreeScene
-  | MobileScene;
+  | MobileScene
+  | OSWindowScene
+  | HotkeyScene;
 
 export interface Brief {
   project: ProjectMeta;

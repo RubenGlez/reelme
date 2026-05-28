@@ -1,4 +1,5 @@
 import chroma from "chroma-js";
+import { resolveSansFont, resolveMonoFont } from "./fonts";
 
 export interface Theme {
   bg: string;
@@ -9,12 +10,11 @@ export interface Theme {
   textMuted: string;
   textInverse: string;
   border: string;
-  // Typography
   fontMono: string;
   fontSans: string;
 }
 
-export function buildTheme(primaryHex: string): Theme {
+export function buildTheme(primaryHex: string, font?: string, monoFont?: string): Theme {
   const accent = chroma(primaryHex);
   const isDark = accent.luminance() < 0.4;
 
@@ -36,7 +36,7 @@ export function buildTheme(primaryHex: string): Theme {
     textMuted,
     textInverse,
     border,
-    fontMono: "'JetBrains Mono', 'Fira Code', 'Cascadia Code', monospace",
-    fontSans: "'Inter', 'DM Sans', system-ui, sans-serif",
+    fontMono: resolveMonoFont(monoFont),
+    fontSans: resolveSansFont(font),
   };
 }
