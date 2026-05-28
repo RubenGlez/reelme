@@ -105,7 +105,7 @@ rsync -a \
   --exclude='vitest.config.ts' \
   --exclude='out' \
   --exclude='node_modules' \
-  --exclude='public/logo.svg' \
+  --exclude='public/logo.png' \
   --exclude='public/.gitkeep' \
   "$SKILL_DIR/template/" ".reelme/"
 cp .reelme/brief.json .reelme/src/brief.json

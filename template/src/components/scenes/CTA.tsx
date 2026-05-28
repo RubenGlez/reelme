@@ -45,10 +45,19 @@ export const CTA: React.FC<Props> = ({ scene, theme, project }) => {
       }}
     >
       {project.logo && (
-        <div style={{ opacity: interpolate(logoProgress, [0, 1], [0, 1]), transform: `scale(${interpolate(logoProgress, [0, 1], [0.85, 1])})` }}>
+        <div
+          style={{
+            opacity: interpolate(logoProgress, [0, 1], [0, 1]),
+            transform: `scale(${interpolate(logoProgress, [0, 1], [0.85, 1])})`,
+            background: "#ffffff",
+            borderRadius: 20,
+            padding: 16,
+            boxShadow: "0 8px 32px rgba(0,0,0,0.2)",
+          }}
+        >
           <Img
             src={staticFile(project.logo)}
-            style={{ height: 72, width: "auto", objectFit: "contain" }}
+            style={{ height: 80, width: "auto", objectFit: "contain", display: "block" }}
           />
         </div>
       )}
