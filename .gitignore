@@ -4,3 +4,5 @@ template/node_modules/
 template/out/
 template/public/logo.svg
 .playwright-mcp/
+.agents/
+skills-lock.json
