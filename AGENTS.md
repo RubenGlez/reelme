@@ -9,7 +9,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 - **`SKILL.md`**: the skill definition; follows the open [Agent Skills](https://agentskills.io) standard, so it works in any compatible agent (Claude Code, Cursor, Gemini CLI, Codex, etc.). Installed via `npx skills add RubenGlez/reelme`. Step 6 locates the skill directory portably with `find "$HOME" -name "SKILL.md" -path "*/reelme/SKILL.md"` rather than any agent-specific variable.
 - **`template/`**: a Remotion project that gets copied into the user's repo and rendered locally
 
-The skill reads the user's repo, runs a brief interview, writes `brief.json`, copies `template/` into the chosen output path, and runs `pnpm render`.
+The skill reads the user's repo, runs a brief interview, writes `brief.json`, copies `template/` into `.reelme/`, and runs `pnpm render`.
 
 ## Template development commands
 
@@ -64,7 +64,7 @@ The `Brief` type is the contract between the skill interview and the Remotion re
 
 ### Skill flow (`SKILL.md`)
 
-Steps: read repo → interview (only uncertain fields) → write `brief.json` → confirm output path → `cp -r template/ <path>` → `cp brief.json <path>/src/` → `pnpm install && pnpm approve-builds --all` → `pnpm render`.
+Steps: read repo → interview (only uncertain fields) → write `.reelme/brief.json` → ask about gitignore → rsync `template/` into `.reelme/` → `cp brief.json .reelme/src/` → `pnpm install && pnpm approve-builds --all` → `pnpm render`.
 
 The `pnpm approve-builds --all` step is required because esbuild (a Remotion dependency) needs a post-install script. `template/pnpm-workspace.yaml` persists this approval so subsequent installs don't re-prompt.
 
@@ -74,4 +74,4 @@ The `pnpm approve-builds --all` step is required because esbuild (a Remotion dep
 pnpm version patch   # or minor / major
 ```
 
-The `postversion` hook pushes the commit and tag automatically. The publish workflow on GitHub Actions fires from the tag and handles building, typechecking, and publishing to npm.
+The `postversion` hook pushes the commit and tag automatically.

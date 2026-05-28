@@ -2,28 +2,8 @@
   "name": "reelme",
   "version": "0.1.3",
   "description": "Generate animated explainer videos for any open-source project",
-  "bin": {
-    "reelme": "./dist/index.js"
-  },
-  "files": [
-    "dist/",
-    "template/"
-  ],
   "scripts": {
-    "build": "tsc",
-    "typecheck": "tsc --noEmit",
-    "prepublishOnly": "pnpm build",
     "postversion": "git push && git push --tags"
-  },
-  "dependencies": {
-    "commander": "latest",
-    "fs-extra": "latest",
-    "picocolors": "latest"
-  },
-  "devDependencies": {
-    "@types/fs-extra": "latest",
-    "@types/node": "latest",
-    "typescript": "latest"
   },
   "engines": {
     "node": ">=18"
