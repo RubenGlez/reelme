@@ -73,7 +73,9 @@ The CTA scene always renders with `theme.accent` as its background color and `th
 
 ### Skill flow (`SKILL.md`)
 
-Steps: read repo → interview (only uncertain fields) → write `.reelme/brief.json` → ask about gitignore → rsync `template/` into `.reelme/` → `cp brief.json .reelme/src/` → `pnpm install && pnpm approve-builds --all` → `pnpm render`.
+Steps: detect existing brief (update vs. fresh) → determine mode → read repo → interview (only uncertain fields) → propose outline → write `.reelme/brief.json` → ask about gitignore → rsync `template/` into `.reelme/` → `cp brief.json .reelme/src/` → `pnpm install && pnpm approve-builds --all` → offer Remotion Studio preview → `pnpm render` → distribution guidance.
+
+Update mode (when `.reelme/src/brief.json` exists): re-read repo → surface drift → apply targeted edits to `.reelme/src/brief.json` → offer preview → render. No re-scaffold or re-install.
 
 The `pnpm approve-builds --all` step is required because esbuild (a Remotion dependency) needs a post-install script. `template/pnpm-workspace.yaml` persists this approval so subsequent installs don't re-prompt.
 

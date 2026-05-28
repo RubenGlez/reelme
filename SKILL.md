@@ -8,6 +8,32 @@ metadata:
 allowed-tools: Bash Read Write Edit
 ---
 
+## Step 0: Check for existing brief
+
+Check whether `.reelme/src/brief.json` already exists.
+
+```bash
+[ -f ".reelme/src/brief.json" ] && echo "exists" || echo "not found"
+```
+
+**If not found** → skip to Step 1.
+
+**If found:**
+
+Read `.reelme/src/brief.json` and show the user a compact summary:
+
+> **Existing video found**
+> Project: [name] · Mode: [mode] · [N] scenes: [scene types joined by ", "]
+
+Then ask:
+
+> Update the existing video, or start fresh?
+
+- **Start fresh** → continue to Step 1 (the full flow; the existing `.reelme/` will be overwritten at Step 7).
+- **Update** → skip to **[Update Mode](#update-mode)** at the bottom of this file.
+
+---
+
 ## Step 1: Determine mode
 
 Ask the user one question before reading anything:
@@ -120,15 +146,87 @@ cd .reelme && pnpm install && pnpm approve-builds --all
 
 ---
 
-## Step 8: Render
+## Step 8: Preview and render
+
+Your project is scaffolded and ready. Ask:
+
+> Preview in Remotion Studio before rendering, or render now?
+>
+> - **Preview first** — run `cd .reelme && pnpm start` (or `! cd .reelme && pnpm start`) to open Remotion Studio at http://localhost:3000. Come back when you're happy and I'll render the final video.
+> - **Render now** — I'll render immediately.
+
+Wait for the user's signal, then run:
 
 ```bash
 cd .reelme && pnpm render
 ```
 
-Output: `.reelme/out/video.mp4` and `.reelme/out/video.gif`
+**After a successful render**, confirm the output files and share distribution guidance:
 
-Tell the user they can edit `.reelme/src/brief.json` and re-run `pnpm render` to iterate without re-running the interview.
+> Your video is ready:
+> - `.reelme/out/video.mp4` — best quality; use for YouTube, landing pages, direct sharing
+> - `.reelme/out/video.gif` — for README embeds and GitHub previews
+>
+> **Where to share it:**
+> - **README**: `` ![demo](.reelme/out/video.gif) `` for an auto-playing GIF
+> - **Twitter/X or LinkedIn**: upload the MP4 directly; 1:1 performs best — re-render with `"format": "1:1"` in brief.json if you're on 16:9
+> - **Instagram Reels / TikTok / YouTube Shorts**: re-render with `"format": "9:16"` for vertical
+> - **YouTube**: the 16:9 MP4 is ready to upload as-is
+>
+> Adapt based on `brief.project.format`:
+> - `"1:1"` already set → MP4 is ready for Twitter/LinkedIn; note that YouTube needs 16:9
+> - `"9:16"` already set → MP4 is ready for Reels/Shorts; note that YouTube/README need 16:9
+> - `"16:9"` (default) → use GIF for README, MP4 for YouTube; mention the other formats for social
+>
+> To iterate: edit `.reelme/src/brief.json` and run `cd .reelme && pnpm render`
+
+---
+
+## Update Mode
+
+_Reached from Step 0 when `.reelme/src/brief.json` already exists._
+
+### U1: Read current brief and re-read repo
+
+Read `.reelme/src/brief.json` in full. Then re-read the repo using the same logic as Step 2 for the current `mode` in `brief.project`:
+
+- **intro**: re-read `README.md` and the manifest file.
+- **announcement**: re-read `CHANGELOG.md` (if exists) and run `git log --oneline -10`.
+
+Compare what the repo says now against what's in the brief. Note any obvious drift (e.g. tagline changed, new version in manifest, new sections in README).
+
+### U2: Surface the diff and ask what to change
+
+Show the user:
+
+> **Current brief:** [compact summary — name, mode, scenes]
+>
+> **What I noticed:** [any drift between current repo and brief, or "no obvious changes detected"]
+>
+> What do you want to update? Describe it in plain language — e.g. "update the tagline", "the version is now 2.1", "add a stat-callout with these numbers", "change the color to #f97316", "replace the terminal scene with a code-reveal".
+
+Wait for their answer.
+
+### U3: Apply targeted edits
+
+Make only the changes the user asked for. Read `references/scene-schemas.md` if adding or changing scene types. Write the updated brief back to `.reelme/src/brief.json` directly — do not write to `.reelme/brief.json` or re-run rsync.
+
+### U4: Preview and render
+
+Ask:
+
+> Brief updated. Preview in Remotion Studio before rendering, or render now?
+>
+> - **Preview first** — run `cd .reelme && pnpm start` (or `! cd .reelme && pnpm start`) to open Remotion Studio at http://localhost:3000. Come back when you're happy.
+> - **Render now** — I'll render immediately.
+
+Wait for the user's signal, then run:
+
+```bash
+cd .reelme && pnpm render
+```
+
+After a successful render, show the same distribution guidance from Step 8.
 
 ---
 
@@ -141,3 +239,4 @@ Tell the user they can edit `.reelme/src/brief.json` and re-run `pnpm render` to
 - **Keep scene count to 3–5 total.** More scenes makes the video feel padded, not comprehensive.
 - **`font` takes the display name with spaces** (e.g. `"Space Grotesk"`), not a CSS identifier.
 - **Missing logo path:** warn the user and proceed with `"logo": ""` rather than blocking.
+- **Update mode never re-scaffolds.** Only write `.reelme/src/brief.json` and render. Do not run rsync or `pnpm install` in update mode.
