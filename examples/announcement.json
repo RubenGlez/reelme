@@ -5,7 +5,7 @@
     "problem": "OSS projects go unnoticed because text READMEs don't grab attention.",
     "installCommand": "npx skills add RubenGlez/reelme",
     "repoUrl": "github.com/RubenGlez/reelme",
-    "primaryColor": "#6366f1",
+    "primaryColor": "#29B6F6",
     "tone": "playful",
     "mode": "announcement",
     "version": "v0.2",
