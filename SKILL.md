@@ -291,7 +291,7 @@ Copy the template (excluding dev-only files):
 
 ```bash
 SKILL_DIR=$(find "$HOME" -maxdepth 6 -name "SKILL.md" -path "*/reelme/SKILL.md" 2>/dev/null | head -1 | xargs dirname)
-rsync -a --exclude='src/__tests__' --exclude='eslint.config.mjs' --exclude='vitest.config.ts' --exclude='out' --exclude='node_modules' "$SKILL_DIR/template/" ".reelme/"
+rsync -a --exclude='src/__tests__' --exclude='eslint.config.mjs' --exclude='vitest.config.ts' --exclude='out' --exclude='node_modules' --exclude='public/logo.svg' "$SKILL_DIR/template/" ".reelme/"
 ```
 
 Copy `brief.json` into the template:
