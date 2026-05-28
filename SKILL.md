@@ -71,7 +71,35 @@ Wait for the user's answers before proceeding.
 
 ---
 
-## Step 4: Build the brief
+## Step 4: Propose the outline
+
+Before writing anything, present the proposed video to the user for approval.
+
+Synthesise everything from Steps 2 and 3 into a short, readable outline — one line per scene describing what it will show and why. Include the narrative arc (what story the video tells from first frame to last).
+
+Format it like this:
+
+> Here's what I'm planning:
+>
+> **Narrative:** [one sentence on the overall story]
+>
+> 1. **[Scene type]** — [what it shows and the point it makes]
+> 2. **[Scene type]** — [what it shows and the point it makes]
+> …
+>
+> Does this capture what you want to show? Anything to change, add, or cut?
+
+Rules:
+- Use plain language, not JSON or field names
+- Be specific — name the actual content ("shows `npx reelme` producing a GIF in 30 seconds"), not abstractions ("demonstrates the CLI")
+- Keep the list to 3–6 scenes; fewer is better
+- If you're unsure about a scene (e.g. whether a code example is worth showing), flag it explicitly
+
+Wait for the user's response. If they request changes, update your mental model of the brief and confirm the revised outline before proceeding. Do not move to Step 5 until the user explicitly approves the outline.
+
+---
+
+## Step 5: Build the brief
 
 Write `.reelme/brief.json` to the repo root.
 
@@ -277,7 +305,7 @@ Examples:
 
 ---
 
-## Step 5: Ask about gitignore
+## Step 6: Ask about gitignore
 
 Tell the user: "I'll scaffold the Remotion project at `.reelme/` in this repo. Do you want to keep it for future edits? If not, I'll add it to `.gitignore`."
 
@@ -285,7 +313,7 @@ Wait for their answer. If they say no (don't want to keep it), add `.reelme/` to
 
 ---
 
-## Step 6: Scaffold the Remotion project
+## Step 7: Scaffold the Remotion project
 
 Copy the template (excluding dev-only files):
 
@@ -331,7 +359,7 @@ cd .reelme && pnpm install && pnpm approve-builds --all
 
 ---
 
-## Step 7: Render
+## Step 8: Render
 
 ```bash
 cd .reelme
