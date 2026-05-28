@@ -19,7 +19,7 @@ export const Arrow: React.FC<ArrowProps> = ({ x1, y1, x2, y2, label, theme, star
   const { fps } = useVideoConfig();
   const elapsed = frame - startFrame;
 
-  const progress = spring({ frame: elapsed, fps, config: { damping: 20, stiffness: 80 } });
+  const progress = spring({ frame: elapsed, fps, config: theme.motion });
 
   const dx = x2 - x1;
   const dy = y2 - y1;

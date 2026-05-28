@@ -33,6 +33,8 @@ Mark each field `confident` or `uncertain`.
 **Always ask:**
 - `primary_color` — "What's the project's primary brand color? (hex, e.g. #6366f1)"
 - `logo` — "Do you have a logo file? (optional; path relative to the repo root)"
+- `bg_style` — "Background style: **deep** (near-black, default), **branded** (background visibly tinted with your accent), or **light** (white-based)?"
+- `format` — "Output format: **16:9** (YouTube / README embeds, default), **1:1** (Twitter / LinkedIn), or **9:16** (Reels / Shorts)?"
 
 **Ask only if uncertain:** one question per uncertain field, pre-filled with your best guess. Ask all questions in a single numbered list.
 
@@ -60,14 +62,15 @@ Read [`references/scene-schemas.md`](references/scene-schemas.md) for the full J
 Write `.reelme/brief.json` using only the scenes the user approved in Step 4.
 
 **Scene selection — intro:**
-- `problem` first, `cta` last. Always.
-- `feature-list` to enumerate what it does (3–5 items).
+- `problem` first (with `"hero": true`), `cta` last. Always.
+- Minimum structure: opener → proof point → CTA. Every scene beyond that must earn its place.
+- `stat-callout` is the strongest proof point — use it penultimate (before CTA) whenever there are compelling numbers (speed, size, count). It's the "proof before the ask."
+- `split` for before/after contrast — the most visceral way to show value.
+- `feature-list` to enumerate what it does (3–5 items). Assign an icon from the registry to each item where a match exists.
 - `code-reveal` if there is a representative code example.
 - `terminal` if it's a CLI tool or the install flow is the demo.
 - `data-flow` if the project has a clear pipeline.
-- `split` if the value is a before/after contrast.
 - `browser` if it has a web UI or produces visual output.
-- `stat-callout` if there are compelling numbers.
 - `file-tree` if the generated structure is a selling point.
 - `mobile` if it's a mobile app.
 - `os-window` if it has a native desktop UI (menu bar app, settings panel).

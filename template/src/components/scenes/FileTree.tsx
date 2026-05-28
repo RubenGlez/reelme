@@ -72,7 +72,7 @@ export const FileTree: React.FC<Props> = ({ scene, theme }) => {
           const progress = spring({
             frame: frame - entryStart,
             fps,
-            config: { damping: 22, stiffness: 120 },
+            config: theme.motion,
           });
           const opacity = interpolate(Math.max(0, progress), [0, 1], [0, 1]);
           const translateX = interpolate(Math.max(0, progress), [0, 1], [-20, 0]);

@@ -4,6 +4,7 @@ import { FeatureListScene as FeatureListBrief } from "../../brief";
 import { Theme } from "../../theme";
 import { Label } from "../primitives/Label";
 import { Caption } from "../primitives/Caption";
+import { Icon } from "../primitives/Icon";
 
 interface Props {
   scene: FeatureListBrief;
@@ -38,8 +39,11 @@ export const FeatureList: React.FC<Props> = ({ scene, theme }) => {
 
       <div style={{ display: "flex", flexDirection: "column", gap: 28, width: "100%" }}>
         {scene.items.map((item, i) => {
+          const text = typeof item === "string" ? item : item.text;
+          const icon = typeof item === "string" ? undefined : item.icon;
+
           const itemStart = HEADLINE_FRAMES + i * FRAMES_PER_ITEM;
-          const progress = spring({ frame: frame - itemStart, fps, config: { damping: 20, stiffness: 100 } });
+          const progress = spring({ frame: frame - itemStart, fps, config: theme.motion });
           const opacity = interpolate(Math.max(0, progress), [0, 1], [0, 1]);
           const translateX = interpolate(Math.max(0, progress), [0, 1], [-24, 0]);
 
@@ -67,15 +71,21 @@ export const FeatureList: React.FC<Props> = ({ scene, theme }) => {
                   flexShrink: 0,
                 }}
               >
-                <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
-                  <polyline
-                    points="3,8.5 6.5,12 13,4"
-                    stroke={theme.accent}
-                    strokeWidth="2"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                  />
-                </svg>
+                {icon ? (
+                  <Icon name={icon} size={18} color={theme.accent} />
+                ) : (
+                  <span
+                    style={{
+                      fontFamily: theme.fontMono,
+                      fontSize: 14,
+                      fontWeight: 700,
+                      color: theme.accent,
+                      lineHeight: 1,
+                    }}
+                  >
+                    {i + 1}
+                  </span>
+                )}
               </div>
               <span
                 style={{
@@ -87,7 +97,7 @@ export const FeatureList: React.FC<Props> = ({ scene, theme }) => {
                   letterSpacing: "-0.01em",
                 }}
               >
-                {item}
+                {text}
               </span>
             </div>
           );

@@ -11,18 +11,21 @@ interface Props {
   project: ProjectMeta;
 }
 
+const SNAP_OFFSET = 8;
+
 export const Problem: React.FC<Props> = ({ scene, theme, project }) => {
   const frame = useCurrentFrame();
   const { fps } = useVideoConfig();
 
-  const accentBarProgress = spring({ frame, fps, config: { damping: 22, stiffness: 100 } });
-  const accentBarWidth = interpolate(accentBarProgress, [0, 1], [0, 80]);
+  const isAnnouncement = project.mode === "announcement" && project.version;
+  const isHero = !!scene.hero;
 
-  const badgeProgress = spring({ frame, fps, config: { damping: 19, stiffness: 90 } });
+  const accentBarProgress = spring({ frame: frame + SNAP_OFFSET, fps, config: theme.motion });
+  const accentBarWidth = interpolate(accentBarProgress, [0, 1], [0, isHero ? 120 : 80]);
+
+  const badgeProgress = spring({ frame: frame + SNAP_OFFSET, fps, config: theme.motion });
   const badgeOpacity = interpolate(badgeProgress, [0, 1], [0, 1]);
   const badgeY = interpolate(badgeProgress, [0, 1], [12, 0]);
-
-  const isAnnouncement = project.mode === "announcement" && project.version;
 
   return (
     <AbsoluteFill
@@ -32,8 +35,8 @@ export const Problem: React.FC<Props> = ({ scene, theme, project }) => {
         flexDirection: "column",
         alignItems: "center",
         justifyContent: "center",
-        padding: "0 120px",
-        gap: 32,
+        padding: isHero ? "0 80px" : "0 120px",
+        gap: isHero ? 40 : 32,
       }}
     >
       {isAnnouncement ? (
@@ -58,17 +61,44 @@ export const Problem: React.FC<Props> = ({ scene, theme, project }) => {
         <div
           style={{
             width: accentBarWidth,
-            height: 4,
+            height: isHero ? 6 : 4,
             background: theme.accent,
-            borderRadius: 2,
+            borderRadius: 3,
           }}
         />
       )}
 
-      <Label text={scene.headline} theme={theme} size="xl" startFrame={4} />
-      {scene.subtext && (
-        <Label text={scene.subtext} theme={theme} size="md" muted startFrame={16} />
+      {isHero ? (
+        <div
+          style={{
+            fontFamily: theme.fontSans,
+            fontSize: 104,
+            fontWeight: 800,
+            color: theme.text,
+            textAlign: "center",
+            lineHeight: 1.05,
+            letterSpacing: "-0.03em",
+            opacity: interpolate(
+              spring({ frame: frame + SNAP_OFFSET, fps, config: theme.motion }),
+              [0, 1], [0, 1]
+            ),
+            transform: `translateY(${interpolate(
+              spring({ frame: frame + SNAP_OFFSET - 4, fps, config: theme.motion }),
+              [0, 1], [24, 0]
+            )}px)`,
+          }}
+        >
+          {scene.headline}
+        </div>
+      ) : (
+        <>
+          <Label text={scene.headline} theme={theme} size="xl" startFrame={4} />
+          {scene.subtext && (
+            <Label text={scene.subtext} theme={theme} size="md" muted startFrame={16} />
+          )}
+        </>
       )}
+
       {scene.caption && <Caption text={scene.caption} theme={theme} startFrame={40} />}
     </AbsoluteFill>
   );

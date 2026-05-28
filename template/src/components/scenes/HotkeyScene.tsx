@@ -20,7 +20,7 @@ export const Hotkey: React.FC<Props> = ({ scene, theme }) => {
   const actionStart = scene.keys.length * FRAMES_PER_KEY + ACTION_DELAY;
   const captionStart = actionStart + 50;
 
-  const actionProgress = spring({ frame: frame - actionStart, fps, config: { damping: 20, stiffness: 90 } });
+  const actionProgress = spring({ frame: frame - actionStart, fps, config: theme.motion });
   const actionOpacity = interpolate(Math.max(0, actionProgress), [0, 1], [0, 1]);
   const actionY = interpolate(Math.max(0, actionProgress), [0, 1], [16, 0]);
 

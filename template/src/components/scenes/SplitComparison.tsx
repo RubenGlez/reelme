@@ -13,9 +13,9 @@ export const SplitComparison: React.FC<Props> = ({ scene, theme }) => {
   const frame = useCurrentFrame();
   const { fps } = useVideoConfig();
 
-  const leftProgress = spring({ frame, fps, config: { damping: 20, stiffness: 80 } });
-  const rightProgress = spring({ frame: frame - 12, fps, config: { damping: 20, stiffness: 80 } });
-  const dividerProgress = spring({ frame: frame - 6, fps, config: { damping: 24, stiffness: 120 } });
+  const leftProgress = spring({ frame, fps, config: theme.motion });
+  const rightProgress = spring({ frame: frame - 12, fps, config: theme.motion });
+  const dividerProgress = spring({ frame: frame - 6, fps, config: theme.motion });
 
   const leftOpacity = interpolate(Math.max(0, leftProgress), [0, 1], [0, 1]);
   const leftX = interpolate(Math.max(0, leftProgress), [0, 1], [-60, 0]);

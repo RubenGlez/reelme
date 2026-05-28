@@ -22,7 +22,7 @@ export const OSWindow: React.FC<Props> = ({ scene, theme }) => {
   const frame = useCurrentFrame();
   const { fps } = useVideoConfig();
 
-  const windowProgress = spring({ frame, fps, config: { damping: 22, stiffness: 130, mass: 0.8 } });
+  const windowProgress = spring({ frame, fps, config: theme.motion });
   const windowScale = interpolate(windowProgress, [0, 1], [0.88, 1]);
   const windowOpacity = interpolate(windowProgress, [0, 1], [0, 1]);
 
@@ -110,7 +110,7 @@ export const OSWindow: React.FC<Props> = ({ scene, theme }) => {
         <div style={{ padding: "6px 0" }}>
           {(scene.items ?? []).map((item, i) => {
             const itemStart = itemsStart + i * FRAMES_PER_ITEM;
-            const p = spring({ frame: frame - itemStart, fps, config: { damping: 22, stiffness: 120 } });
+            const p = spring({ frame: frame - itemStart, fps, config: theme.motion });
             const opacity = interpolate(Math.max(0, p), [0, 1], [0, 1]);
             const tx = interpolate(Math.max(0, p), [0, 1], [-14, 0]);
 

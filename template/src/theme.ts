@@ -1,6 +1,12 @@
 import chroma from "chroma-js";
 import { resolveSansFont, resolveMonoFont } from "./fonts";
 
+export interface MotionProfile {
+  damping: number;
+  stiffness: number;
+  mass: number;
+}
+
 export interface Theme {
   bg: string;
   surface: string;
@@ -12,20 +18,51 @@ export interface Theme {
   border: string;
   fontMono: string;
   fontSans: string;
+  motion: MotionProfile;
 }
 
-export function buildTheme(primaryHex: string, font?: string, monoFont?: string): Theme {
+const MOTION_PROFILES: Record<string, MotionProfile> = {
+  professional: { damping: 22, stiffness: 100, mass: 1.0 },
+  playful:      { damping: 11, stiffness: 130, mass: 0.7 },
+  technical:    { damping: 30, stiffness: 140, mass: 1.2 },
+};
+
+export function buildTheme(
+  primaryHex: string,
+  font?: string,
+  monoFont?: string,
+  tone?: string,
+  bgStyle?: "deep" | "branded" | "light",
+): Theme {
   const accent = chroma(primaryHex);
-  const isDark = accent.luminance() < 0.4;
+  const isLightBg = bgStyle === "light";
 
-  const bg = chroma.mix(accent, isDark ? "#0f0f13" : "#f8f8fc", 0.92, "lab").hex();
-  const surface = chroma.mix(accent, isDark ? "#1a1a24" : "#ececf4", 0.88, "lab").hex();
-  const border = chroma.mix(accent, isDark ? "#ffffff" : "#000000", 0.1, "lab").hex();
+  let bg: string;
+  let surface: string;
+  let text: string;
+  let textMuted: string;
+  let textInverse: string;
+  let border: string;
+
+  if (isLightBg) {
+    bg = chroma.mix(accent, "#fafafa", 0.9, "lab").hex();
+    surface = chroma.mix(accent, "#efefef", 0.85, "lab").hex();
+    border = chroma.mix(accent, "#000000", 0.12, "lab").hex();
+    text = "#111118";
+    textMuted = "#555566";
+    textInverse = "#f0f0f6";
+  } else {
+    const mixRatio = bgStyle === "branded" ? 0.76 : 0.92;
+    bg = chroma.mix(accent, "#0f0f13", mixRatio, "lab").hex();
+    surface = chroma.mix(accent, "#1a1a24", mixRatio - 0.04, "lab").hex();
+    border = chroma.mix(accent, "#ffffff", 0.1, "lab").hex();
+    text = "#f0f0f6";
+    textMuted = "#888899";
+    textInverse = "#111118";
+  }
+
   const accentMuted = accent.alpha(0.18).css();
-
-  const text = isDark ? "#f0f0f6" : "#111118";
-  const textMuted = isDark ? "#888899" : "#666677";
-  const textInverse = isDark ? "#111118" : "#f0f0f6";
+  const motion = MOTION_PROFILES[tone ?? "professional"] ?? MOTION_PROFILES.professional;
 
   return {
     bg,
@@ -38,5 +75,6 @@ export function buildTheme(primaryHex: string, font?: string, monoFont?: string)
     border,
     fontMono: resolveMonoFont(monoFont),
     fontSans: resolveSansFont(font),
+    motion,
   };
 }

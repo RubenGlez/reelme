@@ -103,7 +103,7 @@ export const CodeBlock: React.FC<CodeBlockProps> = ({
             const highlightOpacity =
               highlightLine !== undefined && visibleCount >= highlightLine
                 ? interpolate(
-                    spring({ frame: elapsed - highlightLine * framesPerLine, fps, config: { damping: 20 } }),
+                    spring({ frame: elapsed - highlightLine * framesPerLine, fps, config: theme.motion }),
                     [0, 1],
                     [0, 1]
                   )

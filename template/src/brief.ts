@@ -12,6 +12,8 @@ export interface ProjectMeta {
   font?: string;
   monoFont?: string;
   transition?: "fade" | "slide" | "zoom";
+  bgStyle?: "deep" | "branded" | "light";
+  format?: "16:9" | "1:1" | "9:16";
 }
 
 export interface ProblemScene {
@@ -19,6 +21,7 @@ export interface ProblemScene {
   headline: string;
   subtext?: string;
   caption?: string;
+  hero?: boolean;
 }
 
 export interface CodeRevealScene {
@@ -84,10 +87,15 @@ export interface SplitScene {
   caption?: string;
 }
 
+export interface FeatureItem {
+  text: string;
+  icon?: string;
+}
+
 export interface FeatureListScene {
   type: "feature-list";
   headline?: string;
-  items: string[];
+  items: Array<string | FeatureItem>;
   caption?: string;
 }
 

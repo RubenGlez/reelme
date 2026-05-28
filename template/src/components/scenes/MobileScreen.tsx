@@ -18,7 +18,7 @@ export const MobileScreen: React.FC<Props> = ({ scene, theme }) => {
   const frame = useCurrentFrame();
   const { fps } = useVideoConfig();
 
-  const progress = spring({ frame, fps, config: { damping: 18, stiffness: 90, mass: 1 } });
+  const progress = spring({ frame, fps, config: theme.motion });
   const opacity = interpolate(progress, [0, 1], [0, 1]);
   const translateY = interpolate(progress, [0, 1], [60, 0]);
   const scale = interpolate(progress, [0, 1], [0.88, 1]);
@@ -67,7 +67,7 @@ export const MobileScreen: React.FC<Props> = ({ scene, theme }) => {
           style={{
             position: "absolute",
             inset: 0,
-            background: "#0d1117",
+            background: theme.bg,
             display: "flex",
             flexDirection: "column",
           }}

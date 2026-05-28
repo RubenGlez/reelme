@@ -43,12 +43,19 @@ template/node_modules/.bin/remotion still Reel out/frame_N.png --frame=N
 
 ### Brief schema (`src/brief.ts`)
 
-The `Brief` type is the contract between the skill interview and the Remotion render. Scene types: `problem`, `code-reveal`, `terminal`, `data-flow`, `cta`, `browser`, `split`, `feature-list`. All scene types share an optional `caption?: string` field that renders as a `Caption` pill after the scene's main animation settles. Adding a new scene type means: adding to the union in `brief.ts`, creating a scene component, adding a case in `SceneRenderer`, and adding a duration entry in `SCENE_DURATION_MAP`. `feature-list` duration is computed dynamically from `items.length` in `sceneDuration()` rather than from the map.
+The `Brief` type is the contract between the skill interview and the Remotion render. Scene types: `problem`, `code-reveal`, `terminal`, `data-flow`, `cta`, `browser`, `split`, `feature-list`, `stat-callout`, `file-tree`, `mobile`, `os-window`, `hotkey`. All scene types share an optional `caption?: string` field that renders as a `Caption` pill after the scene's main animation settles. Adding a new scene type means: adding to the union in `brief.ts`, creating a scene component, adding a case in `SceneRenderer`, and adding a duration entry in `SCENE_DURATION_MAP`. `feature-list` duration is computed dynamically from `items.length` in `sceneDuration()` rather than from the map.
 
-`ProjectMeta` has two optional fields that drive mode-specific rendering:
+`ProjectMeta` has several optional fields:
 - `mode: "intro" | "announcement"`: switches Problem scene between accent bar and version badge; switches CTA copy between "Get started with X" and "X is here"
 - `version`: shown in the version badge and CTA title when `mode === "announcement"`
 - `logo`: filename in `template/public/` (e.g. `"logo.svg"`); rendered via Remotion's `<Img src={staticFile(logo)} />` in the CTA scene
+- `tone: "professional" | "playful" | "technical"`: drives the `motion` profile in the theme — spring configs for all animations. professional = moderate (damping 22, stiffness 100), playful = bouncy (damping 11, stiffness 130), technical = tight (damping 30, stiffness 140)
+- `bgStyle?: "deep" | "branded" | "light"`: controls background mix ratio. deep = near-black (default, 0.92 mix). branded = visibly tinted (0.76 mix). light = white-based with dark text
+- `format?: "16:9" | "1:1" | "9:16"`: sets composition dimensions. 16:9 = 1920×1080 (default), 1:1 = 1080×1080, 9:16 = 1080×1920
+
+`ProblemScene` has an optional `hero?: boolean` field: when true, renders the headline at 104px (vs 72px default), spans the accent bar full width, and hides `subtext`. Use for the opening scene.
+
+`FeatureListScene.items` accepts `Array<string | { text: string; icon?: string }>`. Plain strings are backwards compatible. When `icon` is set, the bullet circle shows the icon from the Lucide registry; otherwise it shows the 1-based item number.
 
 ### Primitives (`src/components/primitives/`)
 
@@ -60,7 +67,9 @@ The `Brief` type is the contract between the skill interview and the Remotion re
 
 ### Theming
 
-`buildTheme(hex)` is the only theming entry point. It mixes the accent color toward a near-black or near-white base depending on luminance, so both light and dark primary colors produce a readable dark-background theme. All components receive a `Theme` object as a prop; no global CSS, no context.
+`buildTheme(hex, font?, monoFont?, tone?, bgStyle?)` is the only theming entry point. It always produces a dark-background theme by default (`bgStyle: "deep"`); pass `"light"` for a white-based theme. The `tone` parameter adds a `motion: MotionProfile` field to the theme object (damping/stiffness/mass) which all scene components and primitives use for their spring animations — replacing per-component hardcoded spring configs. All components receive a `Theme` object as a prop; no global CSS, no context.
+
+The CTA scene always renders with `theme.accent` as its background color and `theme.textInverse` for text — making it the only full-accent-background frame in the video.
 
 ### Skill flow (`SKILL.md`)
 

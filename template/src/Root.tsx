@@ -50,7 +50,7 @@ interface ReelProps {
 }
 
 export const Reel: React.FC<ReelProps> = ({ brief }) => {
-  const theme = buildTheme(brief.project.primaryColor || "#6366f1", brief.project.font, brief.project.monoFont);
+  const theme = buildTheme(brief.project.primaryColor || "#6366f1", brief.project.font, brief.project.monoFont, brief.project.tone, brief.project.bgStyle);
 
   let cursor = 0;
   const sequenced = brief.scenes.map((scene) => {

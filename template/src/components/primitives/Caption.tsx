@@ -13,7 +13,7 @@ export const Caption: React.FC<CaptionProps> = ({ text, theme, startFrame = 0 })
   const { fps } = useVideoConfig();
   const elapsed = frame - startFrame;
 
-  const progress = spring({ frame: elapsed, fps, config: { damping: 20, stiffness: 80 } });
+  const progress = spring({ frame: elapsed, fps, config: theme.motion });
   const opacity = interpolate(Math.max(0, progress), [0, 1], [0, 1]);
   const translateY = interpolate(Math.max(0, progress), [0, 1], [12, 0]);
 

@@ -12,6 +12,7 @@ interface Props {
 
 const HEADLINE_FRAMES = 20;
 const FRAMES_PER_STAT = 35;
+const SNAP_OFFSET = 8;
 
 export const StatCallout: React.FC<Props> = ({ scene, theme }) => {
   const frame = useCurrentFrame();
@@ -46,18 +47,18 @@ export const StatCallout: React.FC<Props> = ({ scene, theme }) => {
         {scene.stats.map((stat, i) => {
           const statStart = HEADLINE_FRAMES + i * FRAMES_PER_STAT;
           const progress = spring({
-            frame: frame - statStart,
+            frame: frame - statStart + SNAP_OFFSET,
             fps,
-            config: { damping: 11, stiffness: 100, mass: 0.8 },
+            config: theme.motion,
           });
           const opacity = interpolate(Math.max(0, progress), [0, 1], [0, 1]);
           const scale = interpolate(Math.max(0, progress), [0, 1], [0.4, 1]);
 
           const labelStart = statStart + 12;
           const labelProgress = spring({
-            frame: frame - labelStart,
+            frame: frame - labelStart + SNAP_OFFSET,
             fps,
-            config: { damping: 20, stiffness: 90 },
+            config: theme.motion,
           });
           const labelOpacity = interpolate(Math.max(0, labelProgress), [0, 1], [0, 1]);
 
