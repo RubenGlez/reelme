@@ -1,1 +1,1 @@
-@AGENTS.md
+@.harness/engineering/architecture.md
