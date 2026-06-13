@@ -1,6 +1,6 @@
 import { describe, it, expect } from "vitest";
-import { sceneDuration, calcTotalDuration, SCENE_DURATION_MAP, SCENE_TAIL } from "../duration";
-import { Brief, Scene } from "../brief";
+import { sceneDuration, calcTotalDuration, SCENE_DURATION_MAP, SCENE_TAIL, TEASER_MAX_FRAMES } from "../duration";
+import { Cuts, Scene } from "../brief";
 
 describe("sceneDuration", () => {
   it("returns fixed durations for non-dynamic scene types", () => {
@@ -32,56 +32,53 @@ describe("sceneDuration", () => {
 });
 
 describe("calcTotalDuration", () => {
-  it("returns 0 for empty scenes", () => {
-    const brief: Brief = {
-      project: {
-        name: "test",
-        tagline: "",
-        problem: "",
-        installCommand: "",
-        repoUrl: "",
-        primaryColor: "#000000",
-        tone: "professional",
-      },
-      scenes: [],
-    };
-    expect(calcTotalDuration(brief)).toBe(0);
+  it("returns 0 for an empty scene list", () => {
+    expect(calcTotalDuration([])).toBe(0);
   });
 
-  it("sums durations of all scenes", () => {
-    const brief: Brief = {
-      project: {
-        name: "test",
-        tagline: "",
-        problem: "",
-        installCommand: "",
-        repoUrl: "",
-        primaryColor: "#000000",
-        tone: "professional",
-      },
-      scenes: [
-        { type: "problem", headline: "test" },
-        { type: "cta", installCommand: "npx x", repoUrl: "github.com/x" },
-      ],
-    };
-    expect(calcTotalDuration(brief)).toBe((120 + SCENE_TAIL) + (120 + SCENE_TAIL));
+  it("sums durations of all scenes in a cut", () => {
+    const scenes: Scene[] = [
+      { type: "problem", headline: "test" },
+      { type: "cta", installCommand: "npx x", repoUrl: "github.com/x" },
+    ];
+    expect(calcTotalDuration(scenes)).toBe((120 + SCENE_TAIL) + (120 + SCENE_TAIL));
   });
 
   it("handles feature-list scenes with dynamic duration", () => {
-    const brief: Brief = {
-      project: {
-        name: "test",
-        tagline: "",
-        problem: "",
-        installCommand: "",
-        repoUrl: "",
-        primaryColor: "#000000",
-        tone: "professional",
-      },
-      scenes: [
-        { type: "feature-list", items: ["a", "b"] },
+    const scenes: Scene[] = [{ type: "feature-list", items: ["a", "b"] }];
+    expect(calcTotalDuration(scenes)).toBe(20 + 2 * 25 + 60 + SCENE_TAIL);
+  });
+
+  it("computes each cut independently", () => {
+    const cuts: Cuts = {
+      main: [
+        { type: "problem", headline: "h" },
+        { type: "terminal", commands: [{ input: "a", output: "b" }] },
+        { type: "feature-list", items: ["a", "b", "c"] },
+        { type: "cta", installCommand: "npx x", repoUrl: "github.com/x" },
+      ],
+      vertical: [
+        { type: "problem", headline: "h", hero: true },
+        { type: "cta", installCommand: "npx x", repoUrl: "github.com/x" },
+      ],
+      teaser: [
+        { type: "problem", headline: "h", hero: true },
+        { type: "cta", installCommand: "npx x", repoUrl: "github.com/x" },
       ],
     };
-    expect(calcTotalDuration(brief)).toBe(20 + 2 * 25 + 60 + SCENE_TAIL);
+    const main = calcTotalDuration(cuts.main);
+    const vertical = calcTotalDuration(cuts.vertical!);
+    const teaser = calcTotalDuration(cuts.teaser!);
+    expect(main).toBeGreaterThan(vertical);
+    expect(vertical).toBe((120 + SCENE_TAIL) + (120 + SCENE_TAIL));
+    expect(teaser).toBe(vertical);
+  });
+
+  it("keeps a representative teaser cut within TEASER_MAX_FRAMES", () => {
+    const teaser: Scene[] = [
+      { type: "problem", headline: "Apex 2.0 is here.", hero: true },
+      { type: "cta", installCommand: "npm install apex-gql@2", repoUrl: "github.com/apexgql/apex" },
+    ];
+    expect(calcTotalDuration(teaser)).toBeLessThanOrEqual(TEASER_MAX_FRAMES);
   });
 });

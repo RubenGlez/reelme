@@ -1,4 +1,5 @@
 {
+  "schemaVersion": 2,
   "project": {
     "name": "Sprout",
     "tagline": "Full-stack apps. Zero config.",
@@ -9,86 +10,122 @@
     "tone": "playful",
     "mode": "intro",
     "bgStyle": "branded",
-    "format": "16:9"
+    "platforms": ["x", "tiktok", "github-readme"]
   },
-  "scenes": [
-    {
-      "type": "problem",
-      "headline": "Every new project starts the same way.",
-      "hero": true,
-      "caption": "Config files. Boilerplate. Hours gone before a line of product code."
-    },
-    {
-      "type": "terminal",
-      "commands": [
-        {
-          "input": "npx create-sprout-app my-app",
-          "output": "✔ Framework  Next.js 15\n✔ Database   PostgreSQL + Prisma\n✔ Auth       NextAuth v5\n✔ Styles     Tailwind CSS\n\nCreating project..."
-        },
-        {
-          "input": "cd my-app && pnpm dev",
-          "output": "  ▲ Sprout ready in 0.6s\n  ➜ Local:   http://localhost:3000\n  ➜ Studio:  http://localhost:5555"
-        }
-      ],
-      "caption": "One command. Production stack. Under 60 seconds."
-    },
-    {
-      "type": "file-tree",
-      "headline": "A structure that scales.",
-      "entries": [
-        { "path": "src/app/", "type": "dir", "highlight": true },
-        { "path": "src/app/(auth)/login/page.tsx", "type": "file" },
-        { "path": "src/app/dashboard/page.tsx", "type": "file", "highlight": true },
-        { "path": "src/server/routers/", "type": "dir", "highlight": true },
-        { "path": "src/server/routers/user.ts", "type": "file" },
-        { "path": "prisma/schema.prisma", "type": "file", "highlight": true },
-        { "path": "sprout.config.ts", "type": "file" }
-      ],
-      "caption": "Convention over configuration. Every folder has a job."
-    },
-    {
-      "type": "code-reveal",
-      "language": "typescript",
-      "code": "// src/server/routers/user.ts\nexport const userRouter = router({\n  profile: protectedProcedure\n    .input(z.object({ id: z.string() }))\n    .query(async ({ input, ctx }) => {\n      return ctx.db.user.findUnique({\n        where: { id: input.id },\n        select: { name: true, email: true }\n      });\n    })\n});",
-      "highlightLine": 3,
-      "caption": "End-to-end type safety. No schema drift, no runtime surprises."
-    },
-    {
-      "type": "os-window",
-      "title": "Sprout Commands",
-      "searchQuery": "sprout",
-      "items": [
-        { "icon": "play", "label": "sprout dev", "value": "Start dev server + Prisma Studio", "highlighted": true },
-        { "icon": "database", "label": "sprout db:push", "value": "Sync schema to database" },
-        { "icon": "user-check", "label": "sprout auth:setup", "value": "Configure OAuth providers" },
-        { "icon": "package", "label": "sprout add", "value": "Add a feature module" },
-        { "icon": "rocket", "label": "sprout deploy", "value": "Deploy to Vercel, Railway, or Fly" }
-      ],
-      "caption": "Every task is one command away."
-    },
-    {
-      "type": "hotkey",
-      "keys": ["⌘", "Shift", "P"],
-      "action": "Open Sprout command palette",
-      "caption": "VS Code extension included — no context switching."
-    },
-    {
-      "type": "feature-list",
-      "headline": "Built for teams who ship",
-      "items": [
-        { "text": "Type-safe API layer with tRPC out of the box", "icon": "shield" },
-        { "text": "Auth in one command — email, GitHub, Google", "icon": "lock" },
-        { "text": "Database ORM with auto-generated migrations", "icon": "database" },
-        { "text": "CI/CD templates for GitHub Actions baked in", "icon": "git-branch" },
-        { "text": "One-click deploy to Vercel, Fly, or Railway", "icon": "rocket" }
-      ],
-      "caption": "Start building features on day one."
-    },
-    {
-      "type": "cta",
-      "installCommand": "npx create-sprout-app my-app",
-      "repoUrl": "github.com/sproutjs/sprout",
-      "caption": "Less setup. More shipping."
-    }
-  ]
+  "cuts": {
+    "main": [
+      {
+        "type": "problem",
+        "headline": "Every new project starts the same way.",
+        "hero": true,
+        "caption": "Config files. Boilerplate. Hours gone before a line of product code."
+      },
+      {
+        "type": "terminal",
+        "commands": [
+          {
+            "input": "npx create-sprout-app my-app",
+            "output": "✔ Framework  Next.js 15\n✔ Database   PostgreSQL + Prisma\n✔ Auth       NextAuth v5\n✔ Styles     Tailwind CSS\n\nCreating project..."
+          },
+          {
+            "input": "cd my-app && pnpm dev",
+            "output": "  ▲ Sprout ready in 0.6s\n  ➜ Local:   http://localhost:3000\n  ➜ Studio:  http://localhost:5555"
+          }
+        ],
+        "caption": "One command. Production stack. Under 60 seconds."
+      },
+      {
+        "type": "file-tree",
+        "headline": "A structure that scales.",
+        "entries": [
+          { "path": "src/app/", "type": "dir", "highlight": true },
+          { "path": "src/app/(auth)/login/page.tsx", "type": "file" },
+          { "path": "src/app/dashboard/page.tsx", "type": "file", "highlight": true },
+          { "path": "src/server/routers/", "type": "dir", "highlight": true },
+          { "path": "src/server/routers/user.ts", "type": "file" },
+          { "path": "prisma/schema.prisma", "type": "file", "highlight": true },
+          { "path": "sprout.config.ts", "type": "file" }
+        ],
+        "caption": "Convention over configuration. Every folder has a job."
+      },
+      {
+        "type": "code-reveal",
+        "language": "typescript",
+        "code": "// src/server/routers/user.ts\nexport const userRouter = router({\n  profile: protectedProcedure\n    .input(z.object({ id: z.string() }))\n    .query(async ({ input, ctx }) => {\n      return ctx.db.user.findUnique({\n        where: { id: input.id },\n        select: { name: true, email: true }\n      });\n    })\n});",
+        "highlightLine": 3,
+        "caption": "End-to-end type safety. No schema drift, no runtime surprises."
+      },
+      {
+        "type": "os-window",
+        "title": "Sprout Commands",
+        "searchQuery": "sprout",
+        "items": [
+          { "icon": "play", "label": "sprout dev", "value": "Start dev server + Prisma Studio", "highlighted": true },
+          { "icon": "database", "label": "sprout db:push", "value": "Sync schema to database" },
+          { "icon": "user-check", "label": "sprout auth:setup", "value": "Configure OAuth providers" },
+          { "icon": "package", "label": "sprout add", "value": "Add a feature module" },
+          { "icon": "rocket", "label": "sprout deploy", "value": "Deploy to Vercel, Railway, or Fly" }
+        ],
+        "caption": "Every task is one command away."
+      },
+      {
+        "type": "hotkey",
+        "keys": ["⌘", "Shift", "P"],
+        "action": "Open Sprout command palette",
+        "caption": "VS Code extension included — no context switching."
+      },
+      {
+        "type": "feature-list",
+        "headline": "Built for teams who ship",
+        "items": [
+          { "text": "Type-safe API layer with tRPC out of the box", "icon": "shield" },
+          { "text": "Auth in one command — email, GitHub, Google", "icon": "lock" },
+          { "text": "Database ORM with auto-generated migrations", "icon": "database" },
+          { "text": "CI/CD templates for GitHub Actions baked in", "icon": "git-branch" },
+          { "text": "One-click deploy to Vercel, Fly, or Railway", "icon": "rocket" }
+        ],
+        "caption": "Start building features on day one."
+      },
+      {
+        "type": "cta",
+        "installCommand": "npx create-sprout-app my-app",
+        "repoUrl": "github.com/sproutjs/sprout",
+        "caption": "Less setup. More shipping."
+      }
+    ],
+    "vertical": [
+      {
+        "type": "problem",
+        "headline": "Every new project starts the same way.",
+        "hero": true,
+        "caption": "Hours gone before a line of product code."
+      },
+      {
+        "type": "terminal",
+        "commands": [
+          {
+            "input": "npx create-sprout-app my-app",
+            "output": "✔ Framework  Next.js 15\n✔ Database   PostgreSQL + Prisma\n✔ Auth       NextAuth v5\n\nCreating project..."
+          }
+        ],
+        "caption": "One command. Production stack."
+      },
+      {
+        "type": "feature-list",
+        "headline": "Built for teams who ship",
+        "items": [
+          { "text": "Type-safe API layer out of the box", "icon": "shield" },
+          { "text": "Auth in one command", "icon": "lock" },
+          { "text": "One-click deploy", "icon": "rocket" }
+        ],
+        "caption": "Start building on day one."
+      },
+      {
+        "type": "cta",
+        "installCommand": "npx create-sprout-app my-app",
+        "repoUrl": "github.com/sproutjs/sprout",
+        "caption": "Less setup. More shipping."
+      }
+    ]
+  }
 }

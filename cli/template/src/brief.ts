@@ -1,3 +1,9 @@
+import { PlatformId } from "./platforms";
+
+// Brief schema version. Bump on breaking changes to the reelme.json contract;
+// the CLI refuses briefs whose schemaVersion doesn't match.
+export const BRIEF_SCHEMA_VERSION = 2;
+
 export interface ProjectMeta {
   name: string;
   tagline: string;
@@ -6,6 +12,12 @@ export interface ProjectMeta {
   repoUrl: string;
   primaryColor: string;
   tone: "professional" | "playful" | "technical";
+  /** Publishing targets; required, at least one. Presets derive dimensions. */
+  platforms: PlatformId[];
+  /** Bundled CC0 track selection; false disables audio. (Playback lands in Phase 2.) */
+  audio?: { track: string; volume?: number } | false;
+  /** "made with reelme" credit in the CTA footer; default true. (Rendering lands in Phase 2.) */
+  watermark?: boolean;
   mode?: "intro" | "announcement";
   version?: string;
   logo?: string;
@@ -13,7 +25,6 @@ export interface ProjectMeta {
   monoFont?: string;
   transition?: "fade" | "slide" | "zoom";
   bgStyle?: "deep" | "branded" | "light";
-  format?: "16:9" | "1:1" | "9:16";
 }
 
 export interface ProblemScene {
@@ -168,7 +179,17 @@ export type Scene =
   | OSWindowScene
   | HotkeyScene;
 
+export interface Cuts {
+  /** The full narrative arc. Always required. */
+  main: Scene[];
+  /** Hook-first, fewer scenes, less text per second. For 9:16 platforms. */
+  vertical?: Scene[];
+  /** ≤10s (300 frames at 30fps), hook + CTA. Rendered per social platform. */
+  teaser?: Scene[];
+}
+
 export interface Brief {
+  schemaVersion: number;
   project: ProjectMeta;
-  scenes: Scene[];
+  cuts: Cuts;
 }

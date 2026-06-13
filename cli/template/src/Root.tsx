@@ -1,6 +1,7 @@
 import React from "react";
 import { AbsoluteFill, Sequence, useCurrentFrame, interpolate } from "remotion";
 import { Brief, ProjectMeta, Scene } from "./brief";
+import { PlatformPreset } from "./platforms";
 import { buildTheme } from "./theme";
 import { sceneDuration } from "./duration";
 import "./fonts";
@@ -47,13 +48,26 @@ const TransitionEnvelope: React.FC<{
 
 interface ReelProps {
   brief: Brief;
+  /** The platform preset of the composition being rendered. */
+  platform: PlatformPreset;
+  /** When "teaser", sequence cuts.teaser instead of the platform-resolved cut. */
+  cut?: "teaser";
 }
 
-export const Reel: React.FC<ReelProps> = ({ brief }) => {
+export const Reel: React.FC<ReelProps> = ({ brief, platform, cut }) => {
   const theme = buildTheme(brief.project.primaryColor || "#6366f1", brief.project.font, brief.project.monoFont, brief.project.tone, brief.project.bgStyle);
 
+  // Cut selection: teaser when requested, otherwise the cut named by the
+  // platform preset, falling back to main when vertical is absent.
+  const scenes: Scene[] =
+    cut === "teaser"
+      ? brief.cuts.teaser ?? []
+      : platform.cut === "vertical"
+        ? brief.cuts.vertical ?? brief.cuts.main
+        : brief.cuts.main;
+
   let cursor = 0;
-  const sequenced = brief.scenes.map((scene) => {
+  const sequenced = scenes.map((scene) => {
     const from = cursor;
     const duration = sceneDuration(scene);
     cursor += duration;
@@ -111,5 +125,3 @@ const SceneRenderer: React.FC<SceneRendererProps> = ({ scene, theme, project }) 
       return null;
   }
 };
-
-export { calcTotalDuration } from "./duration";

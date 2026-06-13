@@ -1,4 +1,8 @@
-import { Brief, FeatureListScene, FileTreeScene, HotkeyScene, OSWindowScene, Scene, StatCalloutScene } from "./brief";
+import { FeatureListScene, FileTreeScene, HotkeyScene, OSWindowScene, Scene, StatCalloutScene } from "./brief";
+
+// Hard ceiling for the teaser cut: 10s at 30fps. Renders over the limit
+// succeed, but the CLI prints a prominent warning.
+export const TEASER_MAX_FRAMES = 300;
 
 // Frames appended after each scene's content animation settles.
 // Gives content time to breathe and provides room for the fade-out.
@@ -44,6 +48,8 @@ export function sceneDuration(scene: Scene): number {
   return content + SCENE_TAIL;
 }
 
-export function calcTotalDuration(brief: Brief): number {
-  return brief.scenes.reduce((sum, scene) => sum + sceneDuration(scene), 0);
+// Duration is computed per cut: callers pass the scene list of the chosen cut
+// (cuts.main, cuts.vertical, or cuts.teaser).
+export function calcTotalDuration(scenes: Scene[]): number {
+  return scenes.reduce((sum, scene) => sum + sceneDuration(scene), 0);
 }
