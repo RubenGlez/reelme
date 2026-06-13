@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { PLATFORMS, cutForPlatform, PlatformId, PlatformPreset } from "../platforms";
+import { PLATFORMS, cutForPlatform, typeScale, PlatformId, PlatformPreset } from "../platforms";
 
 const ALL_IDS: PlatformId[] = [
   "x",
@@ -67,6 +67,20 @@ describe("PLATFORMS", () => {
   it("cutForPlatform mirrors the preset table", () => {
     for (const id of ALL_IDS) {
       expect(cutForPlatform(id)).toBe(PLATFORMS[id].cut);
+    }
+  });
+});
+
+describe("typeScale", () => {
+  it("returns > 1.0 for vertical presets (height > width)", () => {
+    for (const id of ["tiktok", "instagram-reel", "instagram-story"] as PlatformId[]) {
+      expect(typeScale(PLATFORMS[id])).toBeGreaterThan(1.0);
+    }
+  });
+
+  it("returns exactly 1.0 for all non-vertical presets", () => {
+    for (const id of ["x", "linkedin", "youtube", "instagram-feed", "github-readme"] as PlatformId[]) {
+      expect(typeScale(PLATFORMS[id])).toBe(1.0);
     }
   });
 });

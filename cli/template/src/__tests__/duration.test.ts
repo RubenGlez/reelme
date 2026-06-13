@@ -5,12 +5,35 @@ import { Cuts, Scene } from "../brief";
 describe("sceneDuration", () => {
   it("returns fixed durations for non-dynamic scene types", () => {
     const types = Object.keys(SCENE_DURATION_MAP) as Scene["type"][];
-    const dynamicTypes: Scene["type"][] = ["feature-list", "stat-callout", "file-tree", "os-window", "hotkey"];
+    // hook bypasses SCENE_TAIL; dynamic types compute duration from content length
+    const dynamicTypes: Scene["type"][] = ["feature-list", "stat-callout", "file-tree", "os-window", "hotkey", "hook", "clip"];
     for (const type of types) {
       if (dynamicTypes.includes(type)) continue;
       const scene = { type } as Scene;
       expect(sceneDuration(scene)).toBe(SCENE_DURATION_MAP[type] + SCENE_TAIL);
     }
+  });
+
+  it("hook scene is exactly 50 frames with no tail", () => {
+    const hook: Scene = { type: "hook", text: "Stop scrolling." };
+    expect(sceneDuration(hook)).toBe(50);
+  });
+
+  it("hook duration is within 1.5–2s at 30fps and below the smallest non-hook total", () => {
+    const hook: Scene = { type: "hook", text: "Hook." };
+    const duration = sceneDuration(hook);
+    expect(duration).toBeGreaterThanOrEqual(45); // 1.5s at 30fps
+    expect(duration).toBeLessThanOrEqual(60);    // 2s at 30fps
+    // smallest non-hook total is hotkey (1 key) = 110 + SCENE_TAIL
+    expect(duration).toBeLessThan(110 + SCENE_TAIL);
+  });
+
+  it("uses default clip duration when durationInFrames is not set", () => {
+    expect(sceneDuration({ type: "clip", src: "demo.mp4", frame: "none" })).toBe(150 + SCENE_TAIL);
+  });
+
+  it("uses durationInFrames for clip when provided", () => {
+    expect(sceneDuration({ type: "clip", src: "demo.mp4", frame: "browser", durationInFrames: 60 })).toBe(60 + SCENE_TAIL);
   });
 
   it("computes feature-list duration from item count", () => {

@@ -6,9 +6,10 @@ interface CaptionProps {
   text: string;
   theme: Theme;
   startFrame?: number;
+  bottomInset?: number;
 }
 
-export const Caption: React.FC<CaptionProps> = ({ text, theme, startFrame = 0 }) => {
+export const Caption: React.FC<CaptionProps> = ({ text, theme, startFrame = 0, bottomInset = 0 }) => {
   const frame = useCurrentFrame();
   const { fps } = useVideoConfig();
   const elapsed = frame - startFrame;
@@ -21,7 +22,7 @@ export const Caption: React.FC<CaptionProps> = ({ text, theme, startFrame = 0 })
     <div
       style={{
         position: "absolute",
-        bottom: 72,
+        bottom: 72 + bottomInset,
         left: 0,
         right: 0,
         display: "flex",

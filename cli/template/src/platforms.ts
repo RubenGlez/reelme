@@ -34,3 +34,7 @@ export const PLATFORMS = presets as Record<PlatformId, PlatformPreset>;
 export function cutForPlatform(id: PlatformId): "main" | "vertical" {
   return PLATFORMS[id].cut;
 }
+
+export function typeScale(platform: PlatformPreset): number {
+  return platform.height > platform.width ? 1.25 : 1.0;
+}

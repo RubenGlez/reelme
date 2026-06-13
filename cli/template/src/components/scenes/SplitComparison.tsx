@@ -7,9 +7,10 @@ import { Caption } from "../primitives/Caption";
 interface Props {
   scene: SplitBrief;
   theme: Theme;
+  bottomInset?: number;
 }
 
-export const SplitComparison: React.FC<Props> = ({ scene, theme }) => {
+export const SplitComparison: React.FC<Props> = ({ scene, theme, bottomInset = 0 }) => {
   const frame = useCurrentFrame();
   const { fps } = useVideoConfig();
 
@@ -130,7 +131,7 @@ export const SplitComparison: React.FC<Props> = ({ scene, theme }) => {
         </div>
       </div>
 
-      {scene.caption && <Caption text={scene.caption} theme={theme} startFrame={50} />}
+      {scene.caption && <Caption text={scene.caption} theme={theme} startFrame={50} bottomInset={bottomInset} />}
     </AbsoluteFill>
   );
 };

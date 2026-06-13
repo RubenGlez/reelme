@@ -7,9 +7,10 @@ import { Caption } from "../primitives/Caption";
 interface Props {
   scene: BrowserBrief;
   theme: Theme;
+  bottomInset?: number;
 }
 
-export const BrowserFrame: React.FC<Props> = ({ scene, theme }) => {
+export const BrowserFrame: React.FC<Props> = ({ scene, theme, bottomInset = 0 }) => {
   const frame = useCurrentFrame();
   const { fps } = useVideoConfig();
 
@@ -133,7 +134,7 @@ export const BrowserFrame: React.FC<Props> = ({ scene, theme }) => {
         </div>
       </div>
 
-      {scene.caption && <Caption text={scene.caption} theme={theme} startFrame={60} />}
+      {scene.caption && <Caption text={scene.caption} theme={theme} startFrame={60} bottomInset={bottomInset} />}
     </AbsoluteFill>
   );
 };

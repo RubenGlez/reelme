@@ -11,6 +11,9 @@ importers:
       '@remotion/cli':
         specifier: 4.0.290
         version: 4.0.290(postcss@8.5.15)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
+      '@remotion/gif':
+        specifier: 4.0.290
+        version: 4.0.290(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
       '@remotion/google-fonts':
         specifier: 4.0.290
         version: 4.0.290(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
@@ -505,6 +508,12 @@ packages:
     resolution: {integrity: sha512-acRUOIeswQuJ74tKnuziwZIUcsQ6isQpwYUla0CiFrC9MVdbTFlt37eyvmkgXXkCartPWlFptfDYDv9li6mBmA==}
     cpu: [x64]
     os: [win32]
+
+  '@remotion/gif@4.0.290':
+    resolution: {integrity: sha512-oDQvgbyj0lRCh7BFgtBltCRnlLcwhpwlxVfb0U5YOpg75eV3cybbicvokHiCztbRRtoQ8tP7TUF2s54mDge3hA==}
+    peerDependencies:
+      react: '>=16.8.0'
+      react-dom: '>=16.8.0'
 
   '@remotion/google-fonts@4.0.290':
     resolution: {integrity: sha512-/bOAsxiCORmQLqjENuZytyYegb/Ih96dkHvaHU7t7zBoK77bVjP1HC6EwFIUfI7OBAyw6uCD9hc3ZAtLiDKa0g==}
@@ -2196,6 +2205,12 @@ snapshots:
 
   '@remotion/compositor-win32-x64-msvc@4.0.290':
     optional: true
+
+  '@remotion/gif@4.0.290(react-dom@18.3.1(react@18.3.1))(react@18.3.1)':
+    dependencies:
+      react: 18.3.1
+      react-dom: 18.3.1(react@18.3.1)
+      remotion: 4.0.290(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
 
   '@remotion/google-fonts@4.0.290(react-dom@18.3.1(react@18.3.1))(react@18.3.1)':
     dependencies:

@@ -2,6 +2,7 @@ import React from "react";
 import { AbsoluteFill, useCurrentFrame, useVideoConfig, spring, interpolate } from "remotion";
 import { FeatureListScene as FeatureListBrief } from "../../brief";
 import { Theme } from "../../theme";
+import { PlatformPreset, typeScale } from "../../platforms";
 import { Label } from "../primitives/Label";
 import { Caption } from "../primitives/Caption";
 import { Icon } from "../primitives/Icon";
@@ -9,14 +10,17 @@ import { Icon } from "../primitives/Icon";
 interface Props {
   scene: FeatureListBrief;
   theme: Theme;
+  platform?: PlatformPreset;
+  bottomInset?: number;
 }
 
 const HEADLINE_FRAMES = 20;
 const FRAMES_PER_ITEM = 25;
 
-export const FeatureList: React.FC<Props> = ({ scene, theme }) => {
+export const FeatureList: React.FC<Props> = ({ scene, theme, platform, bottomInset = 0 }) => {
   const frame = useCurrentFrame();
   const { fps } = useVideoConfig();
+  const scale = platform ? typeScale(platform) : 1.0;
 
   const captionStart = HEADLINE_FRAMES + scene.items.length * FRAMES_PER_ITEM + 20;
 
@@ -90,7 +94,7 @@ export const FeatureList: React.FC<Props> = ({ scene, theme }) => {
               <span
                 style={{
                   fontFamily: theme.fontSans,
-                  fontSize: 28,
+                  fontSize: 28 * scale,
                   fontWeight: 500,
                   color: theme.text,
                   lineHeight: 1.4,
@@ -104,7 +108,7 @@ export const FeatureList: React.FC<Props> = ({ scene, theme }) => {
         })}
       </div>
 
-      {scene.caption && <Caption text={scene.caption} theme={theme} startFrame={captionStart} />}
+      {scene.caption && <Caption text={scene.caption} theme={theme} startFrame={captionStart} bottomInset={bottomInset} />}
     </AbsoluteFill>
   );
 };

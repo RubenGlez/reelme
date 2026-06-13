@@ -18,6 +18,8 @@ import { FileTree } from "./components/scenes/FileTree";
 import { MobileScreen } from "./components/scenes/MobileScreen";
 import { OSWindow } from "./components/scenes/OSWindowScene";
 import { Hotkey } from "./components/scenes/HotkeyScene";
+import { Hook } from "./components/scenes/Hook";
+import { Clip } from "./components/scenes/Clip";
 
 const FADE_IN = 12;
 const FADE_OUT = 15;
@@ -79,7 +81,7 @@ export const Reel: React.FC<ReelProps> = ({ brief, platform, cut }) => {
       {sequenced.map(({ scene, from, duration }, i) => (
         <Sequence key={i} from={from} durationInFrames={duration}>
           <TransitionEnvelope durationInFrames={duration} transition={brief.project.transition ?? "fade"}>
-            <SceneRenderer scene={scene} theme={theme} project={brief.project} />
+            <SceneRenderer scene={scene} theme={theme} project={brief.project} platform={platform} />
           </TransitionEnvelope>
         </Sequence>
       ))}
@@ -91,36 +93,42 @@ interface SceneRendererProps {
   scene: Scene;
   theme: ReturnType<typeof buildTheme>;
   project: ProjectMeta;
+  platform: PlatformPreset;
 }
 
-const SceneRenderer: React.FC<SceneRendererProps> = ({ scene, theme, project }) => {
+const SceneRenderer: React.FC<SceneRendererProps> = ({ scene, theme, project, platform }) => {
+  const bottomInset = platform.safeArea?.bottom ?? 0;
   switch (scene.type) {
     case "problem":
-      return <Problem scene={scene} theme={theme} project={project} />;
+      return <Problem scene={scene} theme={theme} project={project} platform={platform} bottomInset={bottomInset} />;
     case "code-reveal":
-      return <CodeReveal scene={scene} theme={theme} />;
+      return <CodeReveal scene={scene} theme={theme} bottomInset={bottomInset} />;
     case "terminal":
-      return <TerminalScene scene={scene} theme={theme} />;
+      return <TerminalScene scene={scene} theme={theme} bottomInset={bottomInset} />;
     case "data-flow":
-      return <DataFlow scene={scene} theme={theme} />;
+      return <DataFlow scene={scene} theme={theme} bottomInset={bottomInset} />;
     case "cta":
-      return <CTA scene={scene} theme={theme} project={project} />;
+      return <CTA scene={scene} theme={theme} project={project} platform={platform} bottomInset={bottomInset} />;
     case "browser":
-      return <BrowserFrame scene={scene} theme={theme} />;
+      return <BrowserFrame scene={scene} theme={theme} bottomInset={bottomInset} />;
     case "split":
-      return <SplitComparison scene={scene} theme={theme} />;
+      return <SplitComparison scene={scene} theme={theme} bottomInset={bottomInset} />;
     case "feature-list":
-      return <FeatureList scene={scene} theme={theme} />;
+      return <FeatureList scene={scene} theme={theme} platform={platform} bottomInset={bottomInset} />;
     case "stat-callout":
-      return <StatCallout scene={scene} theme={theme} />;
+      return <StatCallout scene={scene} theme={theme} bottomInset={bottomInset} />;
     case "file-tree":
-      return <FileTree scene={scene} theme={theme} />;
+      return <FileTree scene={scene} theme={theme} bottomInset={bottomInset} />;
     case "mobile":
-      return <MobileScreen scene={scene} theme={theme} />;
+      return <MobileScreen scene={scene} theme={theme} bottomInset={bottomInset} />;
     case "os-window":
-      return <OSWindow scene={scene} theme={theme} />;
+      return <OSWindow scene={scene} theme={theme} bottomInset={bottomInset} />;
     case "hotkey":
-      return <Hotkey scene={scene} theme={theme} />;
+      return <Hotkey scene={scene} theme={theme} bottomInset={bottomInset} />;
+    case "hook":
+      return <Hook scene={scene} theme={theme} platform={platform} />;
+    case "clip":
+      return <Clip scene={scene} theme={theme} />;
     default:
       return null;
   }

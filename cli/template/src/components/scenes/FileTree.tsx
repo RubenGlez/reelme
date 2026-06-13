@@ -8,6 +8,7 @@ import { Caption } from "../primitives/Caption";
 interface Props {
   scene: FileTreeBrief;
   theme: Theme;
+  bottomInset?: number;
 }
 
 const HEADLINE_FRAMES = 20;
@@ -43,7 +44,7 @@ const FileIcon: React.FC<{ color: string }> = ({ color }) => (
   </svg>
 );
 
-export const FileTree: React.FC<Props> = ({ scene, theme }) => {
+export const FileTree: React.FC<Props> = ({ scene, theme, bottomInset = 0 }) => {
   const frame = useCurrentFrame();
   const { fps } = useVideoConfig();
 
@@ -119,7 +120,7 @@ export const FileTree: React.FC<Props> = ({ scene, theme }) => {
         })}
       </div>
 
-      {scene.caption && <Caption text={scene.caption} theme={theme} startFrame={captionStart} />}
+      {scene.caption && <Caption text={scene.caption} theme={theme} startFrame={captionStart} bottomInset={bottomInset} />}
     </AbsoluteFill>
   );
 };

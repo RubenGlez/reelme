@@ -8,12 +8,13 @@ import { Caption } from "../primitives/Caption";
 interface Props {
   scene: HotkeyBrief;
   theme: Theme;
+  bottomInset?: number;
 }
 
 const FRAMES_PER_KEY = 20;
 const ACTION_DELAY = 15;
 
-export const Hotkey: React.FC<Props> = ({ scene, theme }) => {
+export const Hotkey: React.FC<Props> = ({ scene, theme, bottomInset = 0 }) => {
   const frame = useCurrentFrame();
   const { fps } = useVideoConfig();
 
@@ -71,7 +72,7 @@ export const Hotkey: React.FC<Props> = ({ scene, theme }) => {
         </div>
       )}
 
-      {scene.caption && <Caption text={scene.caption} theme={theme} startFrame={captionStart} />}
+      {scene.caption && <Caption text={scene.caption} theme={theme} startFrame={captionStart} bottomInset={bottomInset} />}
     </AbsoluteFill>
   );
 };

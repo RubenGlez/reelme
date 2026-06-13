@@ -7,6 +7,7 @@ import { Caption } from "../primitives/Caption";
 interface Props {
   scene: MobileBrief;
   theme: Theme;
+  bottomInset?: number;
 }
 
 const PHONE_W = 340;
@@ -14,7 +15,7 @@ const PHONE_H = 720;
 const NOTCH_H = 30;
 const RADIUS = 40;
 
-export const MobileScreen: React.FC<Props> = ({ scene, theme }) => {
+export const MobileScreen: React.FC<Props> = ({ scene, theme, bottomInset = 0 }) => {
   const frame = useCurrentFrame();
   const { fps } = useVideoConfig();
 
@@ -114,9 +115,9 @@ export const MobileScreen: React.FC<Props> = ({ scene, theme }) => {
 
           {/* Content */}
           <div style={{ flex: 1, overflow: "hidden", position: "relative" }}>
-            {scene.image ? (
+            {scene.screenshot ? (
               <Img
-                src={staticFile(scene.image)}
+                src={staticFile(scene.screenshot)}
                 style={{ width: "100%", height: "100%", objectFit: "cover" }}
               />
             ) : (
@@ -206,7 +207,7 @@ export const MobileScreen: React.FC<Props> = ({ scene, theme }) => {
         </div>
       </div>
 
-      {scene.caption && <Caption text={scene.caption} theme={theme} startFrame={50} />}
+      {scene.caption && <Caption text={scene.caption} theme={theme} startFrame={50} bottomInset={bottomInset} />}
     </AbsoluteFill>
   );
 };

@@ -2,19 +2,23 @@ import React from "react";
 import { AbsoluteFill, useCurrentFrame, useVideoConfig, spring, interpolate, Img, staticFile } from "remotion";
 import { CTAScene as CTABrief, ProjectMeta } from "../../brief";
 import { Theme } from "../../theme";
+import { PlatformPreset, typeScale } from "../../platforms";
 import { Caption } from "../primitives/Caption";
 
 interface Props {
   scene: CTABrief;
   theme: Theme;
   project: ProjectMeta;
+  platform?: PlatformPreset;
+  bottomInset?: number;
 }
 
 const SNAP_OFFSET = 8;
 
-export const CTA: React.FC<Props> = ({ scene, theme, project }) => {
+export const CTA: React.FC<Props> = ({ scene, theme, project, platform, bottomInset = 0 }) => {
   const frame = useCurrentFrame();
   const { fps } = useVideoConfig();
+  const scale = platform ? typeScale(platform) : 1.0;
 
   const logoProgress = spring({ frame: frame + SNAP_OFFSET, fps, config: theme.motion });
   const titleProgress = spring({ frame: frame + SNAP_OFFSET - (project.logo ? 16 : 0), fps, config: theme.motion });
@@ -67,7 +71,7 @@ export const CTA: React.FC<Props> = ({ scene, theme, project }) => {
           opacity: titleOpacity,
           transform: `translateY(${titleY}px)`,
           fontFamily: theme.fontSans,
-          fontSize: 56,
+          fontSize: 56 * scale,
           fontWeight: 700,
           color: theme.textInverse,
           letterSpacing: "-0.02em",
@@ -112,7 +116,24 @@ export const CTA: React.FC<Props> = ({ scene, theme, project }) => {
         </div>
       )}
 
-      {scene.caption && <Caption text={scene.caption} theme={theme} startFrame={60} />}
+      {scene.caption && <Caption text={scene.caption} theme={theme} startFrame={60} bottomInset={bottomInset} />}
+
+      {project.watermark !== false && (
+        <div
+          style={{
+            position: "absolute",
+            bottom: 40 + bottomInset,
+            left: 0,
+            right: 0,
+            textAlign: "center",
+            fontFamily: theme.fontMono,
+            fontSize: 18,
+            color: theme.textMuted,
+          }}
+        >
+          made with reelme
+        </div>
+      )}
     </AbsoluteFill>
   );
 };

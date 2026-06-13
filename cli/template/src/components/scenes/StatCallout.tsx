@@ -8,13 +8,14 @@ import { Caption } from "../primitives/Caption";
 interface Props {
   scene: StatCalloutBrief;
   theme: Theme;
+  bottomInset?: number;
 }
 
 const HEADLINE_FRAMES = 20;
 const FRAMES_PER_STAT = 35;
 const SNAP_OFFSET = 8;
 
-export const StatCallout: React.FC<Props> = ({ scene, theme }) => {
+export const StatCallout: React.FC<Props> = ({ scene, theme, bottomInset = 0 }) => {
   const frame = useCurrentFrame();
   const { fps } = useVideoConfig();
 
@@ -104,7 +105,7 @@ export const StatCallout: React.FC<Props> = ({ scene, theme }) => {
         })}
       </div>
 
-      {scene.caption && <Caption text={scene.caption} theme={theme} startFrame={captionStart} />}
+      {scene.caption && <Caption text={scene.caption} theme={theme} startFrame={captionStart} bottomInset={bottomInset} />}
     </AbsoluteFill>
   );
 };

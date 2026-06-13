@@ -1,4 +1,4 @@
-import { FeatureListScene, FileTreeScene, HotkeyScene, OSWindowScene, Scene, StatCalloutScene } from "./brief";
+import { ClipScene, FeatureListScene, FileTreeScene, HotkeyScene, OSWindowScene, Scene, StatCalloutScene } from "./brief";
 
 // Hard ceiling for the teaser cut: 10s at 30fps. Renders over the limit
 // succeed, but the CLI prints a prominent warning.
@@ -22,9 +22,16 @@ export const SCENE_DURATION_MAP: Record<Scene["type"], number> = {
   mobile: 150,
   "os-window": 180,
   hotkey: 120,
+  hook: 50,
+  clip: 150,
 };
 
 export function sceneDuration(scene: Scene): number {
+  if (scene.type === "hook") return 50; // no tail: hook IS the headline, no breathing room needed
+  if (scene.type === "clip") {
+    const s = scene as ClipScene;
+    return (s.durationInFrames ?? SCENE_DURATION_MAP.clip) + SCENE_TAIL;
+  }
   let content: number;
   if (scene.type === "feature-list") {
     const s = scene as FeatureListScene;

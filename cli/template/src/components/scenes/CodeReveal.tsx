@@ -8,9 +8,10 @@ import { Caption } from "../primitives/Caption";
 interface Props {
   scene: CodeRevealBrief;
   theme: Theme;
+  bottomInset?: number;
 }
 
-export const CodeReveal: React.FC<Props> = ({ scene, theme }) => {
+export const CodeReveal: React.FC<Props> = ({ scene, theme, bottomInset = 0 }) => {
   const lines = scene.code.split("\n");
   // Caption appears after all lines are revealed: startFrame=14, framesPerLine=9, plus 20-frame buffer
   const captionStart = 14 + lines.length * 9 + 20;
@@ -35,7 +36,7 @@ export const CodeReveal: React.FC<Props> = ({ scene, theme }) => {
           framesPerLine={9}
         />
       </div>
-      {scene.caption && <Caption text={scene.caption} theme={theme} startFrame={captionStart} />}
+      {scene.caption && <Caption text={scene.caption} theme={theme} startFrame={captionStart} bottomInset={bottomInset} />}
     </AbsoluteFill>
   );
 };

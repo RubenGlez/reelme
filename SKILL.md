@@ -110,6 +110,13 @@ Write `.reelme/brief.json` using only the scenes the user approved in Step 4.
 - Skip `data-flow`, `browser`, `file-tree`, `mobile` unless directly relevant.
 - Always end with `cta`.
 
+**Vertical cut (`cuts.vertical`) — when any 9:16 platform is in `project.platforms`:**
+- Always open with `hook`: one short, punchy claim (≤10 words) that stops the scroll. The `text` field is the entire message; use `accent` to highlight one keyword.
+- 3–5 scenes total (vs 5–8 for the main cut). Fewer is better — viewers skip fast.
+- Prefer high-legibility scene types: `hook`, `problem`, `feature-list`, `stat-callout`, `terminal`, `mobile`, `cta`.
+- Avoid dense scenes (`data-flow`, `file-tree`, `split`) unless the content is very short; they don't read at phone size.
+- Always end with `cta`.
+
 ---
 
 ## Step 6: Ask about gitignore

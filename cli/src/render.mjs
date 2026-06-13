@@ -2,7 +2,7 @@
 // variant per social platform when the brief has a teaser cut. Outputs land
 // in <repo>/reelme-out/; the heavy Remotion project stays in the cache.
 
-import { cpSync, mkdirSync } from "node:fs";
+import { cpSync, existsSync, mkdirSync } from "node:fs";
 import { basename, join } from "node:path";
 import { spawnSync } from "node:child_process";
 import { ensureScaffold, loadPlatforms, readBrief, fail } from "./cache.mjs";
@@ -17,12 +17,41 @@ function renderComposition(cacheDir, compositionId, outFile, codec) {
   }
 }
 
+function collectAssets(brief) {
+  const assets = [];
+  const cuts = [brief.cuts.main, brief.cuts.vertical, brief.cuts.teaser].filter(Boolean);
+  for (const cut of cuts) {
+    for (const scene of cut) {
+      if (scene.type === "clip" && scene.src) assets.push(scene.src);
+      if (scene.type === "mobile" && scene.screenshot) assets.push(scene.screenshot);
+      if (scene.type === "browser" && scene.image) assets.push(scene.image);
+    }
+  }
+  return [...new Set(assets)];
+}
+
+function copyAssets(repoRoot, cacheDir, brief) {
+  const assets = collectAssets(brief);
+  if (assets.length === 0) return;
+  const publicDir = join(cacheDir, "public");
+  mkdirSync(publicDir, { recursive: true });
+  const missing = assets.filter((a) => !existsSync(join(repoRoot, a)));
+  if (missing.length > 0) {
+    fail(`missing asset file(s):\n${missing.map((a) => `  ${join(repoRoot, a)}`).join("\n")}`);
+  }
+  for (const asset of assets) {
+    cpSync(join(repoRoot, asset), join(publicDir, basename(asset)));
+  }
+}
+
 export function render(repoRoot) {
   const brief = readBrief(repoRoot);
   const platforms = loadPlatforms();
   const cacheDir = ensureScaffold(repoRoot);
   const outDir = join(repoRoot, "reelme-out");
   mkdirSync(outDir, { recursive: true });
+
+  copyAssets(repoRoot, cacheDir, brief);
 
   const verticalFallback = brief.project.platforms.filter(
     (id) => platforms[id].cut === "vertical" && !brief.cuts.vertical?.length

@@ -2,6 +2,7 @@ import React from "react";
 import { AbsoluteFill, useCurrentFrame, useVideoConfig, spring, interpolate } from "remotion";
 import { ProblemScene as ProblemBrief, ProjectMeta } from "../../brief";
 import { Theme } from "../../theme";
+import { PlatformPreset, typeScale } from "../../platforms";
 import { Label } from "../primitives/Label";
 import { Caption } from "../primitives/Caption";
 
@@ -9,13 +10,16 @@ interface Props {
   scene: ProblemBrief;
   theme: Theme;
   project: ProjectMeta;
+  platform?: PlatformPreset;
+  bottomInset?: number;
 }
 
 const SNAP_OFFSET = 8;
 
-export const Problem: React.FC<Props> = ({ scene, theme, project }) => {
+export const Problem: React.FC<Props> = ({ scene, theme, project, platform, bottomInset = 0 }) => {
   const frame = useCurrentFrame();
   const { fps } = useVideoConfig();
+  const scale = platform ? typeScale(platform) : 1.0;
 
   const isAnnouncement = project.mode === "announcement" && project.version;
   const isHero = !!scene.hero;
@@ -72,7 +76,7 @@ export const Problem: React.FC<Props> = ({ scene, theme, project }) => {
         <div
           style={{
             fontFamily: theme.fontSans,
-            fontSize: 104,
+            fontSize: 104 * scale,
             fontWeight: 800,
             color: theme.text,
             textAlign: "center",
@@ -99,7 +103,7 @@ export const Problem: React.FC<Props> = ({ scene, theme, project }) => {
         </>
       )}
 
-      {scene.caption && <Caption text={scene.caption} theme={theme} startFrame={40} />}
+      {scene.caption && <Caption text={scene.caption} theme={theme} startFrame={40} bottomInset={bottomInset} />}
     </AbsoluteFill>
   );
 };

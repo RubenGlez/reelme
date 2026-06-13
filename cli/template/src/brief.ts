@@ -138,7 +138,16 @@ export interface FileTreeScene {
 export interface MobileScene {
   type: "mobile";
   title?: string;
-  image?: string;
+  screenshot?: string;
+  caption?: string;
+}
+
+export interface ClipScene {
+  type: "clip";
+  src: string;
+  frame: "browser" | "mobile" | "none";
+  startFrom?: number;
+  durationInFrames?: number;
   caption?: string;
 }
 
@@ -164,6 +173,12 @@ export interface HotkeyScene {
   caption?: string;
 }
 
+export interface HookScene {
+  type: "hook";
+  text: string;
+  accent?: string;
+}
+
 export type Scene =
   | ProblemScene
   | CodeRevealScene
@@ -177,7 +192,9 @@ export type Scene =
   | FileTreeScene
   | MobileScene
   | OSWindowScene
-  | HotkeyScene;
+  | HotkeyScene
+  | HookScene
+  | ClipScene;
 
 export interface Cuts {
   /** The full narrative arc. Always required. */

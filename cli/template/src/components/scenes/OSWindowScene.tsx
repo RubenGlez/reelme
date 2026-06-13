@@ -8,6 +8,7 @@ import { Caption } from "../primitives/Caption";
 interface Props {
   scene: OSWindowBrief;
   theme: Theme;
+  bottomInset?: number;
 }
 
 const WINDOW_WIDTH = 600;
@@ -18,7 +19,7 @@ const FRAMES_PER_ITEM = 20;
 
 const TRAFFIC_LIGHTS = ["#ff5f57", "#ffbd2e", "#28c941"] as const;
 
-export const OSWindow: React.FC<Props> = ({ scene, theme }) => {
+export const OSWindow: React.FC<Props> = ({ scene, theme, bottomInset = 0 }) => {
   const frame = useCurrentFrame();
   const { fps } = useVideoConfig();
 
@@ -160,7 +161,7 @@ export const OSWindow: React.FC<Props> = ({ scene, theme }) => {
         </div>
       </div>
 
-      {scene.caption && <Caption text={scene.caption} theme={theme} startFrame={captionStart} />}
+      {scene.caption && <Caption text={scene.caption} theme={theme} startFrame={captionStart} bottomInset={bottomInset} />}
     </AbsoluteFill>
   );
 };
