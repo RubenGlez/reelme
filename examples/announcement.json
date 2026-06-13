@@ -1,4 +1,5 @@
 {
+  "schemaVersion": 2,
   "project": {
     "name": "Apex",
     "tagline": "GraphQL at the edge. Finally.",
@@ -10,87 +11,106 @@
     "mode": "announcement",
     "version": "2.0",
     "bgStyle": "deep",
-    "format": "16:9"
+    "platforms": ["x", "linkedin", "tiktok", "github-readme"]
   },
-  "scenes": [
-    {
-      "type": "problem",
-      "headline": "Apex 2.0 is here.",
-      "hero": true,
-      "caption": "Faster resolvers. Native subscriptions. Edge-first."
-    },
-    {
-      "type": "stat-callout",
-      "headline": "v2 by the numbers",
-      "stats": [
-        { "value": "0.8ms", "label": "median resolver latency" },
-        { "value": "200k", "label": "requests/sec on one node" },
-        { "value": "62%", "label": "smaller bundle than v1" }
-      ],
-      "caption": "Benchmarked on Cloudflare Workers with 50 concurrent clients."
-    },
-    {
-      "type": "code-reveal",
-      "language": "typescript",
-      "code": "import { createSchema, createYoga } from \"apex-gql\";\n\nconst schema = createSchema({\n  typeDefs: /* GraphQL */ `\n    type Query {\n      user(id: ID!): User\n    }\n  `,\n  resolvers: {\n    Query: {\n      user: (_, { id }, ctx) => ctx.db.users.find(id)\n    }\n  }\n});\n\nexport default createYoga({ schema });",
-      "highlightLine": 10,
-      "caption": "One export. Runs on Workers, Deno Deploy, Bun, and Node."
-    },
-    {
-      "type": "split",
-      "before": {
-        "label": "v1 — 12 lines to start",
-        "content": "const server = new ApolloServer({ schema });\nawait server.start();\nconst app = express();\napp.use(\"/graphql\",\n  expressMiddleware(server, {\n    context: async ({ req }) => ({\n      token: req.headers.auth,\n      db: await getDB()\n    })\n  })\n);\napp.listen(4000);"
+  "cuts": {
+    "main": [
+      {
+        "type": "problem",
+        "headline": "Apex 2.0 is here.",
+        "hero": true,
+        "caption": "Faster resolvers. Native subscriptions. Edge-first."
       },
-      "after": {
-        "label": "v2 — one file, any runtime",
-        "content": "export default createYoga({\n  schema,\n  context: ({ request }) => ({\n    token: request.headers.get(\"auth\"),\n    db: getDB()\n  })\n});"
+      {
+        "type": "stat-callout",
+        "headline": "v2 by the numbers",
+        "stats": [
+          { "value": "0.8ms", "label": "median resolver latency" },
+          { "value": "200k", "label": "requests/sec on one node" },
+          { "value": "62%", "label": "smaller bundle than v1" }
+        ],
+        "caption": "Benchmarked on Cloudflare Workers with 50 concurrent clients."
       },
-      "caption": "Drop the boilerplate. Keep the control."
-    },
-    {
-      "type": "feature-list",
-      "headline": "What shipped in v2",
-      "items": [
-        { "text": "Native WebSocket subscriptions on any runtime", "icon": "zap" },
-        { "text": "Deferred queries with @defer and @stream", "icon": "layers" },
-        { "text": "Edge-native: Workers, Deno Deploy, Bun, Node", "icon": "globe" },
-        { "text": "Built-in query depth limiting and cost analysis", "icon": "shield" },
-        { "text": "Full TypeScript inference — no codegen needed", "icon": "code-2" }
-      ],
-      "caption": "Everything GraphQL should have been from day one."
-    },
-    {
-      "type": "data-flow",
-      "nodes": [
-        { "id": "client", "label": "Client" },
-        { "id": "edge", "label": "CDN Edge" },
-        { "id": "apex", "label": "Apex v2" },
-        { "id": "cache", "label": "Cache" },
-        { "id": "db", "label": "Database" }
-      ],
-      "edges": [
-        { "from": "client", "to": "edge", "label": "request" },
-        { "from": "edge", "to": "apex", "label": "routes" },
-        { "from": "apex", "to": "cache", "label": "checks" },
-        { "from": "apex", "to": "db", "label": "queries" }
-      ],
-      "caption": "Responses served from cache. Database only when needed."
-    },
-    {
-      "type": "terminal",
-      "commands": [
-        { "input": "npm install apex-gql@2", "output": "added 3 packages in 0.8s" },
-        { "input": "npx apex migrate", "output": "✓ Updated 4 resolver files\n✓ 0 breaking changes detected\n✓ Context types regenerated" },
-        { "input": "npx wrangler deploy", "output": "✓ Deployed → apex.workers.dev\n  Latency: 0.9ms  (was 42ms)" }
-      ],
-      "caption": "Migrate from v1 in under a minute."
-    },
-    {
-      "type": "cta",
-      "installCommand": "npm install apex-gql@2",
-      "repoUrl": "github.com/apexgql/apex",
-      "caption": "Upgrade today. Deploy tomorrow."
-    }
-  ]
+      {
+        "type": "code-reveal",
+        "language": "typescript",
+        "code": "import { createSchema, createYoga } from \"apex-gql\";\n\nconst schema = createSchema({\n  typeDefs: /* GraphQL */ `\n    type Query {\n      user(id: ID!): User\n    }\n  `,\n  resolvers: {\n    Query: {\n      user: (_, { id }, ctx) => ctx.db.users.find(id)\n    }\n  }\n});\n\nexport default createYoga({ schema });",
+        "highlightLine": 10,
+        "caption": "One export. Runs on Workers, Deno Deploy, Bun, and Node."
+      },
+      {
+        "type": "split",
+        "before": {
+          "label": "v1 — 12 lines to start",
+          "content": "const server = new ApolloServer({ schema });\nawait server.start();\nconst app = express();\napp.use(\"/graphql\",\n  expressMiddleware(server, {\n    context: async ({ req }) => ({\n      token: req.headers.auth,\n      db: await getDB()\n    })\n  })\n);\napp.listen(4000);"
+        },
+        "after": {
+          "label": "v2 — one file, any runtime",
+          "content": "export default createYoga({\n  schema,\n  context: ({ request }) => ({\n    token: request.headers.get(\"auth\"),\n    db: getDB()\n  })\n});"
+        },
+        "caption": "Drop the boilerplate. Keep the control."
+      },
+      {
+        "type": "feature-list",
+        "headline": "What shipped in v2",
+        "items": [
+          { "text": "Native WebSocket subscriptions on any runtime", "icon": "zap" },
+          { "text": "Deferred queries with @defer and @stream", "icon": "layers" },
+          { "text": "Edge-native: Workers, Deno Deploy, Bun, Node", "icon": "globe" },
+          { "text": "Built-in query depth limiting and cost analysis", "icon": "shield" },
+          { "text": "Full TypeScript inference — no codegen needed", "icon": "code-2" }
+        ],
+        "caption": "Everything GraphQL should have been from day one."
+      },
+      {
+        "type": "terminal",
+        "commands": [
+          { "input": "npm install apex-gql@2", "output": "added 3 packages in 0.8s" },
+          { "input": "npx apex migrate", "output": "✓ Updated 4 resolver files\n✓ 0 breaking changes detected\n✓ Context types regenerated" },
+          { "input": "npx wrangler deploy", "output": "✓ Deployed → apex.workers.dev\n  Latency: 0.9ms  (was 42ms)" }
+        ],
+        "caption": "Migrate from v1 in under a minute."
+      },
+      {
+        "type": "cta",
+        "installCommand": "npm install apex-gql@2",
+        "repoUrl": "github.com/apexgql/apex",
+        "caption": "Upgrade today. Deploy tomorrow."
+      }
+    ],
+    "vertical": [
+      {
+        "type": "problem",
+        "headline": "Apex 2.0 is here.",
+        "hero": true,
+        "caption": "GraphQL at the edge. Finally."
+      },
+      {
+        "type": "stat-callout",
+        "stats": [
+          { "value": "0.8ms", "label": "resolver latency" },
+          { "value": "62%", "label": "smaller than v1" }
+        ],
+        "caption": "Benchmarked on Cloudflare Workers."
+      },
+      {
+        "type": "cta",
+        "installCommand": "npm install apex-gql@2",
+        "repoUrl": "github.com/apexgql/apex",
+        "caption": "Upgrade today."
+      }
+    ],
+    "teaser": [
+      {
+        "type": "problem",
+        "headline": "Apex 2.0 is here.",
+        "hero": true
+      },
+      {
+        "type": "cta",
+        "installCommand": "npm install apex-gql@2",
+        "repoUrl": "github.com/apexgql/apex"
+      }
+    ]
+  }
 }

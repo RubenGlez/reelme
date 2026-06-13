@@ -1,0 +1,78 @@
+{
+  "x": {
+    "id": "x",
+    "label": "X",
+    "cut": "main",
+    "width": 1920,
+    "height": 1080,
+    "fps": 30,
+    "output": { "file": "reelme-out/x.mp4", "codec": "h264" }
+  },
+  "linkedin": {
+    "id": "linkedin",
+    "label": "LinkedIn",
+    "cut": "main",
+    "width": 1920,
+    "height": 1080,
+    "fps": 30,
+    "output": { "file": "reelme-out/linkedin.mp4", "codec": "h264" }
+  },
+  "youtube": {
+    "id": "youtube",
+    "label": "YouTube",
+    "cut": "main",
+    "width": 1920,
+    "height": 1080,
+    "fps": 30,
+    "output": { "file": "reelme-out/youtube.mp4", "codec": "h264" }
+  },
+  "instagram-feed": {
+    "id": "instagram-feed",
+    "label": "Instagram Feed",
+    "cut": "main",
+    "width": 1080,
+    "height": 1080,
+    "fps": 30,
+    "output": { "file": "reelme-out/instagram-feed.mp4", "codec": "h264" }
+  },
+  "tiktok": {
+    "id": "tiktok",
+    "label": "TikTok",
+    "cut": "vertical",
+    "width": 1080,
+    "height": 1920,
+    "fps": 30,
+    "maxDurationSec": 60,
+    "safeArea": { "top": 160, "bottom": 320 },
+    "output": { "file": "reelme-out/tiktok.mp4", "codec": "h264" }
+  },
+  "instagram-reel": {
+    "id": "instagram-reel",
+    "label": "Instagram Reel",
+    "cut": "vertical",
+    "width": 1080,
+    "height": 1920,
+    "fps": 30,
+    "safeArea": { "top": 220, "bottom": 420 },
+    "output": { "file": "reelme-out/instagram-reel.mp4", "codec": "h264" }
+  },
+  "instagram-story": {
+    "id": "instagram-story",
+    "label": "Instagram Story",
+    "cut": "vertical",
+    "width": 1080,
+    "height": 1920,
+    "fps": 30,
+    "safeArea": { "top": 250, "bottom": 250 },
+    "output": { "file": "reelme-out/instagram-story.mp4", "codec": "h264" }
+  },
+  "github-readme": {
+    "id": "github-readme",
+    "label": "GitHub README",
+    "cut": "main",
+    "width": 1920,
+    "height": 1080,
+    "fps": 30,
+    "output": { "file": "reelme-out/github-readme.gif", "codec": "gif" }
+  }
+}
