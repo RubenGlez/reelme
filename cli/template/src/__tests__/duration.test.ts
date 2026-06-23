@@ -6,7 +6,7 @@ describe("sceneDuration", () => {
   it("returns fixed durations for non-dynamic scene types", () => {
     const types = Object.keys(SCENE_DURATION_MAP) as Scene["type"][];
     // hook bypasses SCENE_TAIL; dynamic types compute duration from content length
-    const dynamicTypes: Scene["type"][] = ["feature-list", "stat-callout", "file-tree", "os-window", "hotkey", "hook", "clip"];
+    const dynamicTypes: Scene["type"][] = ["feature-list", "stat-callout", "file-tree", "os-window", "hotkey", "hook", "clip", "benchmark"];
     for (const type of types) {
       if (dynamicTypes.includes(type)) continue;
       const scene = { type } as Scene;
@@ -45,6 +45,19 @@ describe("sceneDuration", () => {
   it("computes hotkey duration from key count", () => {
     expect(sceneDuration({ type: "hotkey", keys: ["⌘"] })).toBe(110 + SCENE_TAIL);
     expect(sceneDuration({ type: "hotkey", keys: ["⌘", "⇧", "Space"] })).toBe(150 + SCENE_TAIL);
+  });
+
+  it("computes benchmark duration from bar count", () => {
+    expect(sceneDuration({ type: "benchmark", bars: [] })).toBe(80 + SCENE_TAIL);
+    expect(
+      sceneDuration({
+        type: "benchmark",
+        bars: [
+          { label: "a", value: 1 },
+          { label: "b", value: 2 },
+        ],
+      })
+    ).toBe(20 + 2 * 30 + 60 + SCENE_TAIL);
   });
 
   it("computes os-window duration from items and search query", () => {

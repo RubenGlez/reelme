@@ -21,6 +21,7 @@ import { OSWindow } from "./components/scenes/OSWindowScene";
 import { Hotkey } from "./components/scenes/HotkeyScene";
 import { Hook } from "./components/scenes/Hook";
 import { Clip } from "./components/scenes/Clip";
+import { Benchmark } from "./components/scenes/Benchmark";
 
 const FADE_IN = 12;
 const FADE_OUT = 15;
@@ -139,6 +140,8 @@ const SceneRenderer: React.FC<SceneRendererProps> = ({ scene, theme, project, pl
       return <Hook scene={scene} theme={theme} platform={platform} />;
     case "clip":
       return <Clip scene={scene} theme={theme} />;
+    case "benchmark":
+      return <Benchmark scene={scene} theme={theme} bottomInset={bottomInset} />;
     default:
       return null;
   }

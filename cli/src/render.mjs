@@ -3,7 +3,7 @@
 // in <repo>/reelme-out/; the heavy Remotion project stays in the cache.
 
 import { cpSync, existsSync, mkdirSync, readFileSync } from "node:fs";
-import { basename, join } from "node:path";
+import { basename, dirname, join } from "node:path";
 import { spawnSync } from "node:child_process";
 import { AUDIO_DIR, ensureScaffold, loadPlatforms, readBrief, fail } from "./cache.mjs";
 
@@ -40,7 +40,9 @@ function copyAssets(repoRoot, cacheDir, brief) {
     fail(`missing asset file(s):\n${missing.map((a) => `  ${join(repoRoot, a)}`).join("\n")}`);
   }
   for (const asset of assets) {
-    cpSync(join(repoRoot, asset), join(publicDir, basename(asset)));
+    const dest = join(publicDir, asset);
+    mkdirSync(dirname(dest), { recursive: true });
+    cpSync(join(repoRoot, asset), dest);
   }
 }
 
@@ -86,6 +88,19 @@ function copyAudioTrack(cacheDir, brief) {
   cpSync(source, join(audioDir, track));
 }
 
+function copyLogo(repoRoot, cacheDir, brief) {
+  const logo = brief.project?.logo;
+  if (!logo) return;
+  const source = join(repoRoot, logo);
+  if (!existsSync(source)) {
+    fail(`project.logo file not found: ${source}`);
+  }
+  const publicDir = join(cacheDir, "public");
+  const dest = join(publicDir, logo);
+  mkdirSync(dirname(dest), { recursive: true });
+  cpSync(source, dest);
+}
+
 export function render(repoRoot) {
   const brief = readBrief(repoRoot);
   const platforms = loadPlatforms();
@@ -95,6 +110,7 @@ export function render(repoRoot) {
 
   copyAssets(repoRoot, cacheDir, brief);
   copyAudioTrack(cacheDir, brief);
+  copyLogo(repoRoot, cacheDir, brief);
 
   const verticalFallback = brief.project.platforms.filter(
     (id) => platforms[id].cut === "vertical" && !brief.cuts.vertical?.length

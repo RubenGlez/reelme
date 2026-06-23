@@ -179,6 +179,27 @@ export interface HookScene {
   accent?: string;
 }
 
+export interface BenchmarkBar {
+  label: string;
+  /** Raw metric value; bar length is derived from it. */
+  value: number;
+  /** Text shown on the bar, e.g. "0.3s". Falls back to the value. */
+  display?: string;
+  /** The project's own bar — highlighted in the accent color. */
+  hero?: boolean;
+}
+
+export interface BenchmarkScene {
+  type: "benchmark";
+  headline?: string;
+  /** Metric description, e.g. "Search time (lower is better)". */
+  metric?: string;
+  /** When true, the smallest value wins (gets the longest bar). */
+  lowerIsBetter?: boolean;
+  bars: BenchmarkBar[];
+  caption?: string;
+}
+
 export type Scene =
   | ProblemScene
   | CodeRevealScene
@@ -194,6 +215,7 @@ export type Scene =
   | OSWindowScene
   | HotkeyScene
   | HookScene
+  | BenchmarkScene
   | ClipScene;
 
 export interface Cuts {

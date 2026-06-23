@@ -1,0 +1,27 @@
+{
+  "schemaVersion": 2,
+  "project": {
+    "name": "Hono",
+    "tagline": "Small, simple, ultrafast — on every runtime.",
+    "problem": "Most web frameworks lock you to a single runtime.",
+    "installCommand": "npm create hono@latest",
+    "repoUrl": "github.com/honojs/hono",
+    "primaryColor": "#e36209",
+    "tone": "professional",
+    "mode": "intro",
+    "bgStyle": "deep",
+    "platforms": ["github-readme", "x", "linkedin"],
+    "audio": { "track": "calm-keys.mp3" },
+    "watermark": true,
+    "logo": "logo.png"
+  },
+  "cuts": {
+    "main": [
+      { "type": "problem", "headline": "Your framework shouldn't pick your runtime.", "hero": true, "caption": "Rewrites every time you change platforms." },
+      { "type": "code-reveal", "language": "typescript", "code": "import { Hono } from 'hono'\n\nconst app = new Hono()\n\napp.get('/', (c) => c.text('Hello Hono!'))\n\nexport default app", "highlightLine": 5, "caption": "Built on Web Standards — familiar and tiny." },
+      { "type": "feature-list", "headline": "Runs everywhere, unchanged", "items": [ { "text": "Cloudflare Workers", "icon": "cloud" }, { "text": "Deno & Bun", "icon": "zap" }, { "text": "Node.js & Vercel", "icon": "server" }, { "text": "AWS Lambda", "icon": "cloud" } ], "caption": "One codebase, any JavaScript runtime." },
+      { "type": "terminal", "commands": [ { "input": "npm create hono@latest", "output": "✔ Target directory  ./my-app\n✔ Which template?   cloudflare-workers\n\nReady. cd my-app && npm run dev" } ], "caption": "Up and running in seconds." },
+      { "type": "cta", "installCommand": "npm create hono@latest", "repoUrl": "github.com/honojs/hono", "caption": "One framework, every runtime." }
+    ]
+  }
+}

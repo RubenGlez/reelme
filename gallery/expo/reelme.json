@@ -1,0 +1,36 @@
+{
+  "schemaVersion": 2,
+  "project": {
+    "name": "Expo",
+    "tagline": "Universal native apps with React.",
+    "problem": "Shipping a real iOS and Android app means wrestling Xcode, Gradle, and native toolchains.",
+    "installCommand": "npx create-expo-app@latest",
+    "repoUrl": "github.com/expo/expo",
+    "primaryColor": "#4630eb",
+    "tone": "professional",
+    "mode": "intro",
+    "bgStyle": "deep",
+    "platforms": ["github-readme", "instagram-feed", "instagram-story", "tiktok"],
+    "audio": { "track": "calm-keys.mp3" },
+    "watermark": true,
+    "logo": "logo.png"
+  },
+  "cuts": {
+    "main": [
+      { "type": "problem", "headline": "Native app setup eats your first day.", "hero": true, "caption": "Xcode, Gradle, simulators — before any product code." },
+      { "type": "terminal", "commands": [ { "input": "npx create-expo-app@latest my-app", "output": "✔ Downloaded template\n✔ Installed dependencies\n\ncd my-app && npx expo start" } ], "caption": "One command to a running app." },
+      { "type": "mobile", "title": "my-app", "caption": "Same code on iOS, Android, and web." },
+      { "type": "feature-list", "headline": "Build once, ship everywhere", "items": [ { "text": "iOS, Android, and web from one codebase", "icon": "check" }, { "text": "Over-the-air updates", "icon": "download" }, { "text": "Hundreds of native APIs", "icon": "package" } ], "caption": "The fastest way to a real native app." },
+      { "type": "cta", "installCommand": "npx create-expo-app@latest", "repoUrl": "github.com/expo/expo", "caption": "Ship native, skip the setup." }
+    ],
+    "vertical": [
+      { "type": "hook", "text": "A real native app in one command", "accent": "one command" },
+      { "type": "mobile", "title": "my-app", "caption": "iOS, Android, and web from one codebase." },
+      { "type": "cta", "installCommand": "npx create-expo-app@latest", "repoUrl": "github.com/expo/expo", "caption": "Ship native, skip the setup." }
+    ],
+    "teaser": [
+      { "type": "hook", "text": "Native apps without the native setup", "accent": "without" },
+      { "type": "cta", "installCommand": "npx create-expo-app@latest", "repoUrl": "github.com/expo/expo", "caption": "Ship native, skip the setup." }
+    ]
+  }
+}

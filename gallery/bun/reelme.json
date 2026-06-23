@@ -1,0 +1,27 @@
+{
+  "schemaVersion": 2,
+  "project": {
+    "name": "Bun",
+    "tagline": "The all-in-one JavaScript runtime.",
+    "problem": "The JavaScript toolchain is a pile of separate tools — runtime, bundler, test runner, package manager.",
+    "installCommand": "curl -fsSL https://bun.sh/install | bash",
+    "repoUrl": "github.com/oven-sh/bun",
+    "primaryColor": "#fbf0df",
+    "tone": "technical",
+    "mode": "announcement",
+    "version": "1.3",
+    "bgStyle": "deep",
+    "platforms": ["github-readme", "youtube", "x"],
+    "audio": { "track": "circuit-pulse.mp3" },
+    "watermark": true,
+    "logo": "logo.png"
+  },
+  "cuts": {
+    "main": [
+      { "type": "problem", "headline": "Bun 1.3 is here.", "hero": true, "caption": "The all-in-one toolkit, now even more batteries-included." },
+      { "type": "feature-list", "headline": "What's new in 1.3", "items": [ { "text": "Built-in database clients", "icon": "database" }, { "text": "Zero-config frontend dev server", "icon": "zap" }, { "text": "Full-stack apps, no extra tooling", "icon": "package" } ], "caption": "Less glue, more shipping." },
+      { "type": "terminal", "commands": [ { "input": "bun install", "output": "+ 312 packages installed [0.94s]" }, { "input": "bun run dev", "output": "Bun ready in 7ms\n→ http://localhost:3000" } ], "caption": "Runtime, installer, and dev server in one." },
+      { "type": "cta", "installCommand": "curl -fsSL https://bun.sh/install | bash", "repoUrl": "github.com/oven-sh/bun", "caption": "Upgrade today: bun upgrade." }
+    ]
+  }
+}

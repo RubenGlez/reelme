@@ -1,0 +1,27 @@
+{
+  "schemaVersion": 2,
+  "project": {
+    "name": "Polars",
+    "tagline": "DataFrames at the speed of Rust.",
+    "problem": "pandas slows to a crawl on large datasets.",
+    "installCommand": "pip install polars",
+    "repoUrl": "github.com/pola-rs/polars",
+    "primaryColor": "#1f6feb",
+    "tone": "technical",
+    "mode": "intro",
+    "bgStyle": "deep",
+    "platforms": ["github-readme", "linkedin", "x"],
+    "audio": { "track": "circuit-pulse.mp3" },
+    "watermark": true,
+    "logo": "logo.png"
+  },
+  "cuts": {
+    "main": [
+      { "type": "problem", "headline": "Big data, slow DataFrames.", "hero": true, "caption": "Single-threaded tools choke on real datasets." },
+      { "type": "code-reveal", "language": "python", "code": "import polars as pl\n\n(\n    pl.scan_csv(\"trips.csv\")\n      .filter(pl.col(\"distance\") > 10)\n      .group_by(\"city\")\n      .agg(pl.col(\"fare\").mean())\n      .collect()\n)", "highlightLine": 3, "caption": "A lazy, expressive query API." },
+      { "type": "data-flow", "nodes": [ { "id": "q", "label": "Query" }, { "id": "opt", "label": "Optimizer" }, { "id": "par", "label": "Parallel exec" }, { "id": "res", "label": "Result" } ], "edges": [ { "from": "q", "to": "opt", "label": "lazy" }, { "from": "opt", "to": "par", "label": "plan" }, { "from": "par", "to": "res", "label": "run" } ], "caption": "A query optimizer plans the work for you." },
+      { "type": "benchmark", "headline": "Ready before pandas finishes importing", "metric": "Import time (lower is better)", "lowerIsBetter": true, "bars": [ { "label": "Polars", "value": 70, "display": "70ms", "hero": true }, { "label": "pandas", "value": 520, "display": "520ms" } ], "caption": "Fast from the very first line." },
+      { "type": "cta", "installCommand": "pip install polars", "repoUrl": "github.com/pola-rs/polars", "caption": "Stop waiting on your DataFrames." }
+    ]
+  }
+}

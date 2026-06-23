@@ -1,4 +1,4 @@
-import { ClipScene, FeatureListScene, FileTreeScene, HotkeyScene, OSWindowScene, Scene, StatCalloutScene } from "./brief";
+import { BenchmarkScene, ClipScene, FeatureListScene, FileTreeScene, HotkeyScene, OSWindowScene, Scene, StatCalloutScene } from "./brief";
 
 // Hard ceiling for the teaser cut: 10s at 30fps. Renders over the limit
 // succeed, but the CLI prints a prominent warning.
@@ -24,6 +24,7 @@ export const SCENE_DURATION_MAP: Record<Scene["type"], number> = {
   hotkey: 120,
   hook: 50,
   clip: 150,
+  benchmark: 180,
 };
 
 export function sceneDuration(scene: Scene): number {
@@ -49,6 +50,9 @@ export function sceneDuration(scene: Scene): number {
   } else if (scene.type === "hotkey") {
     const s = scene as HotkeyScene;
     content = 20 + s.keys.length * 20 + 70;
+  } else if (scene.type === "benchmark") {
+    const s = scene as BenchmarkScene;
+    content = 20 + s.bars.length * 30 + 60;
   } else {
     content = SCENE_DURATION_MAP[scene.type];
   }
