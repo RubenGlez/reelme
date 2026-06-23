@@ -1,0 +1,83 @@
+[
+  {
+    "file": "calm-keys.mp3",
+    "title": "Calm Keys",
+    "artist": "ReelMe procedural audio generator",
+    "source": "https://github.com/RubenGlez/reelme/blob/main/cli/assets/audio/generate-tracks.mjs#calm-keys",
+    "license": "CC0",
+    "tones": ["professional"],
+    "duration": 32
+  },
+  {
+    "file": "steady-launch.mp3",
+    "title": "Steady Launch",
+    "artist": "ReelMe procedural audio generator",
+    "source": "https://github.com/RubenGlez/reelme/blob/main/cli/assets/audio/generate-tracks.mjs#steady-launch",
+    "license": "CC0",
+    "tones": ["professional", "technical"],
+    "duration": 32
+  },
+  {
+    "file": "clean-horizon.mp3",
+    "title": "Clean Horizon",
+    "artist": "ReelMe procedural audio generator",
+    "source": "https://github.com/RubenGlez/reelme/blob/main/cli/assets/audio/generate-tracks.mjs#clean-horizon",
+    "license": "CC0",
+    "tones": ["professional"],
+    "duration": 32
+  },
+  {
+    "file": "bright-sparks.mp3",
+    "title": "Bright Sparks",
+    "artist": "ReelMe procedural audio generator",
+    "source": "https://github.com/RubenGlez/reelme/blob/main/cli/assets/audio/generate-tracks.mjs#bright-sparks",
+    "license": "CC0",
+    "tones": ["playful"],
+    "duration": 32
+  },
+  {
+    "file": "pixel-bounce.mp3",
+    "title": "Pixel Bounce",
+    "artist": "ReelMe procedural audio generator",
+    "source": "https://github.com/RubenGlez/reelme/blob/main/cli/assets/audio/generate-tracks.mjs#pixel-bounce",
+    "license": "CC0",
+    "tones": ["playful", "technical"],
+    "duration": 32
+  },
+  {
+    "file": "sunny-loop.mp3",
+    "title": "Sunny Loop",
+    "artist": "ReelMe procedural audio generator",
+    "source": "https://github.com/RubenGlez/reelme/blob/main/cli/assets/audio/generate-tracks.mjs#sunny-loop",
+    "license": "CC0",
+    "tones": ["playful"],
+    "duration": 32
+  },
+  {
+    "file": "circuit-pulse.mp3",
+    "title": "Circuit Pulse",
+    "artist": "ReelMe procedural audio generator",
+    "source": "https://github.com/RubenGlez/reelme/blob/main/cli/assets/audio/generate-tracks.mjs#circuit-pulse",
+    "license": "CC0",
+    "tones": ["technical"],
+    "duration": 32
+  },
+  {
+    "file": "vector-grid.mp3",
+    "title": "Vector Grid",
+    "artist": "ReelMe procedural audio generator",
+    "source": "https://github.com/RubenGlez/reelme/blob/main/cli/assets/audio/generate-tracks.mjs#vector-grid",
+    "license": "CC0",
+    "tones": ["technical"],
+    "duration": 32
+  },
+  {
+    "file": "midnight-protocol.mp3",
+    "title": "Midnight Protocol",
+    "artist": "ReelMe procedural audio generator",
+    "source": "https://github.com/RubenGlez/reelme/blob/main/cli/assets/audio/generate-tracks.mjs#midnight-protocol",
+    "license": "CC0",
+    "tones": ["technical", "professional"],
+    "duration": 32
+  }
+]

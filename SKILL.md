@@ -1,6 +1,6 @@
 ---
 name: reelme
-description: "Generate a 2D animated explainer video for any open-source project: MP4, GIF, and editable Remotion source. Use when the user wants to create a demo video, explainer video, or feature announcement video for their project."
+description: "Generate local Remotion-rendered launch videos for dev projects: social MP4s, README GIFs, and editable reelme.json briefs. Use when the user wants a project intro, release announcement, demo video, or feature launch video for a repo."
 license: MIT
 compatibility: Requires Node.js >=18 and pnpm on the host machine.
 metadata:
@@ -8,242 +8,293 @@ metadata:
 allowed-tools: Bash Read Write Edit
 ---
 
-## Step 0: Check for existing brief
+# reelme
 
-Check whether `.reelme/src/brief.json` already exists.
+Create or update a `reelme.json` brief at the target repo root, then render with the npm CLI:
 
 ```bash
-[ -f ".reelme/src/brief.json" ] && echo "exists" || echo "not found"
+npx reelme render
 ```
 
-**If not found** → skip to Step 1.
+The CLI keeps the Remotion project in `~/.reelme/cache/<project-hash>/` and writes final files to `reelme-out/`. Do not scaffold `.reelme/` in the user's repo.
+
+## Step 0: Check for an existing brief
+
+Check whether `reelme.json` exists at the repo root.
+
+```bash
+[ -f "reelme.json" ] && echo "exists" || echo "not found"
+```
+
+**If not found** -> continue to Step 1.
 
 **If found:**
 
-Read `.reelme/src/brief.json` and show the user a compact summary:
+Read `reelme.json` and show a compact summary:
 
-> **Existing video found**
-> Project: [name] · Mode: [mode] · [N] scenes: [scene types joined by ", "]
+> **Existing reelme brief found**
+> Project: [name] · Mode: [mode] · Platforms: [platform ids] · Main cut: [N] scenes
 
 Then ask:
 
 > Update the existing video, or start fresh?
 
-- **Start fresh** → continue to Step 1 (the full flow; the existing `.reelme/` will be overwritten at Step 7).
-- **Update** → skip to **[Update Mode](#update-mode)** at the bottom of this file.
+- **Start fresh** -> continue to Step 1 and replace `reelme.json` after outline approval.
+- **Update** -> skip to [Update Mode](#update-mode).
 
----
+If the brief is v1 (`scenes` at the top level, `format` in `project`, or no `schemaVersion`), tell the user it needs to be migrated to schema v2 and continue through the normal flow.
 
 ## Step 1: Determine mode
 
-Ask the user one question before reading anything:
+Ask one question before reading the repo:
 
-> "Is this a **project intro** (explain what the project does) or a **feature announcement** (highlight what's new in a release)?"
+> Is this a **project intro** (explain what the project does) or a **feature announcement** (highlight what's new in a release)?
 
 Wait for the answer before proceeding.
 
----
-
 ## Step 2: Read the repo
 
-**Intro mode** — read `README.md`, the manifest file (`package.json` / `pyproject.toml` / `Cargo.toml` / `go.mod`), and up to 3 key source files. Extract: `name`, `tagline`, `problem`, `installCommand`, `repoUrl`, `key_feature`, `code_example`.
+**Intro mode** - read `README.md`, the manifest file (`package.json` / `pyproject.toml` / `Cargo.toml` / `go.mod`), and up to 3 key source files. Extract:
 
-**Announcement mode** — read `CHANGELOG.md` (if it exists), run `git log --oneline -20`, and `git diff <latest-tag>..HEAD --stat`. Extract: `name`, `version`, `headline`, `subtext`, `key_change`, `installCommand`, `repoUrl`.
+- `name`
+- `tagline`
+- `problem`
+- `installCommand`
+- `repoUrl`
+- key features
+- representative code or terminal flow
+- useful UI, screenshot, screen recording, or demo assets
 
-Mark each field `confident` or `uncertain`.
+**Announcement mode** - read `CHANGELOG.md` if it exists, run `git log --oneline -20`, and inspect the latest release diff when a tag is available. Extract:
 
----
+- `name`
+- `version`
+- release headline
+- release subtext
+- key changes
+- `installCommand`
+- `repoUrl`
+- assets that prove the change
+
+Mark each field as confident or uncertain. Interview only for gaps.
 
 ## Step 3: Interview
 
-**Always ask:**
-- `primary_color` — "What's the project's primary brand color? (hex, e.g. #6366f1)"
-- `logo` — "Do you have a logo file? (optional; path relative to the repo root)"
-- `bg_style` — "Background style: **deep** (near-black, default), **branded** (background visibly tinted with your accent), or **light** (white-based)?"
-- `format` — "Output format: **16:9** (YouTube / README embeds, default), **1:1** (Twitter / LinkedIn), or **9:16** (Reels / Shorts)?"
+Always ask for missing or preference-only fields in one compact numbered list:
 
-**Ask only if uncertain:** one question per uncertain field, pre-filled with your best guess. Ask all questions in a single numbered list.
+- `primaryColor` - brand color as a hex value, e.g. `#6366f1`
+- `logo` - optional repo-relative logo path
+- `bgStyle` - `deep` (near-black), `branded` (brand-tinted), or `light` (white-based)
+- `platforms` - one or more of `x`, `linkedin`, `youtube`, `tiktok`, `instagram-reel`, `instagram-story`, `instagram-feed`, `github-readme`
+- `assets` - optional repo-relative screenshots or clips to use in `browser`, `mobile`, or `clip` scenes
+- `audio` - Background music? Offer the tone-matched default by name, an alternative from the bundled manifest, or none.
+- `watermark` - whether to keep the default "made with reelme" CTA footer credit
 
----
+Ask uncertain content questions only when the repo does not give a reliable answer. Pre-fill each question with your best guess.
+
+If assets are provided, verify each path exists and has a supported extension:
+
+- clips: `mp4`, `mov`, `gif`
+- images: `png`, `jpg`, `jpeg`, `webp`
+
+Use repo-relative paths in the brief. The CLI copies referenced `clip.src`, `mobile.screenshot`, and `browser.image` files into the render cache at render time.
+
+Audio choices come from the bundled manifest in `cli/assets/audio/manifest.json`. The CLI copies only the chosen track into the render cache at render time. Default by project tone:
+
+| tone | default | alternatives |
+|---|---|---|
+| `professional` | Calm Keys (`calm-keys.mp3`) | Steady Launch, Clean Horizon, Midnight Protocol |
+| `playful` | Bright Sparks (`bright-sparks.mp3`) | Pixel Bounce, Sunny Loop |
+| `technical` | Circuit Pulse (`circuit-pulse.mp3`) | Vector Grid, Midnight Protocol, Pixel Bounce |
+
+When writing the brief, set `project.audio` explicitly to `{ "track": "<filename>" }` or `false`.
 
 ## Step 4: Propose the outline
 
-Present the proposed video to the user before writing anything:
+Present the proposed video before writing anything:
 
-> **Narrative:** [one sentence on the overall story]
+> **Narrative:** [one sentence on the story]
 >
-> 1. **[Scene type]** — [what it shows and the point it makes]
-> 2. …
+> **Main cut**
+> 1. **[Scene type]** - [what it shows and why it matters]
+> 2. ...
+>
+> **Platform cuts:** [which platforms will render from main vs vertical]
 >
 > Does this capture what you want to show? Anything to change, add, or cut?
 
-Rules: use plain language; name actual content (not abstractions); keep to 3–6 scenes; flag uncertainty. Wait for explicit approval before proceeding to Step 5.
+Rules:
 
----
+- Use plain language and actual repo details.
+- Keep `cuts.main` to 3-8 scenes. Prefer 3-6 unless the project really needs more.
+- For 9:16 platforms, propose `cuts.vertical` with 3-5 high-legibility scenes.
+- Wait for explicit approval before writing `reelme.json`.
 
-## Step 5: Build the brief
+After the user approves the main outline, offer a teaser:
 
-Read [`references/scene-schemas.md`](references/scene-schemas.md) for the full JSON shapes, transition options, font options, caption guidance, and icon registry.
+> I'll also add a <=10s teaser (hook + CTA) for short social posts. Want it?
 
-Write `.reelme/brief.json` using only the scenes the user approved in Step 4.
+If yes, include `cuts.teaser`, usually `[hook, cta]` with at most one proof scene between them. Keep it at or below 300 frames at 30fps.
 
-**Scene selection — intro:**
-- `problem` first (with `"hero": true`), `cta` last. Always.
-- Minimum structure: opener → proof point → CTA. Every scene beyond that must earn its place.
-- `stat-callout` is the strongest proof point — use it penultimate (before CTA) whenever there are compelling numbers (speed, size, count). It's the "proof before the ask."
-- `split` for before/after contrast — the most visceral way to show value.
-- `feature-list` to enumerate what it does (3–5 items). Assign an icon from the registry to each item where a match exists.
-- `code-reveal` if there is a representative code example.
-- `terminal` if it's a CLI tool or the install flow is the demo.
-- `data-flow` if the project has a clear pipeline.
-- `browser` if it has a web UI or produces visual output.
-- `file-tree` if the generated structure is a selling point.
-- `mobile` if it's a mobile app.
-- `os-window` if it has a native desktop UI (menu bar app, settings panel).
-- `hotkey` if there's a signature keyboard shortcut (e.g. ⌘⇧Space, Ctrl+K).
-- 1–3 middle scenes max. Fewer is better.
+## Step 5: Build `reelme.json`
 
-**Scene selection — announcement:**
-- `problem` acts as the "what's new" opener — punchy release headline, not pain framing.
-- `feature-list` if there are multiple notable changes.
-- `code-reveal` / `terminal` / `split` / `stat-callout` if the key change fits.
-- Skip `data-flow`, `browser`, `file-tree`, `mobile` unless directly relevant.
-- Always end with `cta`.
+Read [`references/scene-schemas.md`](references/scene-schemas.md) before writing or editing scene JSON.
 
-**Vertical cut (`cuts.vertical`) — when any 9:16 platform is in `project.platforms`:**
-- Always open with `hook`: one short, punchy claim (≤10 words) that stops the scroll. The `text` field is the entire message; use `accent` to highlight one keyword.
-- 3–5 scenes total (vs 5–8 for the main cut). Fewer is better — viewers skip fast.
-- Prefer high-legibility scene types: `hook`, `problem`, `feature-list`, `stat-callout`, `terminal`, `mobile`, `cta`.
-- Avoid dense scenes (`data-flow`, `file-tree`, `split`) unless the content is very short; they don't read at phone size.
-- Always end with `cta`.
+Write `reelme.json` at the repo root using schema v2:
 
----
-
-## Step 6: Ask about gitignore
-
-> "I'll scaffold the Remotion project at `.reelme/`. Do you want to keep it for future edits? If not, I'll add it to `.gitignore`."
-
----
-
-## Step 7: Scaffold
-
-```bash
-SKILL_DIR=$(find "$HOME" -maxdepth 6 -name "SKILL.md" -path "*/reelme/SKILL.md" 2>/dev/null | head -1 | xargs dirname)
-rsync -a \
-  --exclude='.gitignore' \
-  --exclude='src/__tests__' \
-  --exclude='src/brief.json' \
-  --exclude='eslint.config.mjs' \
-  --exclude='vitest.config.ts' \
-  --exclude='out' \
-  --exclude='node_modules' \
-  --exclude='public/logo.png' \
-  --exclude='public/.gitkeep' \
-  "$SKILL_DIR/template/" ".reelme/"
-cp .reelme/brief.json .reelme/src/brief.json
+```json
+{
+  "schemaVersion": 2,
+  "project": {
+    "name": "",
+    "tagline": "",
+    "problem": "",
+    "installCommand": "",
+    "repoUrl": "",
+    "primaryColor": "",
+    "tone": "professional",
+    "platforms": ["x", "github-readme"],
+    "mode": "intro",
+    "audio": { "track": "calm-keys.mp3" },
+    "watermark": true,
+    "bgStyle": "deep"
+  },
+  "cuts": {
+    "main": [],
+    "vertical": [],
+    "teaser": []
+  }
+}
 ```
 
-If the user provided a logo: `cp <logo_path> .reelme/public/<logo_filename>`
+Required:
 
-If the user chose not to keep it: `echo ".reelme/" >> .gitignore`
+- `schemaVersion: 2`
+- `project.platforms` with at least one valid platform id
+- `cuts.main` with at least one scene
 
-```bash
-cd .reelme && pnpm install && pnpm approve-builds --all
-```
+Optional:
 
----
+- `cuts.vertical` for 9:16 platforms. If omitted, the CLI renders the main cut letterboxed into vertical outputs and warns the user.
+- `cuts.teaser` for additional `<platform>-teaser.mp4` outputs on social platforms. GIF platforms are excluded from teaser rendering.
+- `project.watermark`; defaults to `true`. Set `false` only if the user asks to remove the CTA footer credit.
+- `project.logo`, `font`, `monoFont`, `transition`, `bgStyle`, `version`.
+- `project.audio`; set `{ "track": "<filename>", "volume": 0.25 }` for bundled background music or `false` for silent output. Omit `volume` to use the default 0.25.
 
-## Step 8: Preview and render
+### Scene selection - intro
 
-Your project is scaffolded and ready. Ask:
+- Open with `problem` using `"hero": true`; end with `cta`.
+- Use `terminal` for CLI tools or install/demo flows.
+- Use `code-reveal` for a concise representative code example.
+- Use `feature-list` for 3-5 concrete benefits.
+- Use `stat-callout` when the repo has compelling numbers.
+- Use `split` for before/after contrast.
+- Use `data-flow` for pipelines.
+- Use `browser`, `mobile`, or `clip` when real visual assets exist.
+- Use `file-tree`, `os-window`, or `hotkey` only when those surfaces are central to the value.
 
-> Preview in Remotion Studio before rendering, or render now?
->
-> - **Preview first** — run `cd .reelme && pnpm start` (or `! cd .reelme && pnpm start`) to open Remotion Studio at http://localhost:3000. Come back when you're happy and I'll render the final video.
-> - **Render now** — I'll render immediately.
+### Scene selection - announcement
 
-Wait for the user's signal, then run:
+- Open with `hook` or a punchy `problem` scene that states what's new.
+- Prefer `feature-list`, `clip`, `terminal`, `code-reveal`, `split`, or `stat-callout` for proof.
+- Skip dense intro-only scenes unless the release is specifically about that surface.
+- End with `cta`.
 
-```bash
-cd .reelme && pnpm render
-```
+### Vertical cut
 
-**After a successful render**, confirm the output files and share distribution guidance:
+Use `cuts.vertical` whenever any selected platform is `tiktok`, `instagram-reel`, or `instagram-story`.
 
-> Your video is ready:
-> - `.reelme/out/video.mp4` — best quality; use for YouTube, landing pages, direct sharing
-> - `.reelme/out/video.gif` — for README embeds and GitHub previews
->
-> **Where to share it:**
-> - **README**: `` ![demo](.reelme/out/video.gif) `` for an auto-playing GIF
-> - **Twitter/X or LinkedIn**: upload the MP4 directly; 1:1 performs best — re-render with `"format": "1:1"` in brief.json if you're on 16:9
-> - **Instagram Reels / TikTok / YouTube Shorts**: re-render with `"format": "9:16"` for vertical
-> - **YouTube**: the 16:9 MP4 is ready to upload as-is
->
-> Adapt based on `brief.project.format`:
-> - `"1:1"` already set → MP4 is ready for Twitter/LinkedIn; note that YouTube needs 16:9
-> - `"9:16"` already set → MP4 is ready for Reels/Shorts; note that YouTube/README need 16:9
-> - `"16:9"` (default) → use GIF for README, MP4 for YouTube; mention the other formats for social
->
-> To iterate: edit `.reelme/src/brief.json` and run `cd .reelme && pnpm render`
+- Open with `hook`: one short claim, ideally <=10 words.
+- Use fewer scenes than the main cut.
+- Favor `hook`, `problem`, `feature-list`, `stat-callout`, `terminal`, `mobile`, `clip`, and `cta`.
+- Keep captions short and avoid dense file trees, data flows, or long code.
 
----
-
-## Update Mode
-
-_Reached from Step 0 when `.reelme/src/brief.json` already exists._
-
-### U1: Read current brief and re-read repo
-
-Read `.reelme/src/brief.json` in full. Then re-read the repo using the same logic as Step 2 for the current `mode` in `brief.project`:
-
-- **intro**: re-read `README.md` and the manifest file.
-- **announcement**: re-read `CHANGELOG.md` (if exists) and run `git log --oneline -10`.
-
-Compare what the repo says now against what's in the brief. Note any obvious drift (e.g. tagline changed, new version in manifest, new sections in README).
-
-### U2: Surface the diff and ask what to change
-
-Show the user:
-
-> **Current brief:** [compact summary — name, mode, scenes]
->
-> **What I noticed:** [any drift between current repo and brief, or "no obvious changes detected"]
->
-> What do you want to update? Describe it in plain language — e.g. "update the tagline", "the version is now 2.1", "add a stat-callout with these numbers", "change the color to #f97316", "replace the terminal scene with a code-reveal".
-
-Wait for their answer.
-
-### U3: Apply targeted edits
-
-Make only the changes the user asked for. Read `references/scene-schemas.md` if adding or changing scene types. Write the updated brief back to `.reelme/src/brief.json` directly — do not write to `.reelme/brief.json` or re-run rsync.
-
-### U4: Preview and render
+## Step 6: Preview or render
 
 Ask:
 
-> Brief updated. Preview in Remotion Studio before rendering, or render now?
+> Preview in Remotion Studio before rendering, or render now?
 >
-> - **Preview first** — run `cd .reelme && pnpm start` (or `! cd .reelme && pnpm start`) to open Remotion Studio at http://localhost:3000. Come back when you're happy.
-> - **Render now** — I'll render immediately.
+> - **Preview first** - run `npx reelme studio` to open Remotion Studio against the cached project.
+> - **Render now** - run `npx reelme render`.
 
-Wait for the user's signal, then run:
+Wait for the user's signal.
+
+For preview:
 
 ```bash
-cd .reelme && pnpm render
+npx reelme studio
 ```
 
-After a successful render, show the same distribution guidance from Step 8.
+For render:
 
----
+```bash
+npx reelme render
+```
+
+After a successful render, confirm the output files in `reelme-out/`:
+
+- Social/video platforms: `<platform>.mp4`
+- GitHub README: `github-readme.gif`
+- Teasers when `cuts.teaser` exists: `<platform>-teaser.mp4` for non-GIF platforms
+
+Share concise distribution guidance:
+
+- Upload MP4 files directly to X, LinkedIn, YouTube, TikTok, and Instagram.
+- Use `github-readme.gif` for README embeds.
+- Commit `reelme.json` as the editable source of truth.
+- Usually add `reelme-out/` to `.gitignore` unless the repo intentionally tracks generated media.
+
+## Update Mode
+
+Reached from Step 0 when `reelme.json` already exists.
+
+### U1: Read current brief and re-read repo
+
+Read `reelme.json` in full.
+
+If it is not schema v2, migrate it during the update:
+
+- Add `schemaVersion: 2`.
+- Move top-level `scenes` to `cuts.main`.
+- Replace any `project.format` choice with `project.platforms`.
+- Rename `mobile.image` to `mobile.screenshot`.
+
+Then re-read the repo using the same logic as Step 2 for the current `project.mode`:
+
+- **intro**: re-read `README.md` and the manifest file.
+- **announcement**: re-read `CHANGELOG.md` if it exists and run `git log --oneline -10`.
+
+### U2: Surface the diff and ask what to change
+
+Show:
+
+> **Current brief:** [name, mode, platforms, main/vertical/teaser scene counts]
+>
+> **What I noticed:** [drift between repo and brief, or "no obvious changes detected"]
+>
+> What do you want to update?
+
+Wait for the answer.
+
+### U3: Apply targeted edits
+
+Make only the requested changes and any necessary schema migration edits. Read `references/scene-schemas.md` if adding or changing scene types.
+
+Write the updated brief back to `reelme.json`. Do not create `.reelme/`, do not edit `~/.reelme/cache/`, and do not manually copy assets.
+
+### U4: Preview or render
+
+Ask the same preview/render question from Step 6, then run `npx reelme studio` or `npx reelme render` based on the user's choice.
 
 ## Gotchas
 
-- **`pnpm approve-builds --all` is required.** esbuild needs a post-install script. Skipping this step causes `pnpm render` to fail. `template/pnpm-workspace.yaml` persists the approval so re-installs don't re-prompt.
-- **Node ≥18 required.** If `pnpm install` fails, check the Node version and suggest `nvm use 22`.
-- **`find` may resolve to the author's local clone.** If you are working in the `reelme` repo itself, `find` picks up the local SKILL.md. The rsync excludes (`out`, `node_modules`, `public/logo.svg`) are there to handle this safely.
-- **brief.json must land at `.reelme/src/brief.json`.** Writing it anywhere else and the Remotion composition won't find it.
-- **Keep scene count to 3–5 total.** More scenes makes the video feel padded, not comprehensive.
-- **`font` takes the display name with spaces** (e.g. `"Space Grotesk"`), not a CSS identifier.
-- **Missing logo path:** warn the user and proceed with `"logo": ""` rather than blocking.
-- **Update mode never re-scaffolds.** Only write `.reelme/src/brief.json` and render. Do not run rsync or `pnpm install` in update mode.
+- **No `.reelme/` project in the repo.** The CLI owns the cache at `~/.reelme/cache/<project-hash>/`.
+- **Schema v2 is required.** The CLI rejects briefs without `schemaVersion: 2`, with top-level `scenes`, or with old `project.format`.
+- **Use platform ids, not aspect ratios.** `project.platforms` drives output dimensions and safe areas.
+- **Assets stay repo-relative.** Use paths like `assets/demo.mp4`; the CLI copies referenced assets into cache during render.
+- **`mobile` uses `screenshot`, not `image`.** `browser` still uses `image`; `clip` uses `src`.
+- **Teasers render only for non-GIF platforms.** `github-readme` does not get a teaser.
+- **Vertical platforms can fall back to the main cut, but it is lower quality.** Author `cuts.vertical` for TikTok/Reels/Stories whenever possible.
+- **pnpm is required.** The CLI installs render dependencies in the cache on first run and runs `pnpm approve-builds --all` for esbuild.
+- **Node >=18 required.** If dependency install fails, check the user's Node version.

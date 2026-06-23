@@ -1,6 +1,6 @@
 ![reelme banner](./assets/reelme_banner.png)
 
-`reelme` is an agent skill that generates animated explainer videos for open-source projects. Point it at any repo, answer a few questions, and get an MP4 and a GIF ready to drop into your README, socials, or landing page.
+`reelme` is an agent skill that generates launch videos for any dev project. Point it at any repo, answer a few questions, and get platform-ready MP4s and GIFs for socials, your README, and release announcements.
 
 ---
 
@@ -12,7 +12,9 @@ npx skills add RubenGlez/reelme
 
 Works in any [Agent Skills](https://agentskills.io)-compatible agent: Claude Code, Cursor, Gemini CLI, OpenAI Codex, and more.
 
-**Requirements:** Node.js >=18, pnpm
+**Requirements:** Node.js >=18
+
+The skill invokes the `reelme` CLI automatically. You don't need to install it separately.
 
 ---
 
@@ -24,15 +26,33 @@ Open your agent inside any repo and run:
 /reelme
 ```
 
-The agent reads your repo, asks only what it can't infer (brand color, logo, output format), proposes a scene outline for your approval, then scaffolds and renders locally.
+The skill reads your repo, interviews you for brand details it can't infer, and writes `reelme.json` at the repo root. That file is your brand memory — commit it so future runs can update rather than start fresh.
 
-Before the final render you can preview in Remotion Studio (`cd .reelme && pnpm start`) — the agent will ask.
+Once the brief is ready, the skill runs:
 
-Output: `.reelme/out/video.mp4` and `.reelme/out/video.gif`
+```bash
+npx reelme render
+```
 
-After rendering, the agent gives you platform-specific guidance: which file to use for your README, Twitter/X, LinkedIn, YouTube, and Reels/Shorts.
+The CLI scaffolds a Remotion project in `~/.reelme/cache/<project-hash>/` (global cache, never inside your repo), renders all selected platforms, and copies the outputs to `./reelme-out/`.
 
-To iterate: edit `.reelme/src/brief.json` and run `cd .reelme && pnpm render`.
+**Preview before rendering:**
+
+```bash
+npx reelme studio
+```
+
+Opens Remotion Studio so you can scrub through scenes before committing to a full render.
+
+**Iterate:**
+
+Edit `reelme.json` directly, then re-run:
+
+```bash
+npx reelme render
+```
+
+**Outputs** land in `reelme-out/`, one file per selected platform: `x.mp4`, `tiktok.mp4`, `github-readme.gif`, etc. Social platforms also get a `<platform>-teaser.mp4` when a teaser cut is defined.
 
 ---
 
@@ -42,7 +62,7 @@ To iterate: edit `.reelme/src/brief.json` and run `cd .reelme && pnpm render`.
 
 **Feature announcement** — run after a release. Reads your changelog and recent git history, focuses on what changed and why it matters.
 
-**Update existing video** — run `/reelme` again in a repo that already has a `.reelme/` folder. The skill detects the existing brief, re-reads the repo, surfaces any drift, and asks what you want to change. Only the brief is updated — no re-scaffold, no re-install.
+**Update existing video** — run `/reelme` again in a repo that already has a `reelme.json`. The skill re-reads the repo, surfaces any drift, and proposes changes to the brief. Only `reelme.json` is updated — no re-scaffold needed.
 
 ---
 
@@ -58,7 +78,7 @@ To iterate: edit `.reelme/src/brief.json` and run `cd .reelme && pnpm render`.
 
 ## Scene types
 
-`problem` · `feature-list` · `code-reveal` · `terminal` · `data-flow` · `split` · `browser` · `stat-callout` · `file-tree` · `mobile` · `os-window` · `hotkey` · `cta`
+`hook` · `problem` · `feature-list` · `clip` · `code-reveal` · `terminal` · `data-flow` · `split` · `browser` · `stat-callout` · `file-tree` · `mobile` · `os-window` · `hotkey` · `cta`
 
 Full schema reference: [`references/scene-schemas.md`](./references/scene-schemas.md)
 

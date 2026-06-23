@@ -10,6 +10,7 @@
     "tone": "playful",
     "mode": "intro",
     "bgStyle": "branded",
+    "audio": { "track": "bright-sparks.mp3" },
     "platforms": ["x", "tiktok", "github-readme"]
   },
   "cuts": {

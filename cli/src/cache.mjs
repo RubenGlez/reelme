@@ -20,6 +20,7 @@ export const CACHE_ROOT = join(homedir(), ".reelme", "cache");
 
 const PKG_ROOT = join(dirname(fileURLToPath(import.meta.url)), "..");
 export const TEMPLATE_DIR = join(PKG_ROOT, "template");
+export const AUDIO_DIR = join(PKG_ROOT, "assets", "audio");
 
 const CLI_VERSION = JSON.parse(
   readFileSync(join(PKG_ROOT, "package.json"), "utf8")

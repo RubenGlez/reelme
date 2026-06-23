@@ -2,10 +2,10 @@
 // variant per social platform when the brief has a teaser cut. Outputs land
 // in <repo>/reelme-out/; the heavy Remotion project stays in the cache.
 
-import { cpSync, existsSync, mkdirSync } from "node:fs";
+import { cpSync, existsSync, mkdirSync, readFileSync } from "node:fs";
 import { basename, join } from "node:path";
 import { spawnSync } from "node:child_process";
-import { ensureScaffold, loadPlatforms, readBrief, fail } from "./cache.mjs";
+import { AUDIO_DIR, ensureScaffold, loadPlatforms, readBrief, fail } from "./cache.mjs";
 
 function renderComposition(cacheDir, compositionId, outFile, codec) {
   const args = ["exec", "remotion", "render", compositionId, join("out", outFile)];
@@ -44,6 +44,48 @@ function copyAssets(repoRoot, cacheDir, brief) {
   }
 }
 
+function loadAudioManifest() {
+  const manifestPath = join(AUDIO_DIR, "manifest.json");
+  if (!existsSync(manifestPath)) {
+    fail(`audio manifest is missing from the package: ${manifestPath}`);
+  }
+  try {
+    const manifest = JSON.parse(readFileSync(manifestPath, "utf8"));
+    if (!Array.isArray(manifest)) throw new Error("manifest must be an array");
+    return manifest;
+  } catch (e) {
+    fail(`audio manifest is invalid: ${e.message}`);
+  }
+}
+
+function copyAudioTrack(cacheDir, brief) {
+  const audio = brief.project?.audio;
+  if (!audio) return;
+
+  const track = audio.track;
+  if (typeof track !== "string" || track.length === 0 || basename(track) !== track) {
+    fail(`project.audio.track must be a filename from the bundled audio manifest.`);
+  }
+
+  const manifest = loadAudioManifest();
+  const validTracks = manifest.map((entry) => entry.file).filter(Boolean);
+  const entry = manifest.find((item) => item.file === track);
+  if (!entry) {
+    fail(
+      `unknown audio track "${track}". Valid tracks: ${validTracks.join(", ")}.`
+    );
+  }
+
+  const source = join(AUDIO_DIR, track);
+  if (!existsSync(source)) {
+    fail(`bundled audio track "${track}" is missing from ${AUDIO_DIR}.`);
+  }
+
+  const audioDir = join(cacheDir, "public", "audio");
+  mkdirSync(audioDir, { recursive: true });
+  cpSync(source, join(audioDir, track));
+}
+
 export function render(repoRoot) {
   const brief = readBrief(repoRoot);
   const platforms = loadPlatforms();
@@ -52,6 +94,7 @@ export function render(repoRoot) {
   mkdirSync(outDir, { recursive: true });
 
   copyAssets(repoRoot, cacheDir, brief);
+  copyAudioTrack(cacheDir, brief);
 
   const verticalFallback = brief.project.platforms.filter(
     (id) => platforms[id].cut === "vertical" && !brief.cuts.vertical?.length

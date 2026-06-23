@@ -12,7 +12,7 @@ interface Props {
 
 const isGif = (src: string) => src.endsWith(".gif");
 
-const MediaElement: React.FC<{ scene: ClipScene; theme: Theme }> = ({ scene, theme }) => {
+const MediaElement: React.FC<{ scene: ClipScene }> = ({ scene }) => {
   if (isGif(scene.src)) {
     return (
       <Gif
@@ -80,7 +80,7 @@ const MobileChrome: React.FC<{ children: React.ReactNode; theme: Theme }> = ({ c
 );
 
 export const Clip: React.FC<Props> = ({ scene, theme }) => {
-  const renderMedia = () => <MediaElement scene={scene} theme={theme} />;
+  const renderMedia = () => <MediaElement scene={scene} />;
 
   if (scene.frame === "browser") {
     return (

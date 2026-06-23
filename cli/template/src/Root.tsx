@@ -1,9 +1,10 @@
 import React from "react";
-import { AbsoluteFill, Sequence, useCurrentFrame, interpolate } from "remotion";
+import { AbsoluteFill, Audio, Sequence, staticFile, useCurrentFrame, useVideoConfig, interpolate } from "remotion";
 import { Brief, ProjectMeta, Scene } from "./brief";
 import { PlatformPreset } from "./platforms";
 import { buildTheme } from "./theme";
 import { sceneDuration } from "./duration";
+import { audioVolume } from "./audio";
 import "./fonts";
 import { Problem } from "./components/scenes/Problem";
 import { CodeReveal } from "./components/scenes/CodeReveal";
@@ -57,7 +58,9 @@ interface ReelProps {
 }
 
 export const Reel: React.FC<ReelProps> = ({ brief, platform, cut }) => {
+  const { durationInFrames } = useVideoConfig();
   const theme = buildTheme(brief.project.primaryColor || "#6366f1", brief.project.font, brief.project.monoFont, brief.project.tone, brief.project.bgStyle);
+  const shouldRenderAudio = platform.output.codec !== "gif" && Boolean(brief.project.audio);
 
   // Cut selection: teaser when requested, otherwise the cut named by the
   // platform preset, falling back to main when vertical is absent.
@@ -78,6 +81,13 @@ export const Reel: React.FC<ReelProps> = ({ brief, platform, cut }) => {
 
   return (
     <AbsoluteFill style={{ background: theme.bg }}>
+      {shouldRenderAudio && brief.project.audio ? (
+        <Audio
+          src={staticFile(`audio/${brief.project.audio.track}`)}
+          loop
+          volume={(frame) => audioVolume(frame, durationInFrames, brief.project.audio ? brief.project.audio.volume : undefined)}
+        />
+      ) : null}
       {sequenced.map(({ scene, from, duration }, i) => (
         <Sequence key={i} from={from} durationInFrames={duration}>
           <TransitionEnvelope durationInFrames={duration} transition={brief.project.transition ?? "fade"}>

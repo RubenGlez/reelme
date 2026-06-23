@@ -8,6 +8,7 @@
   },
   "files": [
     "src",
+    "assets",
     "template",
     "!template/out",
     "!template/src/__tests__",

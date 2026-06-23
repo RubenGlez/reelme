@@ -14,7 +14,7 @@ export interface ProjectMeta {
   tone: "professional" | "playful" | "technical";
   /** Publishing targets; required, at least one. Presets derive dimensions. */
   platforms: PlatformId[];
-  /** Bundled CC0 track selection; false disables audio. (Playback lands in Phase 2.) */
+  /** Bundled CC0 track selection; false disables audio. */
   audio?: { track: string; volume?: number } | false;
   /** "made with reelme" credit in the CTA footer; default true. (Rendering lands in Phase 2.) */
   watermark?: boolean;
