@@ -23,3 +23,7 @@ node scripts/eval-gallery.mjs ripgrep    # one brief
 ```
 
 It renders each brief with the local CLI and passes when every platform renders with exit 0. Remotion output isn't bit-deterministic, so this is a smoke eval — the committed `gallery/<name>/<name>.gif` files are the visual reference for manual review. Add a new entry by dropping a `gallery/<name>/reelme.json` (rendering reelme itself is a natural candidate).
+
+## Release
+
+`reelme` is published to npm **manually** — there is no publish-on-tag automation (`.github/workflows/ci.yml` only runs the `cli/template` typecheck/lint/test on push and PR). Flow: bump the version in `cli/package.json`, commit, annotate-tag `v<version>` on `main`, push branch + tag, then `cd cli && npm publish` (maintainer: rubenglez). What ships in the package is controlled by the `files` allowlist in `cli/package.json`.
