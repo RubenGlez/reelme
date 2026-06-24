@@ -9,7 +9,10 @@ import { AUDIO_DIR, ensureScaffold, loadPlatforms, readBrief, fail } from "./cac
 
 function renderComposition(cacheDir, compositionId, outFile, codec) {
   const args = ["exec", "remotion", "render", compositionId, join("out", outFile)];
-  if (codec === "gif") args.push("--codec=gif");
+  // Render gifs at 0.6 scale (e.g. 1920x1080 -> 1152x648): a README gif needs no
+  // more, and fewer pixels roughly halves the file size. Layout and timing are
+  // unchanged — --scale downscales the output, not the composition coordinates.
+  if (codec === "gif") args.push("--codec=gif", "--scale=0.6");
   console.log(`reelme: rendering ${compositionId} → reelme-out/${outFile}`);
   const result = spawnSync("pnpm", args, { cwd: cacheDir, stdio: "inherit" });
   if (result.error || result.status !== 0) {
