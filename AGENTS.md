@@ -8,12 +8,10 @@ Non-obvious conventions for working in this repo. (Project context, decisions, a
 - The CLI is the `reelme` npm package under `cli/` (`cli/src` = CLI, `cli/template` = the Remotion project scaffolded into `~/.reelme/cache/`).
 - `gallery/` holds the public showcase and the render eval suite (see below); `assets/` is README media only.
 
-## Cinematic layer
+## Scene conventions
 
-- `cli/template/src/cinematic/` is the production layer applied once in `Root.tsx`, wrapping every scene: a continuous `Atmosphere` (lit gradient field + grade + vignette + grain) behind all scenes, a `Camera` zoom per scene, and `Enter` cut rhythm. It runs on top of the scenes, not inside them. Audio is the bundled music bed only — there is no SFX/sound-design layer.
-- Because the `Atmosphere` is the background, scene roots are intentionally `background: "transparent"` — the stage shows through. When adding or editing a scene, do not paint an opaque full-frame fill on its root, or you'll hide the atmosphere. Framed panels (browser/phone/window bodies, the install pill) keep a solid `theme.bg` on purpose.
-- `project.look` selects an art-direction preset (`cinematic/look.ts`); it defaults from `tone`. The legacy `project.transition` field is ignored — the look drives the edit.
-- The gif/lite render path freezes the camera and atmosphere and drops patterned overlays, since per-frame motion balloons gif size.
+- A continuous atmosphere is rendered behind every scene, so scene roots are intentionally `background: "transparent"` — the stage shows through. When adding or editing a scene, do not paint an opaque full-frame fill on its root, or you'll hide the atmosphere. Framed panels (browser/phone/window bodies, the install pill) keep a solid `theme.bg` on purpose.
+- `project.look` defaults from `tone`. The legacy `project.transition` field is ignored.
 
 ## Gallery briefs are the render eval suite
 
