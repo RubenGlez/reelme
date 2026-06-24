@@ -97,7 +97,6 @@ interface SceneRendererProps {
 
 const SceneRenderer: React.FC<SceneRendererProps> = ({ scene, theme, project, platform }) => {
   const bottomInset = platform.safeArea?.bottom ?? 0;
-  const lite = platform.output.codec === "gif";
   switch (scene.type) {
     case "problem":
       return <Problem scene={scene} theme={theme} project={project} platform={platform} bottomInset={bottomInset} />;
@@ -108,7 +107,7 @@ const SceneRenderer: React.FC<SceneRendererProps> = ({ scene, theme, project, pl
     case "data-flow":
       return <DataFlow scene={scene} theme={theme} bottomInset={bottomInset} />;
     case "cta":
-      return <CTA scene={scene} theme={theme} project={project} platform={platform} bottomInset={bottomInset} lite={lite} />;
+      return <CTA scene={scene} theme={theme} project={project} platform={platform} bottomInset={bottomInset} />;
     case "browser":
       return <BrowserFrame scene={scene} theme={theme} bottomInset={bottomInset} />;
     case "split":

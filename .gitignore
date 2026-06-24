@@ -5,6 +5,7 @@ template/out/
 template/public/logo.svg
 .playwright-mcp/
 .agents/
+.claude/
 skills-lock.json
 .reelme/
 .harness/

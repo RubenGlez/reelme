@@ -126,6 +126,17 @@ export function ensureScaffold(repoRoot) {
     writeFileSync(versionMarker, `${CLI_VERSION}\n`);
   }
 
+  // Re-sync the template source on every render. The version marker only fires
+  // on a CLI bump, so without this a render reuses whatever scene code the cache
+  // was scaffolded with — local template edits (and the gallery render eval)
+  // would silently test stale code. This is a cheap dir copy; node_modules stays
+  // gated below so we don't reinstall. (Deleted template files aren't pruned from
+  // the cache — a CLI bump or `reelme clean` does a full rebuild.)
+  cpSync(join(TEMPLATE_DIR, "src"), join(cacheDir, "src"), {
+    recursive: true,
+    filter: (src) => !SCAFFOLD_EXCLUDES.has(basename(src)),
+  });
+
   // The user's brief always wins over the template sample.
   cpSync(join(repoRoot, "reelme.json"), join(cacheDir, "src", "brief.json"));
 

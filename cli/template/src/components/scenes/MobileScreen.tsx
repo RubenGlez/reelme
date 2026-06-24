@@ -3,6 +3,7 @@ import { AbsoluteFill, useCurrentFrame, useVideoConfig, spring, interpolate, Img
 import { MobileScene as MobileBrief } from "../../brief";
 import { Theme } from "../../theme";
 import { Caption } from "../primitives/Caption";
+import { Icon } from "../primitives/Icon";
 
 interface Props {
   scene: MobileBrief;
@@ -17,153 +18,267 @@ const RADIUS = 46;
 
 export const MobileScreen: React.FC<Props> = ({ scene, theme, bottomInset = 0 }) => {
   const frame = useCurrentFrame();
-  const { fps } = useVideoConfig();
+  const { fps, width, height } = useVideoConfig();
+  const portrait = height > width;
+  const hasCopy = Boolean(scene.headline || (scene.points && scene.points.length > 0));
 
+  // Phone entrance.
   const progress = spring({ frame, fps, config: theme.motion });
   const opacity = interpolate(progress, [0, 1], [0, 1]);
   const translateY = interpolate(progress, [0, 1], [60, 0]);
-  const scale = interpolate(progress, [0, 1], [0.9, 1]);
+  const enterScale = interpolate(progress, [0, 1], [0.9, 1]);
+
+  // The phone is a fixed 384×808 device; scale it to the frame. With copy beside
+  // it (landscape) or above it (vertical) it sits a touch smaller to share the
+  // frame; on its own it grows to command the height.
+  const targetH = hasCopy
+    ? (portrait ? height * 0.56 : height * 0.84)
+    : (portrait ? height * 0.74 : height * 0.84);
+  const fit = targetH / PHONE_H;
+
+  // The wrapper takes the *scaled* footprint so the device occupies a real
+  // layout slot — a bare transform:scale would resize the phone visually while
+  // its box stayed 808px tall, overlapping copy stacked above it on vertical cuts.
+  const phone = (
+    <div
+      style={{
+        width: PHONE_W * fit,
+        height: PHONE_H * fit,
+        flexShrink: 0,
+        opacity,
+        transform: `translateY(${translateY}px)`,
+      }}
+    >
+      <div style={{ transform: `scale(${enterScale * fit})`, transformOrigin: "top left" }}>
+        <PhoneFrame scene={scene} theme={theme} frame={frame} fps={fps} />
+      </div>
+    </div>
+  );
+
+  // Single centered device when no copy is supplied (composed symmetric margins).
+  if (!hasCopy) {
+    return (
+      <AbsoluteFill style={{ background: "transparent", display: "flex", alignItems: "center", justifyContent: "center" }}>
+        {phone}
+        {scene.caption && <Caption text={scene.caption} theme={theme} startFrame={50} bottomInset={bottomInset} />}
+      </AbsoluteFill>
+    );
+  }
+
+  const copy = <CopyColumn scene={scene} theme={theme} frame={frame} fps={fps} portrait={portrait} width={width} />;
 
   return (
     <AbsoluteFill
       style={{
         background: "transparent",
         display: "flex",
+        flexDirection: portrait ? "column" : "row",
         alignItems: "center",
-        justifyContent: "center",
+        justifyContent: portrait ? "center" : "space-between",
+        gap: portrait ? 12 : 80,
+        padding: portrait ? "0 80px" : "0 130px",
       }}
     >
-      <div
-        style={{
-          width: PHONE_W,
-          height: PHONE_H,
-          borderRadius: RADIUS,
-          border: `3px solid ${theme.border}`,
-          background: theme.surface,
-          boxShadow: `0 50px 120px rgba(0,0,0,0.6), inset 0 0 0 1px rgba(255,255,255,0.05)`,
-          position: "relative",
-          overflow: "hidden",
-          opacity,
-          transform: `translateY(${translateY}px) scale(${scale})`,
-        }}
-      >
-        {/* Notch */}
-        <div
-          style={{
-            position: "absolute",
-            top: 0,
-            left: "50%",
-            transform: "translateX(-50%)",
-            width: 120,
-            height: NOTCH_H,
-            background: theme.surface,
-            borderBottomLeftRadius: 18,
-            borderBottomRightRadius: 18,
-            zIndex: 10,
-          }}
-        />
+      {copy}
+      {phone}
+      {scene.caption && <Caption text={scene.caption} theme={theme} startFrame={50} bottomInset={bottomInset} />}
+    </AbsoluteFill>
+  );
+};
 
-        {/* Screen */}
+/** Headline + supporting bullets that balance the device. */
+const CopyColumn: React.FC<{
+  scene: MobileBrief;
+  theme: Theme;
+  frame: number;
+  fps: number;
+  portrait: boolean;
+  width: number;
+}> = ({ scene, theme, frame, fps, portrait, width }) => {
+  const headlineSize = portrait ? Math.round(width * 0.06) : Math.round(width * 0.032);
+  const pointSize = portrait ? Math.round(width * 0.032) : Math.round(width * 0.019);
+
+  const headP = spring({ frame: frame - 6, fps, config: theme.motion });
+  const headOpacity = interpolate(headP, [0, 1], [0, 1]);
+  const headShift = interpolate(headP, [0, 1], [portrait ? 18 : -28, 0]);
+
+  return (
+    <div
+      style={{
+        display: "flex",
+        flexDirection: "column",
+        gap: portrait ? 22 : 30,
+        maxWidth: portrait ? width * 0.82 : width * 0.44,
+        alignItems: portrait ? "center" : "flex-start",
+        textAlign: portrait ? "center" : "left",
+      }}
+    >
+      {scene.headline && (
         <div
           style={{
-            position: "absolute",
-            inset: 0,
-            background: theme.bg,
-            display: "flex",
-            flexDirection: "column",
+            opacity: headOpacity,
+            transform: portrait ? `translateY(${headShift}px)` : `translateX(${headShift}px)`,
+            fontFamily: theme.fontSans,
+            fontSize: headlineSize,
+            fontWeight: 800,
+            lineHeight: 1.08,
+            letterSpacing: "-0.03em",
+            color: theme.text,
           }}
         >
-          {/* Status bar */}
+          {scene.headline}
+        </div>
+      )}
+
+      {scene.points && scene.points.length > 0 && (
+        <div style={{ display: "flex", flexDirection: "column", gap: portrait ? 16 : 20 }}>
+          {scene.points.map((point, i) => {
+            const p = spring({ frame: frame - 18 - i * 7, fps, config: theme.motion });
+            return (
+              <div
+                key={i}
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  gap: 16,
+                  opacity: interpolate(p, [0, 1], [0, 1]),
+                  transform: `translateX(${interpolate(p, [0, 1], [portrait ? 0 : -16, 0])}px)`,
+                }}
+              >
+                <Icon name="check" size={Math.round(pointSize * 0.95)} color={theme.accent} />
+                <span style={{ fontFamily: theme.fontSans, fontSize: pointSize, fontWeight: 500, color: theme.text, lineHeight: 1.3 }}>
+                  {point}
+                </span>
+              </div>
+            );
+          })}
+        </div>
+      )}
+    </div>
+  );
+};
+
+/** The fixed-size device. Scaled to the frame by its parent. */
+const PhoneFrame: React.FC<{ scene: MobileBrief; theme: Theme; frame: number; fps: number }> = ({ scene, theme, frame, fps }) => {
+  return (
+    <div
+      style={{
+        width: PHONE_W,
+        height: PHONE_H,
+        borderRadius: RADIUS,
+        border: `3px solid ${theme.border}`,
+        background: theme.surface,
+        boxShadow: `0 50px 120px rgba(0,0,0,0.6), inset 0 0 0 1px rgba(255,255,255,0.05)`,
+        position: "relative",
+        overflow: "hidden",
+      }}
+    >
+      {/* Notch */}
+      <div
+        style={{
+          position: "absolute",
+          top: 0,
+          left: "50%",
+          transform: "translateX(-50%)",
+          width: 120,
+          height: NOTCH_H,
+          background: theme.surface,
+          borderBottomLeftRadius: 18,
+          borderBottomRightRadius: 18,
+          zIndex: 10,
+        }}
+      />
+
+      {/* Screen */}
+      <div style={{ position: "absolute", inset: 0, background: theme.bg, display: "flex", flexDirection: "column" }}>
+        {/* Status bar */}
+        <div
+          style={{
+            height: NOTCH_H + 2,
+            display: "flex",
+            alignItems: "flex-end",
+            justifyContent: "space-between",
+            paddingLeft: 22,
+            paddingRight: 22,
+            paddingBottom: 4,
+            fontFamily: theme.fontSans,
+            fontSize: 12,
+            fontWeight: 600,
+            color: theme.text,
+            flexShrink: 0,
+          }}
+        >
+          <span>9:41</span>
+          <span style={{ letterSpacing: 1 }}>●●●</span>
+        </div>
+
+        {/* App header */}
+        {scene.title && (
           <div
             style={{
-              height: NOTCH_H + 2,
+              height: 52,
               display: "flex",
-              alignItems: "flex-end",
-              justifyContent: "space-between",
-              paddingLeft: 22,
-              paddingRight: 22,
-              paddingBottom: 4,
+              alignItems: "center",
+              gap: 10,
+              padding: "0 18px",
+              borderBottom: `1px solid ${theme.border}`,
               fontFamily: theme.fontSans,
-              fontSize: 12,
-              fontWeight: 600,
+              fontSize: 17,
+              fontWeight: 700,
               color: theme.text,
               flexShrink: 0,
             }}
           >
-            <span>9:41</span>
-            <span style={{ letterSpacing: 1 }}>●●●</span>
+            <div style={{ width: 12, height: 12, borderRadius: "50%", background: theme.accent }} />
+            {scene.title}
           </div>
+        )}
 
-          {/* App header */}
-          {scene.title && (
+        {/* Content */}
+        <div style={{ flex: 1, overflow: "hidden", position: "relative" }}>
+          {scene.screenshot ? (
+            <KenBurns frame={frame}>
+              <Img
+                src={staticFile(scene.screenshot)}
+                style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }}
+              />
+            </KenBurns>
+          ) : (
+            <MockFeed theme={theme} frame={frame} fps={fps} />
+          )}
+        </div>
+
+        {/* Bottom nav */}
+        <div
+          style={{
+            height: 56,
+            borderTop: `1px solid ${theme.border}`,
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "space-around",
+            flexShrink: 0,
+            background: theme.surface,
+          }}
+        >
+          {["⌂", "⊞", "♡", "◉"].map((icon, i) => (
             <div
+              key={i}
               style={{
-                height: 52,
+                width: 38,
+                height: 38,
                 display: "flex",
                 alignItems: "center",
-                gap: 10,
-                padding: "0 18px",
-                borderBottom: `1px solid ${theme.border}`,
-                fontFamily: theme.fontSans,
-                fontSize: 17,
-                fontWeight: 700,
-                color: theme.text,
-                flexShrink: 0,
+                justifyContent: "center",
+                fontSize: 19,
+                color: i === 0 ? theme.accent : theme.textMuted,
               }}
             >
-              <div style={{ width: 12, height: 12, borderRadius: "50%", background: theme.accent }} />
-              {scene.title}
+              {icon}
             </div>
-          )}
-
-          {/* Content */}
-          <div style={{ flex: 1, overflow: "hidden", position: "relative" }}>
-            {scene.screenshot ? (
-              <KenBurns frame={frame}>
-                <Img
-                  src={staticFile(scene.screenshot)}
-                  style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }}
-                />
-              </KenBurns>
-            ) : (
-              <MockFeed theme={theme} frame={frame} fps={fps} />
-            )}
-          </div>
-
-          {/* Bottom nav */}
-          <div
-            style={{
-              height: 56,
-              borderTop: `1px solid ${theme.border}`,
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "space-around",
-              flexShrink: 0,
-              background: theme.surface,
-            }}
-          >
-            {["⌂", "⊞", "♡", "◉"].map((icon, i) => (
-              <div
-                key={i}
-                style={{
-                  width: 38,
-                  height: 38,
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  fontSize: 19,
-                  color: i === 0 ? theme.accent : theme.textMuted,
-                }}
-              >
-                {icon}
-              </div>
-            ))}
-          </div>
+          ))}
         </div>
       </div>
-
-      {scene.caption && <Caption text={scene.caption} theme={theme} startFrame={50} bottomInset={bottomInset} />}
-    </AbsoluteFill>
+    </div>
   );
 };
 

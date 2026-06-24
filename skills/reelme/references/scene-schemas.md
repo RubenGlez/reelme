@@ -354,11 +354,18 @@ Head-to-head comparison as animated horizontal bars. `value` drives bar length; 
   "type": "mobile",
   "title": "Mobile Preview",
   "screenshot": "assets/mobile-home.png",
+  "headline": "One codebase, truly native apps.",
+  "points": ["iOS and Android from one project", "Native performance"],
   "caption": "Designed for the small screen."
 }
 ```
 
 Use `screenshot`, not `image`. The path is repo-relative and copied to the render cache.
+
+Add `headline` (and optional `points`) to compose the device as a showcase: the
+copy sits beside the phone on landscape cuts and above it on vertical cuts, so the
+frame carries weight on both sides. Without them the device sits centered on its
+own — fine, but it leaves wide margins on 16:9, so prefer the copy on landscape.
 
 ### `os-window`
 

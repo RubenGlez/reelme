@@ -1,10 +1,10 @@
 import React from "react";
-import { AbsoluteFill, useCurrentFrame, useVideoConfig, spring, interpolate, Img, staticFile } from "remotion";
-import chroma from "chroma-js";
+import { useCurrentFrame, useVideoConfig, spring, interpolate, Img, staticFile } from "remotion";
 import { CTAScene as CTABrief, ProjectMeta } from "../../brief";
 import { Theme } from "../../theme";
 import { PlatformPreset, typeScale } from "../../platforms";
-import { Caption } from "../primitives/Caption";
+import { Stage } from "../primitives/Stage";
+import { Terminal } from "../primitives/Terminal";
 
 interface Props {
   scene: CTABrief;
@@ -12,13 +12,11 @@ interface Props {
   project: ProjectMeta;
   platform?: PlatformPreset;
   bottomInset?: number;
-  /** gif output: use a flat fill instead of gradients that bloat gif size. */
-  lite?: boolean;
 }
 
 const SNAP_OFFSET = 8;
 
-export const CTA: React.FC<Props> = ({ scene, theme, project, platform, bottomInset = 0, lite = false }) => {
+export const CTA: React.FC<Props> = ({ scene, theme, project, platform, bottomInset = 0 }) => {
   const frame = useCurrentFrame();
   const { fps } = useVideoConfig();
   const scale = platform ? typeScale(platform) : 1.0;
@@ -31,46 +29,23 @@ export const CTA: React.FC<Props> = ({ scene, theme, project, platform, bottomIn
   const titleOpacity = interpolate(titleProgress, [0, 1], [0, 1]);
   const titleY = interpolate(titleProgress, [0, 1], [24, 0]);
   const cmdOpacity = interpolate(cmdProgress, [0, 1], [0, 1]);
-  const cmdScale = interpolate(cmdProgress, [0, 1], [0.92, 1]);
-  const urlFade = interpolate(urlProgress, [0, 1], [0, 0.7]);
+  const cmdY = interpolate(cmdProgress, [0, 1], [18, 0]);
+  const urlFade = interpolate(urlProgress, [0, 1], [0, 0.65]);
 
   const isAnnouncement = project.mode === "announcement";
   const displayName = isAnnouncement && project.version
     ? `${project.name} ${project.version}`
     : project.name;
 
-  // Contrast-aware text on the brand field: white on saturated/dark accents,
-  // near-black on light ones — confident lockup instead of dull inverse grey.
-  const onAccent = chroma(theme.accent).luminance() > 0.5 ? "#15151c" : "#ffffff";
+  // When the command starts typing inside the terminal: a beat after the title
+  // settles, so the eye lands on the headline first.
+  const termStart = project.logo ? 26 : 16;
 
   return (
-    <AbsoluteFill
-      style={{
-        // Graded brand end-card: a lit radial instead of a flat fill, so the
-        // CTA reads as produced as the rest of the film, not a plain slate. The
-        // gif path uses a flat fill — a full-frame gradient explodes gif size.
-        background: lite
-          ? theme.accent
-          : `radial-gradient(125% 95% at 50% 32%, color-mix(in srgb, ${theme.accent}, #fff 12%) 0%, ${theme.accent} 46%, color-mix(in srgb, ${theme.accent}, #000 24%) 100%)`,
-        display: "flex",
-        flexDirection: "column",
-        alignItems: "center",
-        justifyContent: "center",
-        gap: 32,
-        padding: "0 120px",
-      }}
-    >
-      {/* Edge vignette spotlights the lockup so the field doesn't read as empty.
-          Skipped on the gif path to keep the frame flat and compressible. */}
-      {!lite && (
-        <AbsoluteFill
-          style={{
-            background: "radial-gradient(70% 70% at 50% 50%, transparent 40%, rgba(0,0,0,0.28) 100%)",
-            pointerEvents: "none",
-          }}
-        />
-      )}
-
+    // Stay on the film's continuous atmosphere stage instead of flooding the
+    // frame with a flat brand field — the end-card belongs to the same shot as
+    // the rest of the reel. Stage's transparent root lets the Atmosphere show.
+    <Stage theme={theme} gap={40} caption={scene.caption} captionStart={60} bottomInset={bottomInset}>
       {project.logo && (
         <div
           style={{
@@ -79,7 +54,7 @@ export const CTA: React.FC<Props> = ({ scene, theme, project, platform, bottomIn
             background: "#ffffff",
             borderRadius: 20,
             padding: 16,
-            boxShadow: "0 8px 32px rgba(0,0,0,0.2)",
+            boxShadow: "0 12px 40px rgba(0,0,0,0.35)",
           }}
         >
           <Img
@@ -96,36 +71,20 @@ export const CTA: React.FC<Props> = ({ scene, theme, project, platform, bottomIn
           fontFamily: theme.fontSans,
           fontSize: 60 * scale,
           fontWeight: 700,
-          color: onAccent,
+          color: theme.text,
           letterSpacing: "-0.03em",
           textAlign: "center",
-          textShadow: "0 4px 30px rgba(0,0,0,0.25)",
         }}
       >
         {isAnnouncement ? "" : "Get started with "}
-        <span style={{ color: onAccent, fontWeight: 800 }}>{displayName}</span>
+        <span style={{ color: theme.accent, fontWeight: 800 }}>{displayName}</span>
         {isAnnouncement ? " is here." : ""}
       </div>
 
-      <div
-        style={{
-          opacity: cmdOpacity,
-          transform: `scale(${cmdScale})`,
-          background: theme.bg,
-          border: `1.5px solid rgba(0,0,0,0.12)`,
-          borderRadius: 14,
-          padding: "20px 44px",
-          fontFamily: theme.fontMono,
-          fontSize: 28,
-          color: theme.text,
-          display: "flex",
-          alignItems: "center",
-          gap: 16,
-          boxShadow: "0 22px 60px rgba(0,0,0,0.30)",
-        }}
-      >
-        <span style={{ color: theme.accent }}>$</span>
-        {scene.installCommand}
+      {/* The install command in the film's own terminal, typed out — consistent
+          with the reel's other terminal scenes instead of a web-style pill. */}
+      <div style={{ opacity: cmdOpacity, transform: `translateY(${cmdY}px)` }}>
+        <Terminal lines={[{ text: scene.installCommand }]} theme={theme} startFrame={termStart} />
       </div>
 
       {scene.repoUrl && (
@@ -134,14 +93,12 @@ export const CTA: React.FC<Props> = ({ scene, theme, project, platform, bottomIn
             opacity: urlFade,
             fontFamily: theme.fontMono,
             fontSize: 20,
-            color: onAccent,
+            color: theme.textMuted,
           }}
         >
           {scene.repoUrl}
         </div>
       )}
-
-      {scene.caption && <Caption text={scene.caption} theme={theme} startFrame={60} bottomInset={bottomInset} />}
 
       {project.watermark !== false && (
         <div
@@ -159,6 +116,6 @@ export const CTA: React.FC<Props> = ({ scene, theme, project, platform, bottomIn
           made with reelme
         </div>
       )}
-    </AbsoluteFill>
+    </Stage>
   );
 };

@@ -155,6 +155,12 @@ export interface MobileScene {
   title?: string;
   screenshot?: string;
   caption?: string;
+  /** Value-prop shown beside the device (landscape) or above it (vertical).
+   *  With a headline/points the scene composes as device + copy; without, the
+   *  device sits centered on its own. */
+  headline?: string;
+  /** Short supporting bullets next to the device, rendered with accent checks. */
+  points?: string[];
 }
 
 export interface ClipScene {

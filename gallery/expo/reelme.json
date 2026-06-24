@@ -19,13 +19,13 @@
   "cuts": {
     "main": [
       { "type": "problem", "hero": true, "align": "left", "kicker": "Expo", "headline": "One codebase. iOS, Android, and web." },
-      { "type": "mobile", "title": "my-app", "caption": "The same React code, running natively." },
+      { "type": "mobile", "title": "my-app", "headline": "One React codebase, truly native apps.", "points": ["iOS and Android from one project", "Native performance, no compromises", "Live preview on a real device"], "caption": "The same React code, running natively." },
       { "type": "feature-list", "align": "left", "headline": "Ship without the native headache", "items": [ { "text": "Over-the-air updates, no app-store wait", "icon": "cloud" }, { "text": "Native modules without opening Xcode", "icon": "package" }, { "text": "One command to build and submit", "icon": "upload" } ] },
       { "type": "cta", "installCommand": "npx create-expo-app@latest", "repoUrl": "github.com/expo/expo", "caption": "Build once, run everywhere." }
     ],
     "vertical": [
       { "type": "hook", "kicker": "Expo", "text": "iOS, Android, and web from one codebase.", "accent": "one codebase." },
-      { "type": "mobile", "title": "my-app", "caption": "The same React code, running natively." },
+      { "type": "mobile", "title": "my-app", "headline": "One codebase, truly native.", "points": ["iOS + Android from one project", "Native performance"], "caption": "The same React code, running natively." },
       { "type": "cta", "installCommand": "npx create-expo-app@latest", "repoUrl": "github.com/expo/expo" }
     ],
     "teaser": [
