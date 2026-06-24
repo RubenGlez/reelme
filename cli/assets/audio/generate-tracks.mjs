@@ -110,11 +110,6 @@ function triangle(phase) {
   return (2 / Math.PI) * Math.asin(Math.sin(phase));
 }
 
-function hashNoise(n) {
-  const x = Math.sin(n * 12.9898) * 43758.5453;
-  return (x - Math.floor(x)) * 2 - 1;
-}
-
 function env(position, attack, release) {
   if (position < attack) return position / attack;
   return Math.exp(-(position - attack) * release);
@@ -139,23 +134,17 @@ function renderSample(track, t, i) {
     sample += triangle(TWO_PI * freq * 2 * t) * amp * 0.18;
   }
 
+  // Sustained sub-bass that swells once per chord — a smooth harmonic floor
+  // rather than a per-beat thump. The old per-beat kick/hat read as a disturbing
+  // pulse under narration, so these beds are now ambient, not percussive.
   const bassRoot = root - 24 + chord[0];
-  const bassGate = (t % beat) / beat;
-  sample += Math.sin(TWO_PI * midiToFreq(bassRoot) * t) * 0.12 * env(bassGate, 0.02, 5);
+  sample += Math.sin(TWO_PI * midiToFreq(bassRoot) * t) * 0.11 * env(chordPos, 0.06, 0.9);
 
   const melodyNote = root + 12 + track.melody[noteStep];
   const leadWave = track.mood === "chip"
     ? Math.sign(Math.sin(TWO_PI * midiToFreq(melodyNote) * t))
     : triangle(TWO_PI * midiToFreq(melodyNote) * t);
   sample += leadWave * 0.06 * env(notePos, 0.03, track.mood === "soft" ? 4 : 7);
-
-  if (track.mood !== "soft") {
-    const kickPos = (t % beat) / beat;
-    sample += Math.sin(TWO_PI * (46 + 62 * Math.exp(-kickPos * 18)) * t) * 0.16 * env(kickPos, 0.01, 10);
-
-    const hatPos = (t % (beat / 2)) / (beat / 2);
-    sample += hashNoise(i) * 0.025 * env(hatPos, 0.01, 16);
-  }
 
   return Math.max(-0.98, Math.min(0.98, sample));
 }
