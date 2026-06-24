@@ -1,6 +1,6 @@
 {
   "name": "reelme",
-  "version": "0.2.2",
+  "version": "0.3.0",
   "description": "Turn your repo into launch videos for social platforms. Local Remotion rendering, zero cloud.",
   "type": "module",
   "bin": {
