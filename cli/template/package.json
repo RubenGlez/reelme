@@ -9,12 +9,12 @@
     "test": "vitest run"
   },
   "dependencies": {
-    "@remotion/cli": "4.0.290",
-    "@remotion/gif": "4.0.290",
-    "@remotion/google-fonts": "4.0.290",
+    "@remotion/cli": "4.0.410",
+    "@remotion/gif": "4.0.410",
+    "@remotion/google-fonts": "4.0.410",
     "chroma-js": "^3.1.2",
     "lucide-react": "^0.511.0",
-    "remotion": "4.0.290"
+    "remotion": "4.0.410"
   },
   "devDependencies": {
     "@types/chroma-js": "^2.4.4",
