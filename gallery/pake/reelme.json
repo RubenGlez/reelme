@@ -8,10 +8,11 @@
     "repoUrl": "github.com/tw93/Pake",
     "primaryColor": "#14b8a6",
     "tone": "playful",
+    "look": "editorial",
     "mode": "intro",
     "bgStyle": "branded",
     "platforms": ["github-readme", "tiktok", "instagram-reel"],
-    "audio": { "track": "bright-sparks.mp3" },
+    "audio": { "track": "sunny-loop.mp3" },
     "watermark": true
   },
   "cuts": {

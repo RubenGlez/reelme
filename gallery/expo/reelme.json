@@ -8,10 +8,11 @@
     "repoUrl": "github.com/expo/expo",
     "primaryColor": "#4630eb",
     "tone": "professional",
+    "look": "keynote",
     "mode": "intro",
     "bgStyle": "deep",
     "platforms": ["github-readme", "instagram-feed", "instagram-story", "tiktok"],
-    "audio": { "track": "calm-keys.mp3" },
+    "audio": { "track": "clean-horizon.mp3" },
     "watermark": true,
     "logo": "logo.png"
   },

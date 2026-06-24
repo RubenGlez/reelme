@@ -27,7 +27,7 @@ export const BrowserFrame: React.FC<Props> = ({ scene, theme, bottomInset = 0 })
   return (
     <AbsoluteFill
       style={{
-        background: theme.bg,
+        background: "transparent",
         display: "flex",
         alignItems: "center",
         justifyContent: "center",

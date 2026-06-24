@@ -8,6 +8,7 @@
     "repoUrl": "github.com/honojs/hono",
     "primaryColor": "#e36209",
     "tone": "professional",
+    "look": "keynote",
     "mode": "intro",
     "bgStyle": "deep",
     "platforms": ["github-readme", "x", "linkedin"],

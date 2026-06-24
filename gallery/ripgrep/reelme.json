@@ -8,6 +8,7 @@
     "repoUrl": "github.com/BurntSushi/ripgrep",
     "primaryColor": "#d34d4d",
     "tone": "technical",
+    "look": "blueprint",
     "mode": "intro",
     "bgStyle": "deep",
     "platforms": ["github-readme", "x", "youtube"],

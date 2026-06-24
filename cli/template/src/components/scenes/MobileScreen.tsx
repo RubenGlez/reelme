@@ -10,10 +10,10 @@ interface Props {
   bottomInset?: number;
 }
 
-const PHONE_W = 340;
-const PHONE_H = 720;
-const NOTCH_H = 30;
-const RADIUS = 40;
+const PHONE_W = 384;
+const PHONE_H = 808;
+const NOTCH_H = 32;
+const RADIUS = 46;
 
 export const MobileScreen: React.FC<Props> = ({ scene, theme, bottomInset = 0 }) => {
   const frame = useCurrentFrame();
@@ -22,12 +22,12 @@ export const MobileScreen: React.FC<Props> = ({ scene, theme, bottomInset = 0 })
   const progress = spring({ frame, fps, config: theme.motion });
   const opacity = interpolate(progress, [0, 1], [0, 1]);
   const translateY = interpolate(progress, [0, 1], [60, 0]);
-  const scale = interpolate(progress, [0, 1], [0.88, 1]);
+  const scale = interpolate(progress, [0, 1], [0.9, 1]);
 
   return (
     <AbsoluteFill
       style={{
-        background: theme.bg,
+        background: "transparent",
         display: "flex",
         alignItems: "center",
         justifyContent: "center",
@@ -40,7 +40,7 @@ export const MobileScreen: React.FC<Props> = ({ scene, theme, bottomInset = 0 })
           borderRadius: RADIUS,
           border: `3px solid ${theme.border}`,
           background: theme.surface,
-          boxShadow: `0 40px 100px rgba(0,0,0,0.55), inset 0 0 0 1px rgba(255,255,255,0.05)`,
+          boxShadow: `0 50px 120px rgba(0,0,0,0.6), inset 0 0 0 1px rgba(255,255,255,0.05)`,
           position: "relative",
           overflow: "hidden",
           opacity,
@@ -54,11 +54,11 @@ export const MobileScreen: React.FC<Props> = ({ scene, theme, bottomInset = 0 })
             top: 0,
             left: "50%",
             transform: "translateX(-50%)",
-            width: 110,
+            width: 120,
             height: NOTCH_H,
             background: theme.surface,
-            borderBottomLeftRadius: 16,
-            borderBottomRightRadius: 16,
+            borderBottomLeftRadius: 18,
+            borderBottomRightRadius: 18,
             zIndex: 10,
           }}
         />
@@ -80,35 +80,38 @@ export const MobileScreen: React.FC<Props> = ({ scene, theme, bottomInset = 0 })
               display: "flex",
               alignItems: "flex-end",
               justifyContent: "space-between",
-              paddingLeft: 20,
-              paddingRight: 20,
+              paddingLeft: 22,
+              paddingRight: 22,
               paddingBottom: 4,
               fontFamily: theme.fontSans,
-              fontSize: 11,
+              fontSize: 12,
               fontWeight: 600,
-              color: theme.textMuted,
+              color: theme.text,
+              flexShrink: 0,
             }}
           >
             <span>9:41</span>
-            <span>●●●</span>
+            <span style={{ letterSpacing: 1 }}>●●●</span>
           </div>
 
           {/* App header */}
           {scene.title && (
             <div
               style={{
-                height: 48,
+                height: 52,
                 display: "flex",
                 alignItems: "center",
-                justifyContent: "center",
+                gap: 10,
+                padding: "0 18px",
                 borderBottom: `1px solid ${theme.border}`,
                 fontFamily: theme.fontSans,
-                fontSize: 16,
-                fontWeight: 600,
+                fontSize: 17,
+                fontWeight: 700,
                 color: theme.text,
                 flexShrink: 0,
               }}
             >
+              <div style={{ width: 12, height: 12, borderRadius: "50%", background: theme.accent }} />
               {scene.title}
             </div>
           )}
@@ -116,87 +119,39 @@ export const MobileScreen: React.FC<Props> = ({ scene, theme, bottomInset = 0 })
           {/* Content */}
           <div style={{ flex: 1, overflow: "hidden", position: "relative" }}>
             {scene.screenshot ? (
-              <Img
-                src={staticFile(scene.screenshot)}
-                style={{ width: "100%", height: "100%", objectFit: "cover" }}
-              />
+              <KenBurns frame={frame}>
+                <Img
+                  src={staticFile(scene.screenshot)}
+                  style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }}
+                />
+              </KenBurns>
             ) : (
-              <div style={{ padding: 14, display: "flex", flexDirection: "column", gap: 10 }}>
-                {/* Search bar */}
-                <div
-                  style={{
-                    height: 34,
-                    background: theme.surface,
-                    borderRadius: 8,
-                    border: `1px solid ${theme.border}`,
-                    display: "flex",
-                    alignItems: "center",
-                    paddingLeft: 12,
-                    paddingRight: 12,
-                    fontFamily: theme.fontSans,
-                    fontSize: 12,
-                    color: theme.textMuted,
-                  }}
-                >
-                  Search...
-                </div>
-                {/* List items */}
-                {[72, 56, 60, 54, 58].map((_, i) => (
-                  <div
-                    key={i}
-                    style={{
-                      height: 58,
-                      background: theme.surface,
-                      borderRadius: 10,
-                      border: `1px solid ${theme.border}`,
-                      display: "flex",
-                      alignItems: "center",
-                      gap: 10,
-                      paddingLeft: 10,
-                      paddingRight: 10,
-                    }}
-                  >
-                    <div
-                      style={{
-                        width: 32,
-                        height: 32,
-                        borderRadius: "50%",
-                        background: theme.accentMuted,
-                        border: `1.5px solid ${theme.accent}`,
-                        flexShrink: 0,
-                      }}
-                    />
-                    <div style={{ flex: 1, display: "flex", flexDirection: "column", gap: 6 }}>
-                      <div style={{ height: 11, background: theme.border, borderRadius: 4, width: `${58 + i * 8}%` }} />
-                      <div style={{ height: 9, background: theme.border, borderRadius: 4, width: `${38 + i * 6}%`, opacity: 0.6 }} />
-                    </div>
-                  </div>
-                ))}
-              </div>
+              <MockFeed theme={theme} frame={frame} fps={fps} />
             )}
           </div>
 
           {/* Bottom nav */}
           <div
             style={{
-              height: 52,
+              height: 56,
               borderTop: `1px solid ${theme.border}`,
               display: "flex",
               alignItems: "center",
               justifyContent: "space-around",
               flexShrink: 0,
+              background: theme.surface,
             }}
           >
             {["⌂", "⊞", "♡", "◉"].map((icon, i) => (
               <div
                 key={i}
                 style={{
-                  width: 36,
-                  height: 36,
+                  width: 38,
+                  height: 38,
                   display: "flex",
                   alignItems: "center",
                   justifyContent: "center",
-                  fontSize: 18,
+                  fontSize: 19,
                   color: i === 0 ? theme.accent : theme.textMuted,
                 }}
               >
@@ -209,5 +164,87 @@ export const MobileScreen: React.FC<Props> = ({ scene, theme, bottomInset = 0 })
 
       {scene.caption && <Caption text={scene.caption} theme={theme} startFrame={50} bottomInset={bottomInset} />}
     </AbsoluteFill>
+  );
+};
+
+/** Slow ken-burns push so a real screenshot reads as alive footage, not a still. */
+const KenBurns: React.FC<{ frame: number; children: React.ReactNode }> = ({ frame, children }) => {
+  const s = interpolate(frame, [0, 240], [1.0, 1.1], { extrapolateRight: "clamp" });
+  const y = interpolate(frame, [0, 240], [0, -3], { extrapolateRight: "clamp" });
+  return (
+    <AbsoluteFill style={{ transform: `scale(${s}) translateY(${y}%)`, transformOrigin: "center top" }}>
+      {children}
+    </AbsoluteFill>
+  );
+};
+
+/** An app-like feed that builds in and gently scrolls, when no screenshot is given. */
+const MockFeed: React.FC<{ theme: Theme; frame: number; fps: number }> = ({ theme, frame, fps }) => {
+  const scrollY = interpolate(frame, [24, 200], [0, -46], { extrapolateLeft: "clamp", extrapolateRight: "clamp" });
+
+  const Item: React.FC<{ index: number; children: React.ReactNode }> = ({ index, children }) => {
+    const p = spring({ frame: frame - 8 - index * 7, fps, config: theme.motion });
+    return (
+      <div style={{ opacity: interpolate(p, [0, 1], [0, 1]), transform: `translateY(${interpolate(p, [0, 1], [16, 0])}px)` }}>
+        {children}
+      </div>
+    );
+  };
+
+  const cardBase: React.CSSProperties = {
+    background: theme.surface,
+    borderRadius: 14,
+    border: `1px solid ${theme.border}`,
+  };
+
+  return (
+    <div style={{ padding: 16, display: "flex", flexDirection: "column", gap: 12, transform: `translateY(${scrollY}px)` }}>
+      <Item index={0}>
+        <div style={{ ...cardBase, height: 36, display: "flex", alignItems: "center", padding: "0 14px", fontFamily: theme.fontSans, fontSize: 13, color: theme.textMuted }}>
+          Search
+        </div>
+      </Item>
+
+      {/* Featured hero card */}
+      <Item index={1}>
+        <div
+          style={{
+            height: 132,
+            borderRadius: 16,
+            background: `linear-gradient(135deg, ${theme.accent} 0%, ${theme.accentMuted} 100%)`,
+            padding: 16,
+            display: "flex",
+            flexDirection: "column",
+            justifyContent: "flex-end",
+            gap: 8,
+          }}
+        >
+          <div style={{ height: 13, width: "62%", background: "rgba(255,255,255,0.92)", borderRadius: 5 }} />
+          <div style={{ height: 10, width: "40%", background: "rgba(255,255,255,0.6)", borderRadius: 5 }} />
+        </div>
+      </Item>
+
+      {[0, 1, 2, 3].map((i) => (
+        <Item key={i} index={2 + i}>
+          <div style={{ ...cardBase, height: 70, display: "flex", alignItems: "center", gap: 12, padding: "0 12px" }}>
+            <div
+              style={{
+                width: 44,
+                height: 44,
+                borderRadius: 12,
+                background: theme.accentMuted,
+                border: `1.5px solid ${theme.accent}`,
+                flexShrink: 0,
+              }}
+            />
+            <div style={{ flex: 1, display: "flex", flexDirection: "column", gap: 7 }}>
+              <div style={{ height: 11, background: theme.text, opacity: 0.85, borderRadius: 4, width: `${70 - i * 8}%` }} />
+              <div style={{ height: 9, background: theme.textMuted, opacity: 0.5, borderRadius: 4, width: `${48 - i * 5}%` }} />
+            </div>
+            <div style={{ width: 30, height: 18, borderRadius: 6, background: theme.accentMuted, flexShrink: 0 }} />
+          </div>
+        </Item>
+      ))}
+    </div>
   );
 };

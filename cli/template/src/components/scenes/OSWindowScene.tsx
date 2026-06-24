@@ -38,7 +38,7 @@ export const OSWindow: React.FC<Props> = ({ scene, theme, bottomInset = 0 }) => 
 
   return (
     <AbsoluteFill
-      style={{ background: theme.bg, display: "flex", alignItems: "center", justifyContent: "center" }}
+      style={{ background: "transparent", display: "flex", alignItems: "center", justifyContent: "center" }}
     >
       <div
         style={{

@@ -91,6 +91,7 @@ Always ask for missing or preference-only fields in one compact numbered list:
 - `primaryColor` - brand color as a hex value, e.g. `#6366f1`
 - `logo` - optional repo-relative logo path
 - `bgStyle` - `deep` (near-black), `branded` (brand-tinted), or `light` (white-based)
+- `look` - art-direction preset (`keynote`, `noir`, `arcade`, `blueprint`, `editorial`); defaults from tone. Sets lighting, camera move, grade, grain, and cut rhythm. Suggest the tone default but pick a distinct look per reel so a project's videos don't all feel the same.
 - `platforms` - one or more of `x`, `linkedin`, `youtube`, `tiktok`, `instagram-reel`, `instagram-story`, `instagram-feed`, `github-readme`
 - `assets` - optional repo-relative screenshots or clips to use in `browser`, `mobile`, or `clip` scenes
 - `audio` - Background music? Offer the tone-matched default by name, an alternative from the bundled manifest, or none.
@@ -113,7 +114,7 @@ Audio choices come from the bundled manifest in `cli/assets/audio/manifest.json`
 | `playful` | Bright Sparks (`bright-sparks.mp3`) | Pixel Bounce, Sunny Loop |
 | `technical` | Circuit Pulse (`circuit-pulse.mp3`) | Vector Grid, Midnight Protocol, Pixel Bounce |
 
-When writing the brief, set `project.audio` explicitly to `{ "track": "<filename>" }` or `false`.
+When writing the brief, set `project.audio` explicitly to `{ "track": "<filename>" }` or `false`. On top of the chosen track the renderer layers automatic sound design (whooshes on cuts, ticks on data reveals, a riser and sub-drop into the CTA, with the music ducking under it), so two reels sharing a bed still sound different. Setting `audio: false` silences everything, including the sound design.
 
 ## Step 4: Propose the outline
 
@@ -186,7 +187,7 @@ Optional:
 - `cuts.vertical` for 9:16 platforms. If omitted, the CLI renders the main cut letterboxed into vertical outputs and warns the user.
 - `cuts.teaser` for additional `<platform>-teaser.mp4` outputs on social platforms. GIF platforms are excluded from teaser rendering.
 - `project.watermark`; defaults to `true`. Set `false` only if the user asks to remove the CTA footer credit.
-- `project.logo`, `font`, `monoFont`, `transition`, `bgStyle`, `version`.
+- `project.logo`, `font`, `monoFont`, `look`, `bgStyle`, `version`. (`transition` is legacy and ignored; the look drives the edit rhythm.)
 - `project.audio`; set `{ "track": "<filename>", "volume": 0.25 }` for bundled background music or `false` for silent output. Omit `volume` to use the default 0.25.
 
 ### Scene selection - intro

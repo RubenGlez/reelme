@@ -1,4 +1,5 @@
 import { PlatformId } from "./platforms";
+import { LookId } from "./cinematic/look";
 
 // Brief schema version. Bump on breaking changes to the reelme.json contract;
 // the CLI refuses briefs whose schemaVersion doesn't match.
@@ -23,8 +24,14 @@ export interface ProjectMeta {
   logo?: string;
   font?: string;
   monoFont?: string;
+  /** Legacy per-scene transition; superseded by the look's edit rhythm. */
   transition?: "fade" | "slide" | "zoom";
   bgStyle?: "deep" | "branded" | "light";
+  /**
+   * Art-direction preset: lighting, camera, grade, grain, and cut rhythm.
+   * Defaults from tone (professional→keynote, playful→arcade, technical→blueprint).
+   */
+  look?: LookId;
 }
 
 export interface ProblemScene {

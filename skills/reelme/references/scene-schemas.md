@@ -23,7 +23,7 @@ Read this file when creating or editing `reelme.json`. Current briefs use schema
     "logo": "logo.png",
     "font": "Inter",
     "monoFont": "JetBrains Mono",
-    "transition": "fade",
+    "look": "keynote",
     "bgStyle": "deep",
     "audio": { "track": "calm-keys.mp3" },
     "watermark": true
@@ -66,7 +66,8 @@ Optional:
 - `project.version`: useful for announcement mode
 - `project.logo`: filename for a logo copied into the render cache
 - `project.font`, `project.monoFont`
-- `project.transition`: `fade`, `slide`, or `zoom`
+- `project.look`: art-direction preset that sets lighting, camera move, color grade, film grain, and cut rhythm: `keynote` (clean stage), `noir` (low-key, cool, dips to black), `arcade` (saturated, scanlines, snappy), `blueprint` (engineering grid, measured), or `editorial` (warm, premium, slow). Defaults from tone: professional→keynote, playful→arcade, technical→blueprint. Pick distinct looks across a project's reels so they don't feel templated.
+- `project.transition`: legacy per-scene transition (`fade`/`slide`/`zoom`); superseded by the look's cut rhythm and ignored.
 - `project.bgStyle`: `deep`, `branded`, or `light`
 - `project.watermark`: default `true`; set `false` to hide the CTA footer credit
 - `project.audio`: `{ "track": "calm-keys.mp3", "volume": 0.25 }` for bundled background music, or `false` for silent output. Omit `volume` to use the default 0.25.

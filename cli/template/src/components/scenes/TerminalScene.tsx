@@ -26,16 +26,14 @@ export const TerminalScene: React.FC<Props> = ({ scene, theme, bottomInset = 0 }
   return (
     <AbsoluteFill
       style={{
-        background: theme.bg,
+        background: "transparent",
         display: "flex",
         alignItems: "center",
         justifyContent: "center",
         padding: "60px 100px",
       }}
     >
-      <div style={{ width: "100%" }}>
-        <Terminal lines={lines} theme={theme} startFrame={8} />
-      </div>
+      <Terminal lines={lines} theme={theme} startFrame={8} />
       {scene.caption && <Caption text={scene.caption} theme={theme} startFrame={captionStart} bottomInset={bottomInset} />}
     </AbsoluteFill>
   );

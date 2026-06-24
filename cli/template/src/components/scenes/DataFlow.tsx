@@ -39,7 +39,7 @@ export const DataFlow: React.FC<Props> = ({ scene, theme, bottomInset = 0 }) => 
   const captionStart = (nodeCount - 1) * STEP + NODE_SETTLE + 20;
 
   return (
-    <AbsoluteFill style={{ background: theme.bg }}>
+    <AbsoluteFill style={{ background: "transparent" }}>
       {/* SVG layer for arrows */}
       <svg width={width} height={height} style={{ position: "absolute", inset: 0 }}>
         {scene.edges.map((edge, i) => {

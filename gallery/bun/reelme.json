@@ -8,11 +8,12 @@
     "repoUrl": "github.com/oven-sh/bun",
     "primaryColor": "#fbf0df",
     "tone": "technical",
+    "look": "arcade",
     "mode": "announcement",
     "version": "1.3",
     "bgStyle": "deep",
     "platforms": ["github-readme", "youtube", "x"],
-    "audio": { "track": "circuit-pulse.mp3" },
+    "audio": { "track": "pixel-bounce.mp3" },
     "watermark": true,
     "logo": "logo.png"
   },

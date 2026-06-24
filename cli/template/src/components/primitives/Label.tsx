@@ -1,6 +1,6 @@
 import React from "react";
-import { useCurrentFrame, useVideoConfig, spring, interpolate } from "remotion";
 import { Theme } from "../../theme";
+import { RevealText } from "./RevealText";
 
 interface LabelProps {
   text: string;
@@ -9,6 +9,7 @@ interface LabelProps {
   size?: "sm" | "md" | "lg" | "xl";
   align?: "left" | "center" | "right";
   muted?: boolean;
+  emphasis?: string;
 }
 
 const sizeMap = { sm: 22, md: 32, lg: 48, xl: 72 };
@@ -20,30 +21,23 @@ export const Label: React.FC<LabelProps> = ({
   size = "md",
   align = "center",
   muted = false,
+  emphasis,
 }) => {
-  const frame = useCurrentFrame();
-  const { fps } = useVideoConfig();
-  const elapsed = frame - startFrame;
-
-  const progress = spring({ frame: elapsed, fps, config: theme.motion });
-  const opacity = interpolate(progress, [0, 1], [0, 1]);
-  const translateY = interpolate(progress, [0, 1], [20, 0]);
-
+  const big = size === "xl" || size === "lg";
   return (
-    <div
-      style={{
-        opacity,
-        transform: `translateY(${translateY}px)`,
-        fontFamily: theme.fontSans,
-        fontSize: sizeMap[size],
-        fontWeight: size === "xl" || size === "lg" ? 700 : 500,
-        color: muted ? theme.textMuted : theme.text,
-        textAlign: align,
-        lineHeight: 1.25,
-        letterSpacing: size === "xl" ? "-0.02em" : "-0.01em",
-      }}
-    >
-      {text}
-    </div>
+    <RevealText
+      text={text}
+      theme={theme}
+      startFrame={startFrame}
+      fontSize={sizeMap[size]}
+      fontWeight={big ? 700 : 500}
+      color={muted ? theme.textMuted : theme.text}
+      align={align}
+      emphasis={emphasis}
+      stagger={big ? 3 : 1.5}
+      letterSpacing={size === "xl" ? "-0.03em" : "-0.01em"}
+      lineHeight={big ? 1.1 : 1.25}
+      glow={big && !muted}
+    />
   );
 };

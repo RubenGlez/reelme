@@ -25,6 +25,16 @@ export const Terminal: React.FC<TerminalProps> = ({
   const frame = useCurrentFrame();
   const elapsed = frame - startFrame;
 
+  // Size the window to its widest physical line so a short command doesn't sit
+  // in a huge empty box. Width is fixed from the full text (not the partial
+  // reveal) so it never reflows while typing. Inputs reserve room for "$ ".
+  const maxChars = lines.reduce((max, line) => {
+    const prefix = line.isOutput ? 0 : 2;
+    const widest = line.text.split("\n").reduce((m, l) => Math.max(m, l.length), 0);
+    return Math.max(max, widest + prefix);
+  }, 0);
+  const cols = Math.min(Math.max(maxChars, 18), 78);
+
   const visibleLines: Array<{ text: string; isOutput: boolean; partialText: string }> = [];
 
   let cursor = 0;
@@ -59,6 +69,7 @@ export const Terminal: React.FC<TerminalProps> = ({
         fontFamily: theme.fontMono,
         fontSize: 22,
         boxShadow: "0 8px 48px rgba(0,0,0,0.6)",
+        width: `min(calc(${cols}ch + 48px), 100%)`,
       }}
     >
       <div

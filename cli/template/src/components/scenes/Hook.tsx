@@ -3,6 +3,7 @@ import { AbsoluteFill, useCurrentFrame, useVideoConfig, spring, interpolate } fr
 import { HookScene as HookBrief } from "../../brief";
 import { Theme } from "../../theme";
 import { PlatformPreset, typeScale } from "../../platforms";
+import { RevealText } from "../primitives/RevealText";
 
 interface Props {
   scene: HookBrief;
@@ -14,54 +15,35 @@ export const Hook: React.FC<Props> = ({ scene, theme, platform }) => {
   const frame = useCurrentFrame();
   const { fps, width } = useVideoConfig();
 
-  const progress = spring({ frame, fps, config: theme.motion });
-  const opacity = interpolate(Math.max(0, progress), [0, 1], [0, 1]);
-  const translateY = interpolate(Math.max(0, progress), [0, 1], [32, 0]);
-
-  const baseFontSize = width * 0.1;
-  const fontSize = baseFontSize * typeScale(platform);
-
-  const renderText = () => {
-    if (!scene.accent) {
-      return <span>{scene.text}</span>;
-    }
-    const idx = scene.text.indexOf(scene.accent);
-    if (idx === -1) return <span>{scene.text}</span>;
-    return (
-      <>
-        {scene.text.slice(0, idx)}
-        <span style={{ color: theme.accent }}>{scene.accent}</span>
-        {scene.text.slice(idx + scene.accent.length)}
-      </>
-    );
-  };
+  const fontSize = width * 0.1 * typeScale(platform);
+  // The whole block eases out of a slight over-scale so the words don't just
+  // appear — they land. A touch of continuous drift keeps the hold alive.
+  const settle = spring({ frame, fps, config: { damping: 26, stiffness: 90, mass: 1 } });
+  const scale = interpolate(settle, [0, 1], [1.06, 1]);
+  const drift = Math.sin(frame / 40) * 0.4;
 
   return (
     <AbsoluteFill
       style={{
-        background: theme.bg,
         display: "flex",
         alignItems: "center",
         justifyContent: "center",
         padding: "0 80px",
       }}
     >
-      <div
-        style={{
-          fontFamily: theme.fontSans,
-          fontSize,
-          fontWeight: 800,
-          color: theme.text,
-          lineHeight: 1.1,
-          letterSpacing: "-0.03em",
-          textAlign: "center",
-          maxHeight: `${fontSize * 1.1 * 3}px`,
-          overflow: "hidden",
-          opacity,
-          transform: `translateY(${translateY}px)`,
-        }}
-      >
-        {renderText()}
+      <div style={{ transform: `scale(${scale}) translateY(${drift}px)`, willChange: "transform" }}>
+        <RevealText
+          text={scene.text}
+          theme={theme}
+          fontSize={fontSize}
+          fontWeight={800}
+          emphasis={scene.accent}
+          align="center"
+          stagger={3.5}
+          letterSpacing="-0.04em"
+          lineHeight={1.04}
+          maxWidth={width * 0.84}
+        />
       </div>
     </AbsoluteFill>
   );

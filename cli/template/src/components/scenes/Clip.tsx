@@ -86,7 +86,7 @@ export const Clip: React.FC<Props> = ({ scene, theme }) => {
     return (
       <AbsoluteFill
         style={{
-          background: theme.bg,
+          background: "transparent",
           display: "flex",
           alignItems: "center",
           justifyContent: "center",
@@ -103,7 +103,7 @@ export const Clip: React.FC<Props> = ({ scene, theme }) => {
     return (
       <AbsoluteFill
         style={{
-          background: theme.bg,
+          background: "transparent",
           display: "flex",
           alignItems: "center",
           justifyContent: "center",
@@ -117,7 +117,7 @@ export const Clip: React.FC<Props> = ({ scene, theme }) => {
   }
 
   return (
-    <AbsoluteFill style={{ background: theme.bg, borderRadius: 12, overflow: "hidden" }}>
+    <AbsoluteFill style={{ background: "transparent", borderRadius: 12, overflow: "hidden" }}>
       {renderMedia()}
       {scene.caption && <Caption text={scene.caption} theme={theme} startFrame={30} />}
     </AbsoluteFill>

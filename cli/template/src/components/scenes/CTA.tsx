@@ -1,5 +1,6 @@
 import React from "react";
 import { AbsoluteFill, useCurrentFrame, useVideoConfig, spring, interpolate, Img, staticFile } from "remotion";
+import chroma from "chroma-js";
 import { CTAScene as CTABrief, ProjectMeta } from "../../brief";
 import { Theme } from "../../theme";
 import { PlatformPreset, typeScale } from "../../platforms";
@@ -11,11 +12,13 @@ interface Props {
   project: ProjectMeta;
   platform?: PlatformPreset;
   bottomInset?: number;
+  /** gif output: use a flat fill instead of gradients that bloat gif size. */
+  lite?: boolean;
 }
 
 const SNAP_OFFSET = 8;
 
-export const CTA: React.FC<Props> = ({ scene, theme, project, platform, bottomInset = 0 }) => {
+export const CTA: React.FC<Props> = ({ scene, theme, project, platform, bottomInset = 0, lite = false }) => {
   const frame = useCurrentFrame();
   const { fps } = useVideoConfig();
   const scale = platform ? typeScale(platform) : 1.0;
@@ -36,10 +39,19 @@ export const CTA: React.FC<Props> = ({ scene, theme, project, platform, bottomIn
     ? `${project.name} ${project.version}`
     : project.name;
 
+  // Contrast-aware text on the brand field: white on saturated/dark accents,
+  // near-black on light ones — confident lockup instead of dull inverse grey.
+  const onAccent = chroma(theme.accent).luminance() > 0.5 ? "#15151c" : "#ffffff";
+
   return (
     <AbsoluteFill
       style={{
-        background: theme.accent,
+        // Graded brand end-card: a lit radial instead of a flat fill, so the
+        // CTA reads as produced as the rest of the film, not a plain slate. The
+        // gif path uses a flat fill — a full-frame gradient explodes gif size.
+        background: lite
+          ? theme.accent
+          : `radial-gradient(125% 95% at 50% 32%, color-mix(in srgb, ${theme.accent}, #fff 12%) 0%, ${theme.accent} 46%, color-mix(in srgb, ${theme.accent}, #000 24%) 100%)`,
         display: "flex",
         flexDirection: "column",
         alignItems: "center",
@@ -48,6 +60,17 @@ export const CTA: React.FC<Props> = ({ scene, theme, project, platform, bottomIn
         padding: "0 120px",
       }}
     >
+      {/* Edge vignette spotlights the lockup so the field doesn't read as empty.
+          Skipped on the gif path to keep the frame flat and compressible. */}
+      {!lite && (
+        <AbsoluteFill
+          style={{
+            background: "radial-gradient(70% 70% at 50% 50%, transparent 40%, rgba(0,0,0,0.28) 100%)",
+            pointerEvents: "none",
+          }}
+        />
+      )}
+
       {project.logo && (
         <div
           style={{
@@ -71,15 +94,16 @@ export const CTA: React.FC<Props> = ({ scene, theme, project, platform, bottomIn
           opacity: titleOpacity,
           transform: `translateY(${titleY}px)`,
           fontFamily: theme.fontSans,
-          fontSize: 56 * scale,
+          fontSize: 60 * scale,
           fontWeight: 700,
-          color: theme.textInverse,
-          letterSpacing: "-0.02em",
+          color: onAccent,
+          letterSpacing: "-0.03em",
           textAlign: "center",
+          textShadow: "0 4px 30px rgba(0,0,0,0.25)",
         }}
       >
         {isAnnouncement ? "" : "Get started with "}
-        <span style={{ color: theme.textInverse, fontWeight: 800 }}>{displayName}</span>
+        <span style={{ color: onAccent, fontWeight: 800 }}>{displayName}</span>
         {isAnnouncement ? " is here." : ""}
       </div>
 
@@ -89,14 +113,15 @@ export const CTA: React.FC<Props> = ({ scene, theme, project, platform, bottomIn
           transform: `scale(${cmdScale})`,
           background: theme.bg,
           border: `1.5px solid rgba(0,0,0,0.12)`,
-          borderRadius: 12,
-          padding: "18px 40px",
+          borderRadius: 14,
+          padding: "20px 44px",
           fontFamily: theme.fontMono,
           fontSize: 28,
           color: theme.text,
           display: "flex",
           alignItems: "center",
           gap: 16,
+          boxShadow: "0 22px 60px rgba(0,0,0,0.30)",
         }}
       >
         <span style={{ color: theme.accent }}>$</span>
@@ -109,7 +134,7 @@ export const CTA: React.FC<Props> = ({ scene, theme, project, platform, bottomIn
             opacity: urlFade,
             fontFamily: theme.fontMono,
             fontSize: 20,
-            color: theme.textInverse,
+            color: onAccent,
           }}
         >
           {scene.repoUrl}

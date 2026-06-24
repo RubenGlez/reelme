@@ -27,7 +27,7 @@ export const FeatureList: React.FC<Props> = ({ scene, theme, platform, bottomIns
   return (
     <AbsoluteFill
       style={{
-        background: theme.bg,
+        background: "transparent",
         display: "flex",
         flexDirection: "column",
         alignItems: "center",

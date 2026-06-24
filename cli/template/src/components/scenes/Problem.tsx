@@ -5,6 +5,7 @@ import { Theme } from "../../theme";
 import { PlatformPreset, typeScale } from "../../platforms";
 import { Label } from "../primitives/Label";
 import { Caption } from "../primitives/Caption";
+import { RevealText } from "../primitives/RevealText";
 
 interface Props {
   scene: ProblemBrief;
@@ -34,7 +35,7 @@ export const Problem: React.FC<Props> = ({ scene, theme, project, platform, bott
   return (
     <AbsoluteFill
       style={{
-        background: theme.bg,
+        background: "transparent",
         display: "flex",
         flexDirection: "column",
         alignItems: "center",
@@ -73,27 +74,17 @@ export const Problem: React.FC<Props> = ({ scene, theme, project, platform, bott
       )}
 
       {isHero ? (
-        <div
-          style={{
-            fontFamily: theme.fontSans,
-            fontSize: 104 * scale,
-            fontWeight: 800,
-            color: theme.text,
-            textAlign: "center",
-            lineHeight: 1.05,
-            letterSpacing: "-0.03em",
-            opacity: interpolate(
-              spring({ frame: frame + SNAP_OFFSET, fps, config: theme.motion }),
-              [0, 1], [0, 1]
-            ),
-            transform: `translateY(${interpolate(
-              spring({ frame: frame + SNAP_OFFSET - 4, fps, config: theme.motion }),
-              [0, 1], [24, 0]
-            )}px)`,
-          }}
-        >
-          {scene.headline}
-        </div>
+        <RevealText
+          text={scene.headline}
+          theme={theme}
+          fontSize={104 * scale}
+          fontWeight={800}
+          align="center"
+          stagger={3.5}
+          letterSpacing="-0.03em"
+          lineHeight={1.04}
+          maxWidth={1500}
+        />
       ) : (
         <>
           <Label text={scene.headline} theme={theme} size="xl" startFrame={4} />

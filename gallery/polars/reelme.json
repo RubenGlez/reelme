@@ -8,10 +8,11 @@
     "repoUrl": "github.com/pola-rs/polars",
     "primaryColor": "#1f6feb",
     "tone": "technical",
+    "look": "noir",
     "mode": "intro",
     "bgStyle": "deep",
     "platforms": ["github-readme", "linkedin", "x"],
-    "audio": { "track": "circuit-pulse.mp3" },
+    "audio": { "track": "midnight-protocol.mp3" },
     "watermark": true,
     "logo": "logo.png"
   },

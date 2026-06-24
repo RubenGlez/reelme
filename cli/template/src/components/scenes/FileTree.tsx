@@ -53,7 +53,7 @@ export const FileTree: React.FC<Props> = ({ scene, theme, bottomInset = 0 }) => 
   return (
     <AbsoluteFill
       style={{
-        background: theme.bg,
+        background: "transparent",
         display: "flex",
         flexDirection: "column",
         alignItems: "center",
