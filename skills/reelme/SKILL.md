@@ -114,7 +114,7 @@ Audio choices come from the bundled manifest in `cli/assets/audio/manifest.json`
 | `playful` | Bright Sparks (`bright-sparks.mp3`) | Pixel Bounce, Sunny Loop |
 | `technical` | Circuit Pulse (`circuit-pulse.mp3`) | Vector Grid, Midnight Protocol, Pixel Bounce |
 
-When writing the brief, set `project.audio` explicitly to `{ "track": "<filename>" }` or `false`. On top of the chosen track the renderer layers automatic sound design (whooshes on cuts, ticks on data reveals, a riser and sub-drop into the CTA, with the music ducking under it), so two reels sharing a bed still sound different. Setting `audio: false` silences everything, including the sound design.
+When writing the brief, set `project.audio` explicitly to `{ "track": "<filename>" }` or `false`. Audio is the chosen music bed only; `audio: false` renders silent.
 
 ## Step 4: Propose the outline
 

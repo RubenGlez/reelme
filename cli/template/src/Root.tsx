@@ -1,5 +1,5 @@
 import React from "react";
-import { AbsoluteFill, Audio, Sequence, staticFile, useVideoConfig, interpolate } from "remotion";
+import { AbsoluteFill, Audio, Sequence, staticFile, useVideoConfig } from "remotion";
 import { Brief, ProjectMeta, Scene } from "./brief";
 import { PlatformPreset } from "./platforms";
 import { buildTheme } from "./theme";
@@ -9,7 +9,6 @@ import { resolveLook } from "./cinematic/look";
 import { Atmosphere, Grain } from "./cinematic/Atmosphere";
 import { Camera } from "./cinematic/Camera";
 import { Enter, transitionFor } from "./cinematic/transitions";
-import { SoundDesign, ctaDuckFrame } from "./cinematic/SoundDesign";
 import "./fonts";
 import { Problem } from "./components/scenes/Problem";
 import { CodeReveal } from "./components/scenes/CodeReveal";
@@ -28,18 +27,6 @@ import { Hook } from "./components/scenes/Hook";
 import { Clip } from "./components/scenes/Clip";
 import { Benchmark } from "./components/scenes/Benchmark";
 
-// Bed ducking around the CTA: the music dips under the riser and sub-drop so
-// the call-to-action arrives in cleared space, then recovers.
-function bedDuck(frame: number, ctaFrame: number | null, fps: number): number {
-  if (ctaFrame === null) return 1;
-  return interpolate(
-    frame,
-    [ctaFrame - Math.round(fps * 1.4), ctaFrame - Math.round(fps * 0.3), ctaFrame + Math.round(fps * 1.2)],
-    [1, 0.4, 1],
-    { extrapolateLeft: "clamp", extrapolateRight: "clamp" }
-  );
-}
-
 interface ReelProps {
   brief: Brief;
   /** The platform preset of the composition being rendered. */
@@ -49,7 +36,7 @@ interface ReelProps {
 }
 
 export const Reel: React.FC<ReelProps> = ({ brief, platform, cut }) => {
-  const { durationInFrames, fps } = useVideoConfig();
+  const { durationInFrames } = useVideoConfig();
   const theme = buildTheme(brief.project.primaryColor || "#6366f1", brief.project.font, brief.project.monoFont, brief.project.tone, brief.project.bgStyle);
   const look = resolveLook(brief.project.look, brief.project.tone);
   const isGif = platform.output.codec === "gif";
@@ -72,8 +59,6 @@ export const Reel: React.FC<ReelProps> = ({ brief, platform, cut }) => {
     return { scene, from, duration };
   });
 
-  const ctaFrame = ctaDuckFrame(sequenced);
-
   return (
     <AbsoluteFill style={{ background: theme.bg }}>
       <Atmosphere theme={theme} look={look} quality={isGif ? "lite" : "full"} />
@@ -83,12 +68,10 @@ export const Reel: React.FC<ReelProps> = ({ brief, platform, cut }) => {
           src={staticFile(`audio/${brief.project.audio.track}`)}
           loop
           volume={(frame) =>
-            audioVolume(frame, durationInFrames, brief.project.audio ? brief.project.audio.volume : undefined) *
-            bedDuck(frame, ctaFrame, fps)
+            audioVolume(frame, durationInFrames, brief.project.audio ? brief.project.audio.volume : undefined)
           }
         />
       ) : null}
-      {shouldRenderAudio && <SoundDesign sequenced={sequenced} fps={fps} look={look} />}
 
       {sequenced.map(({ scene, from, duration }, i) => (
         <Sequence key={i} from={from} durationInFrames={duration}>
