@@ -20,20 +20,20 @@ jobs:
         with:
           node-version: 24
           cache: pnpm
-          cache-dependency-path: template/pnpm-lock.yaml
+          cache-dependency-path: cli/template/pnpm-lock.yaml
 
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
-        working-directory: template
+        working-directory: cli/template
 
       - name: Typecheck
         run: pnpm typecheck
-        working-directory: template
+        working-directory: cli/template
 
       - name: Lint
         run: pnpm lint
-        working-directory: template
+        working-directory: cli/template
 
       - name: Test
         run: pnpm test
-        working-directory: template
+        working-directory: cli/template
