@@ -17,10 +17,10 @@
   },
   "cuts": {
     "main": [
-      { "type": "problem", "headline": "Searching big repos is slow.", "hero": true, "caption": "grep crawls through everything, every time." },
-      { "type": "terminal", "commands": [ { "input": "rg 'fn main' --type rust", "output": "src/main.rs:12:fn main() {\nsrc/bin/cli.rs:8:fn main() {\n\nsearched 4,812 files in 0.08s" } ], "caption": "Recursive, gitignore-aware, instant." },
-      { "type": "benchmark", "headline": "Faster than the alternatives", "metric": "Search time on the Linux kernel (lower is better)", "lowerIsBetter": true, "bars": [ { "label": "ripgrep", "value": 0.082, "display": "0.08s", "hero": true }, { "label": "git grep", "value": 0.273, "display": "0.27s" }, { "label": "ag", "value": 0.443, "display": "0.44s" }, { "label": "ack", "value": 2.935, "display": "2.94s" } ], "caption": "Real numbers from the project's own benchmarks." },
-      { "type": "feature-list", "headline": "Built for real codebases", "items": [ { "text": "Respects .gitignore by default", "icon": "check" }, { "text": "Full Unicode support", "icon": "globe" }, { "text": "Search inside compressed files", "icon": "package" } ], "caption": "Sensible defaults, no flags required." },
+      { "type": "hook", "kicker": "ripgrep", "align": "left", "text": "Search the Linux kernel in 0.08s.", "accent": "0.08s." },
+      { "type": "stat-callout", "layout": "hero", "headline": "One search, the whole tree", "stats": [ { "value": "0.08s", "label": "to search 4,812 files across the Linux kernel — recursive and gitignore-aware by default." }, { "value": "11×", "label": "faster than git grep" }, { "value": "0", "label": "flags required" } ], "caption": "Real numbers from the project's own benchmarks." },
+      { "type": "benchmark", "headline": "Faster than the alternatives", "metric": "Search time on the Linux kernel (lower is better)", "lowerIsBetter": true, "bars": [ { "label": "ripgrep", "value": 0.082, "display": "0.08s", "hero": true }, { "label": "git grep", "value": 0.273, "display": "0.27s" }, { "label": "ag", "value": 0.443, "display": "0.44s" }, { "label": "ack", "value": 2.935, "display": "2.94s" } ] },
+      { "type": "feature-list", "align": "left", "headline": "Built for real codebases", "items": [ { "text": "Respects .gitignore by default", "icon": "check" }, { "text": "Full Unicode support", "icon": "globe" }, { "text": "Search inside compressed files", "icon": "package" } ] },
       { "type": "cta", "installCommand": "cargo install ripgrep", "repoUrl": "github.com/BurntSushi/ripgrep", "caption": "Search at ripgrep speed." }
     ]
   }

@@ -192,8 +192,16 @@ Optional:
 
 ### Scene selection - intro
 
-- Open with `problem` using `"hero": true`; end with `cta`.
-- Use `terminal` for CLI tools or install/demo flows.
+**Avoid the default shape.** The templated reel is `problem` (big centered hero) → `terminal` → `cta`, and it makes every video look identical. Don't reach for it. Vary the opening and the scene mix per project — aim for each video to have a recognizably different shape (the gallery briefs are six different shapes; study them).
+
+- **Vary the opening.** Pick the strongest entry for *this* project, not reflexively `problem`:
+  - a `hook` with `"align": "left"` + `"kicker"` (product name) for a bold editorial title card;
+  - a `stat-callout` with `"layout": "hero"` when one number sells it (a giant figure filling the frame);
+  - a cold `code-reveal` when the API *is* the pitch;
+  - a `problem` (`"hero": true`, usually `"align": "left"` + `"kicker"`) only when the pain genuinely needs setup.
+- **Vary composition.** Put `"align": "left"` on hero/feature scenes so the video alternates left-anchored and centered frames instead of one centered column. (Keep vertical 9:16 cuts centered for legibility.)
+- **Don't put a `terminal` in every video.** Use it only when running the actual command is the point — and not as the automatic middle scene.
+- End with `cta`.
 - Use `code-reveal` for a concise representative code example.
 - Use `feature-list` for 3-5 concrete benefits.
 - Use `stat-callout` when the repo has compelling standalone numbers.

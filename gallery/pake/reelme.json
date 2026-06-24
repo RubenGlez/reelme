@@ -17,19 +17,19 @@
   },
   "cuts": {
     "main": [
-      { "type": "problem", "headline": "Desktop apps shouldn't be this heavy.", "hero": true, "caption": "Electron bundles a whole browser, every time." },
-      { "type": "terminal", "commands": [ { "input": "pake https://music.youtube.com --name Music", "output": "✔ Building with Rust + Tauri...\n✔ Music.app  ·  8.2 MB\n\nDone in 24s" } ], "caption": "One command turns a URL into an app." },
-      { "type": "stat-callout", "headline": "Built on Rust + Tauri, not a bundled browser", "stats": [ { "value": "~20×", "label": "smaller than Electron" }, { "value": "<10MB", "label": "typical app size" }, { "value": "3", "label": "OSes supported" } ], "caption": "Tiny installers, native feel." },
-      { "type": "cta", "installCommand": "pnpm install -g pake-cli", "repoUrl": "github.com/tw93/Pake", "caption": "Make the web feel native." }
+      { "type": "hook", "kicker": "Pake", "align": "left", "text": "Turn any website into a desktop app.", "accent": "desktop app." },
+      { "type": "split", "before": { "label": "Electron", "content": "~150 MB for a single web page" }, "after": { "label": "Pake", "content": "~5 MB native app, built on Rust" }, "caption": "Same web app. A fraction of the size." },
+      { "type": "feature-list", "align": "left", "headline": "One command, a real app", "items": [ { "text": "Built on Tauri and Rust", "icon": "package" }, { "text": "Global shortcuts and themes", "icon": "settings" }, { "text": "macOS, Windows, and Linux", "icon": "hard-drive" } ] },
+      { "type": "cta", "installCommand": "pnpm install -g pake-cli", "repoUrl": "github.com/tw93/Pake", "caption": "Your favorite site, as an app." }
     ],
     "vertical": [
-      { "type": "hook", "text": "Any website into a desktop app", "accent": "desktop app" },
-      { "type": "terminal", "commands": [ { "input": "pake https://music.youtube.com --name Music", "output": "✔ Music.app  ·  8.2 MB\nDone in 24s" } ], "caption": "One command. Under 10MB." },
-      { "type": "cta", "installCommand": "pnpm install -g pake-cli", "repoUrl": "github.com/tw93/Pake", "caption": "Make the web feel native." }
+      { "type": "hook", "kicker": "Pake", "text": "Any website, a tiny desktop app.", "accent": "tiny desktop app." },
+      { "type": "split", "before": { "label": "Electron", "content": "~150 MB" }, "after": { "label": "Pake", "content": "~5 MB" }, "caption": "A fraction of the size." },
+      { "type": "cta", "installCommand": "pnpm install -g pake-cli", "repoUrl": "github.com/tw93/Pake" }
     ],
     "teaser": [
-      { "type": "hook", "text": "Turn any site into a 10MB app", "accent": "10MB app" },
-      { "type": "cta", "installCommand": "pnpm install -g pake-cli", "repoUrl": "github.com/tw93/Pake", "caption": "Make the web feel native." }
+      { "type": "hook", "text": "Any website, a 5 MB desktop app.", "accent": "5 MB" },
+      { "type": "cta", "installCommand": "pnpm install -g pake-cli", "repoUrl": "github.com/tw93/Pake" }
     ]
   }
 }

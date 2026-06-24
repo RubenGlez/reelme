@@ -6,6 +6,7 @@ import { PlatformPreset, typeScale } from "../../platforms";
 import { Label } from "../primitives/Label";
 import { Caption } from "../primitives/Caption";
 import { RevealText } from "../primitives/RevealText";
+import { Kicker } from "../primitives/Kicker";
 
 interface Props {
   scene: ProblemBrief;
@@ -24,6 +25,7 @@ export const Problem: React.FC<Props> = ({ scene, theme, project, platform, bott
 
   const isAnnouncement = project.mode === "announcement" && project.version;
   const isHero = !!scene.hero;
+  const left = scene.align === "left";
 
   const accentBarProgress = spring({ frame: frame + SNAP_OFFSET, fps, config: theme.motion });
   const accentBarWidth = interpolate(accentBarProgress, [0, 1], [0, isHero ? 120 : 80]);
@@ -38,13 +40,15 @@ export const Problem: React.FC<Props> = ({ scene, theme, project, platform, bott
         background: "transparent",
         display: "flex",
         flexDirection: "column",
-        alignItems: "center",
+        alignItems: left ? "flex-start" : "center",
         justifyContent: "center",
-        padding: isHero ? "0 80px" : "0 120px",
+        padding: left ? "0 0 0 140px" : isHero ? "0 80px" : "0 120px",
         gap: isHero ? 40 : 32,
       }}
     >
-      {isAnnouncement ? (
+      {scene.kicker ? (
+        <Kicker text={scene.kicker} theme={theme} startFrame={0} align={left ? "left" : "center"} />
+      ) : isAnnouncement ? (
         <div
           style={{
             opacity: badgeOpacity,
@@ -79,17 +83,17 @@ export const Problem: React.FC<Props> = ({ scene, theme, project, platform, bott
           theme={theme}
           fontSize={104 * scale}
           fontWeight={800}
-          align="center"
+          align={left ? "left" : "center"}
           stagger={3.5}
           letterSpacing="-0.03em"
           lineHeight={1.04}
-          maxWidth={1500}
+          maxWidth={left ? 1300 : 1500}
         />
       ) : (
         <>
-          <Label text={scene.headline} theme={theme} size="xl" startFrame={4} />
+          <Label text={scene.headline} theme={theme} size="xl" align={left ? "left" : "center"} startFrame={4} />
           {scene.subtext && (
-            <Label text={scene.subtext} theme={theme} size="md" muted startFrame={16} />
+            <Label text={scene.subtext} theme={theme} size="md" muted align={left ? "left" : "center"} startFrame={16} />
           )}
         </>
       )}

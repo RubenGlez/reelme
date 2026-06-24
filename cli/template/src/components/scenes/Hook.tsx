@@ -4,6 +4,7 @@ import { HookScene as HookBrief } from "../../brief";
 import { Theme } from "../../theme";
 import { PlatformPreset, typeScale } from "../../platforms";
 import { RevealText } from "../primitives/RevealText";
+import { Kicker } from "../primitives/Kicker";
 
 interface Props {
   scene: HookBrief;
@@ -14,6 +15,7 @@ interface Props {
 export const Hook: React.FC<Props> = ({ scene, theme, platform }) => {
   const frame = useCurrentFrame();
   const { fps, width } = useVideoConfig();
+  const left = scene.align === "left";
 
   const fontSize = width * 0.1 * typeScale(platform);
   // The whole block eases out of a slight over-scale so the words don't just
@@ -26,23 +28,26 @@ export const Hook: React.FC<Props> = ({ scene, theme, platform }) => {
     <AbsoluteFill
       style={{
         display: "flex",
-        alignItems: "center",
+        flexDirection: "column",
+        alignItems: left ? "flex-start" : "center",
         justifyContent: "center",
-        padding: "0 80px",
+        padding: left ? "0 0 0 140px" : "0 80px",
       }}
     >
-      <div style={{ transform: `scale(${scale}) translateY(${drift}px)`, willChange: "transform" }}>
+      <div style={{ transform: `scale(${scale}) translateY(${drift}px)`, transformOrigin: left ? "left center" : "center", willChange: "transform" }}>
+        {scene.kicker && <Kicker text={scene.kicker} theme={theme} startFrame={0} align={left ? "left" : "center"} />}
         <RevealText
           text={scene.text}
           theme={theme}
           fontSize={fontSize}
           fontWeight={800}
           emphasis={scene.accent}
-          align="center"
+          align={left ? "left" : "center"}
+          startFrame={scene.kicker ? 6 : 0}
           stagger={3.5}
           letterSpacing="-0.04em"
           lineHeight={1.04}
-          maxWidth={width * 0.84}
+          maxWidth={width * (left ? 0.72 : 0.84)}
         />
       </div>
     </AbsoluteFill>

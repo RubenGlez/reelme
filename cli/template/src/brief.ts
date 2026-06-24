@@ -40,6 +40,10 @@ export interface ProblemScene {
   subtext?: string;
   caption?: string;
   hero?: boolean;
+  /** Small eyebrow label above the headline (e.g. the product name). */
+  kicker?: string;
+  /** Composition: centered (default) or left-anchored with negative space. */
+  align?: "center" | "left";
 }
 
 export interface CodeRevealScene {
@@ -115,6 +119,8 @@ export interface FeatureListScene {
   headline?: string;
   items: Array<string | FeatureItem>;
   caption?: string;
+  /** Composition: centered (default) or left-anchored. */
+  align?: "center" | "left";
 }
 
 export interface StatItem {
@@ -127,6 +133,8 @@ export interface StatCalloutScene {
   headline?: string;
   stats: StatItem[];
   caption?: string;
+  /** "hero" renders the first stat at giant scale (one dominant number). */
+  layout?: "row" | "hero";
 }
 
 export interface FileTreeEntry {
@@ -184,6 +192,10 @@ export interface HookScene {
   type: "hook";
   text: string;
   accent?: string;
+  /** Small eyebrow label above the hook (e.g. the product name). */
+  kicker?: string;
+  /** Composition: centered (default) or left-anchored with negative space. */
+  align?: "center" | "left";
 }
 
 export interface BenchmarkBar {

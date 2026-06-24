@@ -203,7 +203,7 @@ Every scene except `hook` can include `caption?: string`. Captions should be 5-1
 }
 ```
 
-Use `"hero": true` for openers. In hero mode the headline carries the scene; keep it short.
+Use `"hero": true` for openers. In hero mode the headline carries the scene; keep it short. Optional `"kicker": string` adds a small eyebrow label above the headline (e.g. the product name), and `"align": "left"` anchors the headline to the left with negative space on the right — a more editorial, less templated composition. Use `align: "left"` only on 16:9/1:1 cuts; keep vertical (9:16) scenes centered for legibility.
 
 ### `feature-list`
 
@@ -219,7 +219,7 @@ Use `"hero": true` for openers. In hero mode the headline carries the scene; kee
 }
 ```
 
-`items` accepts strings or `{ "text": string, "icon"?: string }` objects.
+`items` accepts strings or `{ "text": string, "icon"?: string }` objects. Optional `"align": "left"` left-anchors the list (16:9/1:1 only).
 
 ### `code-reveal`
 
@@ -310,7 +310,7 @@ Best for before/after contrast.
 }
 ```
 
-Use real numbers only.
+Use real numbers only. Optional `"layout": "hero"` renders the **first** stat at giant scale (one dominant number filling the frame, left-anchored) with the remaining stats small below — a dramatic, distinctive moment. Great as an opener or a single-metric flex.
 
 ### `benchmark`
 
@@ -400,7 +400,7 @@ Use plain key labels that render legibly.
 }
 ```
 
-Use in vertical and teaser cuts. Keep `text` short; `accent` highlights one word or phrase.
+Use in vertical and teaser cuts, and as a strong 16:9/1:1 opener. Keep `text` short; `accent` highlights one word or phrase. Optional `"kicker": string` adds an eyebrow label (e.g. the product name), and `"align": "left"` left-anchors the hook for an editorial title-card composition (16:9/1:1 only — keep vertical centered).
 
 ### `clip`
 

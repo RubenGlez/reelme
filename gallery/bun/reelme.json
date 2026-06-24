@@ -10,7 +10,6 @@
     "tone": "technical",
     "look": "arcade",
     "mode": "announcement",
-    "version": "1.3",
     "bgStyle": "deep",
     "platforms": ["github-readme", "youtube", "x"],
     "audio": { "track": "pixel-bounce.mp3" },
@@ -19,10 +18,10 @@
   },
   "cuts": {
     "main": [
-      { "type": "problem", "headline": "Bun 1.3 is here.", "hero": true, "caption": "The all-in-one toolkit, now even more batteries-included." },
-      { "type": "feature-list", "headline": "What's new in 1.3", "items": [ { "text": "Built-in database clients", "icon": "database" }, { "text": "Zero-config frontend dev server", "icon": "zap" }, { "text": "Full-stack apps, no extra tooling", "icon": "package" } ], "caption": "Less glue, more shipping." },
-      { "type": "terminal", "commands": [ { "input": "bun install", "output": "+ 312 packages installed [0.94s]" }, { "input": "bun run dev", "output": "Bun ready in 7ms\n→ http://localhost:3000" } ], "caption": "Runtime, installer, and dev server in one." },
-      { "type": "cta", "installCommand": "curl -fsSL https://bun.sh/install | bash", "repoUrl": "github.com/oven-sh/bun", "caption": "Upgrade today: bun upgrade." }
+      { "type": "stat-callout", "layout": "hero", "headline": "Installs, but instant", "stats": [ { "value": "4×", "label": "faster installs than npm — and it's a bundler, test runner, and package manager too." }, { "value": "1", "label": "tool instead of five" } ], "caption": "One fast toolchain for JavaScript and TypeScript." },
+      { "type": "code-reveal", "language": "bash", "code": "bun install       # up to 30x faster than npm\nbun test          # built-in test runner\nbun build ./app.ts  # native bundler\nbun run start     # the runtime", "highlightLine": 1, "caption": "Runtime, bundler, tester, installer — one binary." },
+      { "type": "feature-list", "align": "left", "headline": "Drop-in fast", "items": [ { "text": "Node-compatible APIs", "icon": "check" }, { "text": "Native TypeScript and JSX", "icon": "file-code" }, { "text": "Built-in SQLite, WebSocket, and more", "icon": "package" } ] },
+      { "type": "cta", "installCommand": "curl -fsSL https://bun.sh/install | bash", "repoUrl": "github.com/oven-sh/bun", "caption": "Bun is here." }
     ]
   }
 }

@@ -23,6 +23,7 @@ export const FeatureList: React.FC<Props> = ({ scene, theme, platform, bottomIns
   const scale = platform ? typeScale(platform) : 1.0;
 
   const captionStart = HEADLINE_FRAMES + scene.items.length * FRAMES_PER_ITEM + 20;
+  const left = scene.align === "left";
 
   return (
     <AbsoluteFill
@@ -30,18 +31,18 @@ export const FeatureList: React.FC<Props> = ({ scene, theme, platform, bottomIns
         background: "transparent",
         display: "flex",
         flexDirection: "column",
-        alignItems: "center",
+        alignItems: left ? "flex-start" : "center",
         justifyContent: "center",
-        padding: "0 200px",
+        padding: left ? "0 0 0 140px" : "0 200px",
       }}
     >
       {scene.headline && (
         <div style={{ marginBottom: 48 }}>
-          <Label text={scene.headline} theme={theme} size="lg" startFrame={0} />
+          <Label text={scene.headline} theme={theme} size="lg" align={left ? "left" : "center"} startFrame={0} />
         </div>
       )}
 
-      <div style={{ display: "flex", flexDirection: "column", gap: 28, width: "100%" }}>
+      <div style={{ display: "flex", flexDirection: "column", gap: 28, width: left ? "auto" : "100%", maxWidth: left ? 1200 : undefined }}>
         {scene.items.map((item, i) => {
           const text = typeof item === "string" ? item : item.text;
           const icon = typeof item === "string" ? undefined : item.icon;
