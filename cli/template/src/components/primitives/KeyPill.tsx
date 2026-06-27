@@ -34,7 +34,7 @@ export const KeyPill: React.FC<KeyPillProps> = ({ label, theme, startFrame = 0 }
         color: theme.text,
         minWidth: 60,
         letterSpacing: "-0.01em",
-        transform: `scale(${scale})`,
+        scale: String(scale),
         opacity,
       }}
     >

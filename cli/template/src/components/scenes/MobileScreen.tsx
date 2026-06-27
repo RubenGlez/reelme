@@ -46,10 +46,10 @@ export const MobileScreen: React.FC<Props> = ({ scene, theme, bottomInset = 0 })
         height: PHONE_H * fit,
         flexShrink: 0,
         opacity,
-        transform: `translateY(${translateY}px)`,
+        translate: `0 ${translateY}px`,
       }}
     >
-      <div style={{ transform: `scale(${enterScale * fit})`, transformOrigin: "top left" }}>
+      <div style={{ scale: String(enterScale * fit), transformOrigin: "top left" }}>
         <PhoneFrame scene={scene} theme={theme} frame={frame} fps={fps} />
       </div>
     </div>
@@ -117,7 +117,7 @@ const CopyColumn: React.FC<{
         <div
           style={{
             opacity: headOpacity,
-            transform: portrait ? `translateY(${headShift}px)` : `translateX(${headShift}px)`,
+            translate: portrait ? `0 ${headShift}px` : `${headShift}px 0`,
             fontFamily: theme.fontSans,
             fontSize: headlineSize,
             fontWeight: 800,
@@ -142,7 +142,7 @@ const CopyColumn: React.FC<{
                   alignItems: "center",
                   gap: 16,
                   opacity: interpolate(p, [0, 1], [0, 1]),
-                  transform: `translateX(${interpolate(p, [0, 1], [portrait ? 0 : -16, 0])}px)`,
+                  translate: `${interpolate(p, [0, 1], [portrait ? 0 : -16, 0])}px 0`,
                 }}
               >
                 <Icon name="check" size={Math.round(pointSize * 0.95)} color={theme.accent} />
@@ -300,7 +300,7 @@ const MockFeed: React.FC<{ theme: Theme; frame: number; fps: number }> = ({ them
   const Item: React.FC<{ index: number; children: React.ReactNode }> = ({ index, children }) => {
     const p = spring({ frame: frame - 8 - index * 7, fps, config: theme.motion });
     return (
-      <div style={{ opacity: interpolate(p, [0, 1], [0, 1]), transform: `translateY(${interpolate(p, [0, 1], [16, 0])}px)` }}>
+      <div style={{ opacity: interpolate(p, [0, 1], [0, 1]), translate: `0 ${interpolate(p, [0, 1], [16, 0])}px` }}>
         {children}
       </div>
     );
@@ -313,7 +313,7 @@ const MockFeed: React.FC<{ theme: Theme; frame: number; fps: number }> = ({ them
   };
 
   return (
-    <div style={{ padding: 16, display: "flex", flexDirection: "column", gap: 12, transform: `translateY(${scrollY}px)` }}>
+    <div style={{ padding: 16, display: "flex", flexDirection: "column", gap: 12, translate: `0 ${scrollY}px` }}>
       <Item index={0}>
         <div style={{ ...cardBase, height: 36, display: "flex", alignItems: "center", padding: "0 14px", fontFamily: theme.fontSans, fontSize: 13, color: theme.textMuted }}>
           Search

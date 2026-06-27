@@ -48,7 +48,7 @@ export const OSWindow: React.FC<Props> = ({ scene, theme, bottomInset = 0 }) => 
           background: theme.surface,
           border: `1px solid ${theme.border}`,
           boxShadow: "0 40px 100px rgba(0,0,0,0.45), 0 0 0 0.5px rgba(255,255,255,0.05)",
-          transform: `scale(${windowScale})`,
+          scale: String(windowScale),
           opacity: windowOpacity,
         }}
       >
@@ -125,7 +125,7 @@ export const OSWindow: React.FC<Props> = ({ scene, theme, bottomInset = 0 }) => 
                   padding: "9px 14px",
                   background: item.highlighted ? theme.accentMuted : "transparent",
                   opacity,
-                  transform: `translateX(${tx}px)`,
+                  translate: `${tx}px 0`,
                 }}
               >
                 {item.icon && (

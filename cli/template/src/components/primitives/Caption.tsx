@@ -28,7 +28,7 @@ export const Caption: React.FC<CaptionProps> = ({ text, theme, startFrame = 0, b
         display: "flex",
         justifyContent: "center",
         opacity,
-        transform: `translateY(${translateY}px)`,
+        translate: `0 ${translateY}px`,
       }}
     >
       <div
@@ -38,7 +38,7 @@ export const Caption: React.FC<CaptionProps> = ({ text, theme, startFrame = 0, b
           borderRadius: 999,
           padding: "10px 28px",
           fontFamily: theme.fontSans,
-          fontSize: 22,
+          fontSize: 32,
           fontWeight: 500,
           color: theme.text,
           letterSpacing: "-0.01em",

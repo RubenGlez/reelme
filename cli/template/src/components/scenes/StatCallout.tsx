@@ -66,7 +66,7 @@ export const StatCallout: React.FC<Props> = ({ scene, theme, bottomInset = 0 }) 
                 alignItems: "center",
                 gap: 16,
                 opacity,
-                transform: `scale(${scale})`,
+                scale: String(scale),
               }}
             >
               <div
@@ -166,7 +166,7 @@ const HeroStat: React.FC<{
             lineHeight: 0.9,
             letterSpacing: "-0.05em",
             opacity: valueOpacity,
-            transform: `scale(${valueScale})`,
+            scale: String(valueScale),
             transformOrigin: hasSecondary ? "left center" : "center",
           }}
         >
@@ -184,7 +184,7 @@ const HeroStat: React.FC<{
               textAlign: hasSecondary ? "left" : "center",
               maxWidth: hasSecondary ? width * 0.46 : width * 0.66,
               opacity: interpolate(labelP, [0, 1], [0, 1]),
-              transform: `translateY(${interpolate(labelP, [0, 1], [16, 0])}px)`,
+              translate: `0 ${interpolate(labelP, [0, 1], [16, 0])}px`,
             }}
           >
             {hero?.label}
@@ -202,7 +202,7 @@ const HeroStat: React.FC<{
               alignSelf: "stretch",
               background: theme.border,
               opacity: interpolate(dividerP, [0, 1], [0, 0.7]),
-              transform: `scaleY(${interpolate(dividerP, [0, 1], [0, 1])})`,
+              scale: `1 ${interpolate(dividerP, [0, 1], [0, 1])}`,
               transformOrigin: "top",
             }}
           />
@@ -214,7 +214,7 @@ const HeroStat: React.FC<{
                   key={i}
                   style={{
                     opacity: interpolate(rp, [0, 1], [0, 1]),
-                    transform: `translateX(${interpolate(rp, [0, 1], [24, 0])}px)`,
+                    translate: `${interpolate(rp, [0, 1], [24, 0])}px 0`,
                   }}
                 >
                   <div

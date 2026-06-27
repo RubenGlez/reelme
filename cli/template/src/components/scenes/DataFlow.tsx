@@ -88,7 +88,7 @@ export const DataFlow: React.FC<Props> = ({ scene, theme, bottomInset = 0 }) => 
               fontWeight: 600,
               color: theme.text,
               opacity,
-              transform: `scale(${scale})`,
+              scale: String(scale),
               boxShadow: `0 4px 24px rgba(0,0,0,0.3)`,
             }}
           >

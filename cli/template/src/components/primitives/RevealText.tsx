@@ -1,5 +1,5 @@
 import React from "react";
-import { useCurrentFrame, useVideoConfig, spring, interpolate } from "remotion";
+import { useCurrentFrame, useVideoConfig, spring, interpolate, Easing } from "remotion";
 import { Theme } from "../../theme";
 
 interface RevealTextProps {
@@ -65,6 +65,7 @@ export const RevealText: React.FC<RevealTextProps> = ({
         const p = spring({ frame: elapsed, fps, config: theme.motion });
         const y = interpolate(p, [0, 1], [112, 0], { extrapolateRight: "clamp" });
         const opacity = interpolate(elapsed, [0, 6], [0, 1], {
+          easing: Easing.bezier(0.16, 1, 0.3, 1),
           extrapolateLeft: "clamp",
           extrapolateRight: "clamp",
         });
@@ -84,7 +85,7 @@ export const RevealText: React.FC<RevealTextProps> = ({
               <span
                 style={{
                   display: "inline-block",
-                  transform: `translateY(${y}%)`,
+                  translate: `0 ${y}%`,
                   opacity,
                   color: isEmph ? theme.accent : undefined,
                 }}

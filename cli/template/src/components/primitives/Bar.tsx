@@ -1,5 +1,5 @@
 import React from "react";
-import { useCurrentFrame, useVideoConfig, spring, interpolate } from "remotion";
+import { useCurrentFrame, useVideoConfig, spring, interpolate, Easing } from "remotion";
 import { Theme } from "../../theme";
 
 interface Props {
@@ -21,8 +21,12 @@ export const Bar: React.FC<Props> = ({ label, valueText, fraction, hero, theme, 
     fps,
     config: theme.motion,
   });
-  const width = interpolate(Math.max(0, progress), [0, 1], [0, Math.max(0, Math.min(1, fraction))]);
+  const width = interpolate(Math.max(0, progress), [0, 1], [0, Math.max(0, Math.min(1, fraction))], {
+    extrapolateLeft: "clamp",
+    extrapolateRight: "clamp",
+  });
   const valueOpacity = interpolate(frame - startFrame, [10, 22], [0, 1], {
+    easing: Easing.bezier(0.16, 1, 0.3, 1),
     extrapolateLeft: "clamp",
     extrapolateRight: "clamp",
   });

@@ -36,9 +36,14 @@ interface ReelProps {
 }
 
 export const Reel: React.FC<ReelProps> = ({ brief, platform, cut }) => {
-  const { durationInFrames } = useVideoConfig();
-  const theme = buildTheme(brief.project.primaryColor || "#6366f1", brief.project.font, brief.project.monoFont, brief.project.tone, brief.project.bgStyle);
+  const { durationInFrames, fps } = useVideoConfig();
   const look = resolveLook(brief.project.look, brief.project.tone);
+  // The look owns motion personality: override the tone-derived default so every
+  // scene's springs (which read theme.motion) inherit the look's physics.
+  const theme = {
+    ...buildTheme(brief.project.primaryColor || "#6366f1", brief.project.font, brief.project.monoFont, brief.project.tone, brief.project.bgStyle),
+    motion: look.motion,
+  };
   const isGif = platform.output.codec === "gif";
   const shouldRenderAudio = !isGif && Boolean(brief.project.audio);
 
@@ -74,7 +79,7 @@ export const Reel: React.FC<ReelProps> = ({ brief, platform, cut }) => {
       ) : null}
 
       {sequenced.map(({ scene, from, duration }, i) => (
-        <Sequence key={i} from={from} durationInFrames={duration}>
+        <Sequence key={i} from={from} durationInFrames={duration} premountFor={fps}>
           <Enter style={transitionFor(look, i, sequenced.length)} look={look} fromBlack={i === 0} seed={i}>
             <Camera look={look} durationInFrames={duration} seed={i} disabled={isGif}>
               <SceneRenderer scene={scene} theme={theme} project={brief.project} platform={platform} />

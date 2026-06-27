@@ -60,7 +60,7 @@ export const Hotkey: React.FC<Props> = ({ scene, theme, bottomInset = 0 }) => {
         <div
           style={{
             opacity: actionOpacity,
-            transform: `translateY(${actionY}px)`,
+            translate: `0 ${actionY}px`,
             fontFamily: theme.fontSans,
             fontSize: 28,
             fontWeight: 400,

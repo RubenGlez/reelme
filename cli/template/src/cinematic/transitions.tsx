@@ -43,7 +43,8 @@ export const Enter: React.FC<EnterProps> = ({ style, look, fromBlack, seed, chil
   const p = interpolate(frame, [0, win], [0, 1], { ...ease, easing: Easing.out(Easing.cubic) });
 
   let opacity = 1;
-  let transform = "";
+  let scale: string | undefined;
+  let translate: string | undefined;
   let filter: string | undefined;
 
   switch (style) {
@@ -54,20 +55,20 @@ export const Enter: React.FC<EnterProps> = ({ style, look, fromBlack, seed, chil
       break;
     case "rise":
       opacity = p;
-      transform = `translateY(${interpolate(p, [0, 1], [44, 0])}px)`;
+      translate = `0 ${interpolate(p, [0, 1], [44, 0])}px`;
       break;
     case "whip":
       opacity = interpolate(frame, [0, win * 0.7], [0, 1], ease);
-      transform = `translateX(${interpolate(p, [0, 1], [90 * dir, 0])}px)`;
+      translate = `${interpolate(p, [0, 1], [90 * dir, 0])}px 0`;
       filter = `blur(${interpolate(p, [0, 1], [14, 0])}px)`;
       break;
     case "punch":
       opacity = interpolate(frame, [0, win * 0.6], [0, 1], ease);
-      transform = `scale(${interpolate(p, [0, 1], [1.12, 1])})`;
+      scale = String(interpolate(p, [0, 1], [1.12, 1]));
       break;
     case "zoom":
       opacity = p;
-      transform = `scale(${interpolate(p, [0, 1], [0.9, 1])})`;
+      scale = String(interpolate(p, [0, 1], [0.9, 1]));
       break;
     case "dip":
       // Content snaps in; a black veil over the top lifts away → dip-to-black.
@@ -83,7 +84,7 @@ export const Enter: React.FC<EnterProps> = ({ style, look, fromBlack, seed, chil
 
   return (
     <>
-      <AbsoluteFill style={{ opacity, transform, filter, willChange: "transform, opacity" }}>
+      <AbsoluteFill style={{ opacity, scale, translate, filter, willChange: "scale, translate, opacity" }}>
         {children}
       </AbsoluteFill>
       {dipVeil}
