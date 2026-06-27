@@ -50,7 +50,7 @@ export const CTA: React.FC<Props> = ({ scene, theme, project, platform, bottomIn
         <div
           style={{
             opacity: interpolate(logoProgress, [0, 1], [0, 1]),
-            transform: `scale(${interpolate(logoProgress, [0, 1], [0.85, 1])})`,
+            scale: String(interpolate(logoProgress, [0, 1], [0.85, 1])),
             background: "#ffffff",
             borderRadius: 20,
             padding: 16,
@@ -67,7 +67,7 @@ export const CTA: React.FC<Props> = ({ scene, theme, project, platform, bottomIn
       <div
         style={{
           opacity: titleOpacity,
-          transform: `translateY(${titleY}px)`,
+          translate: `0 ${titleY}px`,
           fontFamily: theme.fontSans,
           fontSize: 60 * scale,
           fontWeight: 700,
@@ -83,7 +83,7 @@ export const CTA: React.FC<Props> = ({ scene, theme, project, platform, bottomIn
 
       {/* The install command in the film's own terminal, typed out — consistent
           with the reel's other terminal scenes instead of a web-style pill. */}
-      <div style={{ opacity: cmdOpacity, transform: `translateY(${cmdY}px)` }}>
+      <div style={{ opacity: cmdOpacity, translate: `0 ${cmdY}px` }}>
         <Terminal lines={[{ text: scene.installCommand }]} theme={theme} startFrame={termStart} />
       </div>
 

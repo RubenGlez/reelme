@@ -52,7 +52,7 @@ export const Problem: React.FC<Props> = ({ scene, theme, project, platform, bott
         <div
           style={{
             opacity: badgeOpacity,
-            transform: `translateY(${badgeY}px)`,
+            translate: `0 ${badgeY}px`,
             background: theme.accentMuted,
             border: `1.5px solid ${theme.accent}`,
             borderRadius: 999,

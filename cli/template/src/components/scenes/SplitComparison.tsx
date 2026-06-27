@@ -35,7 +35,7 @@ export const SplitComparison: React.FC<Props> = ({ scene, theme, bottomInset = 0
       style={{
         flex: 1,
         opacity,
-        transform: `translateX(${x}px)`,
+        translate: `${x}px 0`,
         display: "flex",
         flexDirection: "column",
         gap: 18,

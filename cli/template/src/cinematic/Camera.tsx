@@ -47,7 +47,7 @@ export const Camera: React.FC<Props> = ({ look, durationInFrames, seed, disabled
   }
 
   return (
-    <AbsoluteFill style={{ transform: `scale(${scale})`, transformOrigin: "center center", willChange: "transform" }}>
+    <AbsoluteFill style={{ scale: String(scale), transformOrigin: "center center", willChange: "scale" }}>
       {children}
     </AbsoluteFill>
   );

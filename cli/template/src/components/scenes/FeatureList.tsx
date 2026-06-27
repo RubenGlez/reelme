@@ -56,7 +56,7 @@ export const FeatureList: React.FC<Props> = ({ scene, theme, platform, bottomIns
                   alignItems: "center",
                   gap: 26,
                   opacity,
-                  transform: `translateX(${translateX}px)`,
+                  translate: `${translateX}px 0`,
                 }}
               >
                 {/* A bold accent marker carries the weight — no faint bordered

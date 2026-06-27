@@ -38,7 +38,7 @@ export const BrowserFrame: React.FC<Props> = ({ scene, theme, bottomInset = 0 })
         style={{
           width: "100%",
           opacity: windowOpacity,
-          transform: `scale(${windowScale})`,
+          scale: String(windowScale),
           boxShadow: "0 24px 80px rgba(0,0,0,0.6)",
           borderRadius: 12,
           overflow: "hidden",

@@ -93,7 +93,7 @@ export const FileTree: React.FC<Props> = ({ scene, theme, bottomInset = 0 }) => 
                 alignItems: "center",
                 gap: 10,
                 opacity,
-                transform: `translateX(${translateX}px)`,
+                translate: `${translateX}px 0`,
                 paddingTop: isHighlighted ? 6 : 4,
                 paddingBottom: isHighlighted ? 6 : 4,
                 paddingLeft: depth * INDENT + 8,

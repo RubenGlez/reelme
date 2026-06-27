@@ -12,7 +12,10 @@ interface LabelProps {
   emphasis?: string;
 }
 
-const sizeMap = { sm: 22, md: 32, lg: 48, xl: 72 };
+// Floors from the video-layout rules at 1080-wide: labels >=32, supporting >=44,
+// headline >=84. Each step meets or clears its floor so text stays readable at
+// viewing distance.
+const sizeMap = { sm: 32, md: 44, lg: 60, xl: 88 };
 
 export const Label: React.FC<LabelProps> = ({
   text,
