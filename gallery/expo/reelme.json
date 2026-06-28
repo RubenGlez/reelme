@@ -10,7 +10,7 @@
     "tone": "professional",
     "look": "keynote",
     "mode": "intro",
-    "bgStyle": "deep",
+    "bgStyle": "light",
     "platforms": ["github-readme", "instagram-feed", "instagram-story", "tiktok"],
     "audio": { "track": "clean-horizon.mp3" },
     "watermark": true,
