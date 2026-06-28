@@ -5,19 +5,55 @@
 import { cpSync, existsSync, mkdirSync, readFileSync } from "node:fs";
 import { basename, dirname, join } from "node:path";
 import { spawnSync } from "node:child_process";
+import { createRequire } from "node:module";
 import { AUDIO_DIR, ensureScaffold, loadPlatforms, readBrief, fail } from "./cache.mjs";
+
+const require = createRequire(import.meta.url);
+
+// Resolve the gifsicle binary: prefer the optionalDependency's bundled build,
+// fall back to a system install on PATH. Returns null when neither is present.
+function gifsicleBin() {
+  try {
+    const mod = require("gifsicle");
+    // The package exports the binary path; under Node's require-ESM it arrives
+    // as a namespace ({ default: path }) rather than a bare string.
+    const p = typeof mod === "string" ? mod : mod?.default;
+    if (typeof p === "string" && existsSync(p)) return p;
+  } catch {
+    // optionalDependency not installed — fall through to a PATH lookup.
+  }
+  return "gifsicle";
+}
+
+// Lossy gif pass. Remotion's native gif is already well quantized, but a
+// gifsicle --lossy run roughly halves it again with text left crisp. Our
+// atmosphere gradients band under palette/colour reduction, so we keep the full
+// palette and only apply --lossy. Best-effort: a missing gifsicle is non-fatal.
+function optimizeGif(file) {
+  const res = spawnSync(gifsicleBin(), ["-b", "-O3", "--lossy=60", file], { stdio: "ignore" });
+  if (res.error || res.status !== 0) {
+    console.warn("reelme: note — gif left unoptimized (install gifsicle for ~50% smaller files).");
+  }
+}
 
 function renderComposition(cacheDir, compositionId, outFile, codec) {
   const args = ["exec", "remotion", "render", compositionId, join("out", outFile)];
   // Render gifs at 0.6 scale (e.g. 1920x1080 -> 1152x648): a README gif needs no
   // more, and fewer pixels roughly halves the file size. Layout and timing are
   // unchanged — --scale downscales the output, not the composition coordinates.
-  if (codec === "gif") args.push("--codec=gif", "--scale=0.6");
+  if (codec === "gif") {
+    args.push("--codec=gif", "--scale=0.6");
+  } else {
+    // Remotion's default h264 bitrate is far higher than a social upload needs;
+    // crf 20 is visually lossless and cuts the file to roughly a third.
+    args.push("--crf=20");
+  }
   console.log(`reelme: rendering ${compositionId} → reelme-out/${outFile}`);
   const result = spawnSync("pnpm", args, { cwd: cacheDir, stdio: "inherit" });
   if (result.error || result.status !== 0) {
     fail(`render failed for platform composition "${compositionId}".`);
   }
+  if (codec === "gif") optimizeGif(join(cacheDir, "out", outFile));
 }
 
 function collectAssets(brief) {
