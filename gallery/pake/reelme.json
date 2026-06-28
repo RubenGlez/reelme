@@ -19,6 +19,7 @@
     "main": [
       { "type": "hook", "kicker": "Pake", "align": "left", "text": "Turn any website into a desktop app.", "accent": "desktop app." },
       { "type": "split", "before": { "label": "Electron", "content": "~150 MB for a single web page" }, "after": { "label": "Pake", "content": "~5 MB native app, built on Rust" }, "caption": "Same web app. A fraction of the size." },
+      { "type": "os-window", "title": "Applications", "searchQuery": "WhatsApp", "items": [ { "icon": "check", "label": "WhatsApp", "value": "Pake · 5 MB", "highlighted": true }, { "icon": "globe", "label": "Twitter", "value": "Pake · 5 MB" }, { "icon": "package", "label": "ChatGPT", "value": "Pake · 6 MB" } ], "caption": "Real apps in your launcher, not browser tabs." },
       { "type": "feature-list", "align": "left", "headline": "One command, a real app", "items": [ { "text": "Built on Tauri and Rust", "icon": "package" }, { "text": "Global shortcuts and themes", "icon": "settings" }, { "text": "macOS, Windows, and Linux", "icon": "hard-drive" } ] },
       { "type": "cta", "installCommand": "pnpm install -g pake-cli", "repoUrl": "github.com/tw93/Pake", "caption": "Your favorite site, as an app." }
     ],

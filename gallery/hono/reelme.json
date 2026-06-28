@@ -19,6 +19,7 @@
   "cuts": {
     "main": [
       { "type": "code-reveal", "language": "typescript", "code": "import { Hono } from 'hono'\n\nconst app = new Hono()\n\napp.get('/', (c) => c.text('Hello Hono!'))\n\nexport default app", "highlightLine": 5, "caption": "The same app runs on Bun, Deno, Node, and the edge." },
+      { "type": "browser", "url": "localhost:8787/", "caption": "The same handler, served on Workers, Deno, Bun, or Node." },
       { "type": "stat-callout", "layout": "hero", "headline": "One of the fastest", "stats": [ { "value": "402k", "label": "requests/sec on Bun — from a framework that's only a few KB." }, { "value": "0", "label": "runtime lock-in" } ], "caption": "Tiny, typed, and dependency-free." },
       { "type": "feature-list", "align": "left", "headline": "Runs everywhere", "items": [ { "text": "Cloudflare Workers, Deno, Bun, Node, Lambda", "icon": "globe" }, { "text": "A few KB, zero dependencies", "icon": "zap" }, { "text": "Typed routing and middleware", "icon": "check" } ] },
       { "type": "cta", "installCommand": "npm create hono@latest", "repoUrl": "github.com/honojs/hono", "caption": "Build once, run anywhere." }

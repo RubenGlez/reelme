@@ -20,6 +20,8 @@
     "main": [
       { "type": "stat-callout", "layout": "hero", "headline": "Installs, but instant", "stats": [ { "value": "4×", "label": "faster installs than npm — and it's a bundler, test runner, and package manager too." }, { "value": "1", "label": "tool instead of five" } ], "caption": "One fast toolchain for JavaScript and TypeScript." },
       { "type": "code-reveal", "language": "bash", "code": "bun install       # up to 30x faster than npm\nbun test          # built-in test runner\nbun build ./app.ts  # native bundler\nbun run start     # the runtime", "highlightLine": 1, "caption": "Runtime, bundler, tester, installer — one binary." },
+      { "type": "terminal", "commands": [ { "input": "bun install", "output": "✓ 1,243 packages installed  [142ms]" }, { "input": "bun test", "output": "✓ 28 pass   0 fail   [op: 9ms]" } ], "caption": "Install and test in milliseconds." },
+      { "type": "file-tree", "headline": "No config pile", "entries": [ { "path": "src/index.ts", "type": "file", "highlight": true }, { "path": "src/server.ts", "type": "file" }, { "path": "bunfig.toml", "type": "file" }, { "path": "package.json", "type": "file" }, { "path": "bun.lockb", "type": "file" } ], "caption": "One runtime, one lockfile, zero extra tooling." },
       { "type": "feature-list", "align": "left", "headline": "Drop-in fast", "items": [ { "text": "Node-compatible APIs", "icon": "check" }, { "text": "Native TypeScript and JSX", "icon": "file-code" }, { "text": "Built-in SQLite, WebSocket, and more", "icon": "package" } ] },
       { "type": "cta", "installCommand": "curl -fsSL https://bun.sh/install | bash", "repoUrl": "github.com/oven-sh/bun", "caption": "One install. The whole toolchain." }
     ]

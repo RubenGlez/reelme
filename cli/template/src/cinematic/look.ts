@@ -9,7 +9,7 @@ import { MotionProfile } from "../theme";
 
 export type LookId = "keynote" | "noir" | "arcade" | "blueprint" | "editorial";
 
-export type TransitionStyle = "cut" | "fade" | "dip" | "whip" | "rise" | "punch" | "zoom";
+export type TransitionStyle = "cut" | "fade" | "dip" | "whip" | "rise" | "punch" | "zoom" | "wipe" | "flip";
 
 export type CameraMove = "push" | "drift" | "pan" | "float" | "still";
 

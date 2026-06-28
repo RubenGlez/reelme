@@ -5,6 +5,7 @@ import { Theme } from "../../theme";
 import { PlatformPreset, typeScale } from "../../platforms";
 import { Stage } from "../primitives/Stage";
 import { Terminal } from "../primitives/Terminal";
+import { Loop } from "../primitives/Loop";
 
 interface Props {
   scene: CTABrief;
@@ -20,6 +21,7 @@ export const CTA: React.FC<Props> = ({ scene, theme, project, platform, bottomIn
   const frame = useCurrentFrame();
   const { fps } = useVideoConfig();
   const scale = platform ? typeScale(platform) : 1.0;
+  const isGif = platform?.output.codec === "gif";
 
   const logoProgress = spring({ frame: frame + SNAP_OFFSET, fps, config: theme.motion });
   const titleProgress = spring({ frame: frame + SNAP_OFFSET - (project.logo ? 16 : 0), fps, config: theme.motion });
@@ -47,21 +49,25 @@ export const CTA: React.FC<Props> = ({ scene, theme, project, platform, bottomIn
     // the rest of the reel. Stage's transparent root lets the Atmosphere show.
     <Stage theme={theme} gap={40} caption={scene.caption} captionStart={60} bottomInset={bottomInset}>
       {project.logo && (
-        <div
-          style={{
-            opacity: interpolate(logoProgress, [0, 1], [0, 1]),
-            scale: String(interpolate(logoProgress, [0, 1], [0.85, 1])),
-            background: "#ffffff",
-            borderRadius: 20,
-            padding: 16,
-            boxShadow: "0 12px 40px rgba(0,0,0,0.35)",
-          }}
-        >
-          <Img
-            src={staticFile(project.logo)}
-            style={{ height: 80, width: "auto", objectFit: "contain", display: "block" }}
-          />
-        </div>
+        // A barely-there breathe keeps the end-card's hero alive while it holds,
+        // after the entrance spring has settled. Off for gif (defeats compression).
+        <Loop property="scale" amplitude={0.012} period={4} disabled={isGif}>
+          <div
+            style={{
+              opacity: interpolate(logoProgress, [0, 1], [0, 1]),
+              scale: String(interpolate(logoProgress, [0, 1], [0.85, 1])),
+              background: "#ffffff",
+              borderRadius: 20,
+              padding: 16,
+              boxShadow: "0 12px 40px rgba(0,0,0,0.35)",
+            }}
+          >
+            <Img
+              src={staticFile(project.logo)}
+              style={{ height: 80, width: "auto", objectFit: "contain", display: "block" }}
+            />
+          </div>
+        </Loop>
       )}
 
       <div

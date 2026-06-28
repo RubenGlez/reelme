@@ -8,9 +8,9 @@ import { CinematicLook, TransitionStyle } from "./look";
 const RHYTHM: Record<string, TransitionStyle[]> = {
   keynote: ["fade", "rise", "fade", "rise"],
   noir: ["dip", "fade", "dip", "rise"],
-  arcade: ["whip", "punch", "zoom", "whip"],
-  blueprint: ["cut", "rise", "cut", "whip"],
-  editorial: ["fade", "fade", "rise", "fade"],
+  arcade: ["whip", "flip", "zoom", "whip"],
+  blueprint: ["cut", "wipe", "cut", "whip"],
+  editorial: ["fade", "wipe", "rise", "fade"],
 };
 
 export function transitionFor(look: CinematicLook, index: number, total: number): TransitionStyle {
@@ -46,6 +46,8 @@ export const Enter: React.FC<EnterProps> = ({ style, look, fromBlack, seed, chil
   let scale: string | undefined;
   let translate: string | undefined;
   let filter: string | undefined;
+  let transform: string | undefined;
+  let clipPath: string | undefined;
 
   switch (style) {
     case "cut":
@@ -74,6 +76,19 @@ export const Enter: React.FC<EnterProps> = ({ style, look, fromBlack, seed, chil
       // Content snaps in; a black veil over the top lifts away → dip-to-black.
       opacity = interpolate(frame, [0, win * 0.5], [0, 1], ease);
       break;
+    case "wipe": {
+      // A hard edge sweeps across, revealing the shot. Direction alternates by
+      // seed so consecutive wipes don't all travel the same way.
+      opacity = interpolate(frame, [0, win * 0.3], [0, 1], ease);
+      const remain = interpolate(p, [0, 1], [100, 0]);
+      clipPath = dir > 0 ? `inset(0 ${remain}% 0 0)` : `inset(0 0 0 ${remain}%)`;
+      break;
+    }
+    case "flip":
+      // Shot swings in on a vertical hinge — a single playful rotation.
+      opacity = interpolate(frame, [0, win * 0.5], [0, 1], ease);
+      transform = `perspective(1400px) rotateY(${interpolate(p, [0, 1], [62 * dir, 0])}deg)`;
+      break;
   }
 
   const dipVeil = style === "dip" && (
@@ -84,7 +99,9 @@ export const Enter: React.FC<EnterProps> = ({ style, look, fromBlack, seed, chil
 
   return (
     <>
-      <AbsoluteFill style={{ opacity, scale, translate, filter, willChange: "scale, translate, opacity" }}>
+      <AbsoluteFill
+        style={{ opacity, scale, translate, filter, transform, clipPath, willChange: "scale, translate, opacity, transform, clip-path" }}
+      >
         {children}
       </AbsoluteFill>
       {dipVeil}

@@ -1,0 +1,27 @@
+{
+  "schemaVersion": 2,
+  "project": {
+    "name": "reelme",
+    "tagline": "Launch videos from a JSON brief.",
+    "problem": "A good launch video means hours in an editor — or paying someone who lives in one.",
+    "installCommand": "npx reelme@latest",
+    "repoUrl": "github.com/RubenGlez/reelme",
+    "primaryColor": "#ff4d6d",
+    "tone": "playful",
+    "look": "arcade",
+    "mode": "intro",
+    "bgStyle": "deep",
+    "platforms": ["github-readme", "x", "tiktok"],
+    "audio": { "track": "pixel-bounce.mp3" },
+    "watermark": true
+  },
+  "cuts": {
+    "main": [
+      { "type": "hook", "kicker": "reelme", "align": "left", "text": "Turn a JSON brief into a launch video.", "accent": "launch video." },
+      { "type": "code-reveal", "language": "json", "code": "{\n  \"project\": { \"name\": \"reelme\", \"tone\": \"playful\" },\n  \"cuts\": {\n    \"main\": [\n      { \"type\": \"hook\", \"text\": \"...\" },\n      { \"type\": \"clip\", \"src\": \"demo.mp4\" },\n      { \"type\": \"cta\", \"installCommand\": \"npx reelme\" }\n    ]\n  }\n}", "highlightLine": 6, "caption": "One brief in. Every scene out." },
+      { "type": "clip", "src": "demo.mp4", "frame": "mobile", "durationInFrames": 60, "caption": "Real output — rendered for every platform." },
+      { "type": "feature-list", "align": "left", "headline": "Built for shipping", "items": [ { "text": "16 scene types, 5 cinematic looks", "icon": "star" }, { "text": "Vertical, square, and wide from one render", "icon": "package" }, { "text": "No timeline, no editor", "icon": "zap" } ] },
+      { "type": "cta", "installCommand": "npx reelme@latest", "repoUrl": "github.com/RubenGlez/reelme", "caption": "Your launch video, in one command." }
+    ]
+  }
+}
