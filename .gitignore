@@ -8,5 +8,9 @@ template/public/logo.svg
 .claude/
 skills-lock.json
 .reelme/
-.harness/
 reelme-out/
+
+# doctier:begin — managed by 'doctier init', do not edit
+**/_prototype-*
+**/_spike/**
+# doctier:end
