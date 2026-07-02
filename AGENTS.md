@@ -28,3 +28,37 @@ Each render re-syncs the template `src/` into the cache, so the eval reflects yo
 ## Release
 
 `reelme` is published to npm **manually** — there is no publish-on-tag automation (`.github/workflows/ci.yml` only runs the `cli/template` typecheck/lint/test on push and PR). Flow: bump the version in `cli/package.json`, commit, annotate-tag `v<version>` on `main`, push branch + tag, then `cd cli && npm publish` (maintainer: rubenglez). What ships in the package is controlled by the `files` allowlist in `cli/package.json`.
+
+<!-- doctier:begin -->
+## Project context
+
+Managed by doctier — do not edit between the markers.
+
+Read these for project context:
+
+- `.harness/adr/0001-cuts-replace-format.md`
+- `.harness/adr/0002-bundled-cc0-audio.md`
+- `.harness/adr/0003-hybrid-skill-plus-thin-cli.md`
+- `.harness/adr/0004-skill-in-subdirectory.md`
+- `.harness/adr/0005-cinematic-render-layer.md`
+- `.harness/engineering/architecture.md`
+- `.harness/engineering/features/benchmark-scene.md`
+- `.harness/engineering/features/cc0-audio-track.md`
+- `.harness/engineering/features/cinematic-engine.md`
+- `.harness/engineering/features/composition-variety.md`
+- `.harness/engineering/features/copy-positioning-rewrite.md`
+- `.harness/engineering/features/hook-first-vertical.md`
+- `.harness/engineering/features/made-with-reelme-watermark.md`
+- `.harness/engineering/features/oss-gallery.md`
+- `.harness/engineering/features/platform-selector.md`
+- `.harness/engineering/features/real-asset-ingestion.md`
+- `.harness/engineering/features/teaser-cut.md`
+- `.harness/engineering/implementation-plan.md`
+- `.harness/engineering/video-craft-rubric.md`
+- `.harness/product/CONTEXT.md`
+- `.harness/product/competitors.md`
+- `.harness/product/product.md`
+- `.harness/product/roadmap.md`
+- `.harness/product/ux.md`
+- `.harness/qa/report.md`
+<!-- doctier:end -->
