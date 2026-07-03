@@ -1,6 +1,6 @@
 import React from "react";
 import { useCurrentFrame, useVideoConfig, spring, interpolate, Img, staticFile } from "remotion";
-import { CTAScene as CTABrief, ProjectMeta } from "../../brief";
+import { CTAScene as CTABrief, ProjectMeta, showWatermark } from "../../brief";
 import { Theme } from "../../theme";
 import { PlatformPreset, typeScale } from "../../platforms";
 import { Stage } from "../primitives/Stage";
@@ -106,7 +106,7 @@ export const CTA: React.FC<Props> = ({ scene, theme, project, platform, bottomIn
         </div>
       )}
 
-      {project.watermark !== false && (
+      {showWatermark(project.watermark) && (
         <div
           style={{
             position: "absolute",

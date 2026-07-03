@@ -37,3 +37,19 @@ jobs:
       - name: Test
         run: pnpm test
         working-directory: cli/template
+
+  cli:
+    name: CLI
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v6
+
+      - uses: actions/setup-node@v6
+        with:
+          node-version: 24
+
+      # The CLI has no dependencies; smoke-test its brief validation directly.
+      - name: Smoke test
+        run: node test/smoke.mjs
+        working-directory: cli

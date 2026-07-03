@@ -1,4 +1,0 @@
-template/out/
-template/src/__tests__/
-template/eslint.config.mjs
-template/vitest.config.ts

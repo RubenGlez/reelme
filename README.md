@@ -16,7 +16,7 @@ npx skills add RubenGlez/reelme
 
 Works in any [Agent Skills](https://agentskills.io)-compatible agent: Claude Code, Cursor, Gemini CLI, OpenAI Codex, and more.
 
-**Requirements:** Node.js >=18
+**Requirements:** Node.js >=18 and [pnpm](https://pnpm.io) (the CLI installs render dependencies with pnpm on first run)
 
 The skill invokes the `reelme` CLI automatically. You don't need to install it separately.
 

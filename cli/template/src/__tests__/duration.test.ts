@@ -1,16 +1,64 @@
 import { describe, it, expect } from "vitest";
 import { sceneDuration, calcTotalDuration, SCENE_DURATION_MAP, SCENE_TAIL, TEASER_MAX_FRAMES } from "../duration";
+import { CAPTION_HOLD, codeRevealCaptionStart, terminalCaptionStart } from "../timing";
 import { Cuts, Scene } from "../brief";
 
 describe("sceneDuration", () => {
   it("returns fixed durations for non-dynamic scene types", () => {
     const types = Object.keys(SCENE_DURATION_MAP) as Scene["type"][];
     // hook bypasses SCENE_TAIL; dynamic types compute duration from content length
-    const dynamicTypes: Scene["type"][] = ["feature-list", "stat-callout", "file-tree", "os-window", "hotkey", "hook", "clip", "benchmark"];
+    const dynamicTypes: Scene["type"][] = ["terminal", "code-reveal", "feature-list", "stat-callout", "file-tree", "os-window", "hotkey", "hook", "clip", "benchmark"];
     for (const type of types) {
       if (dynamicTypes.includes(type)) continue;
       const scene = { type } as Scene;
       expect(sceneDuration(scene)).toBe(SCENE_DURATION_MAP[type] + SCENE_TAIL);
+    }
+  });
+
+  it("computes terminal duration from typed content, with room for the caption (F7)", () => {
+    const noCaption: Scene = { type: "terminal", commands: [{ input: "abc", output: "done" }] };
+    // (3*2 + 23) + 23 = 52 typed; captionStart = 8 + 52 + 20 = 80
+    expect(terminalCaptionStart(noCaption)).toBe(80);
+    expect(sceneDuration(noCaption)).toBe(80 + SCENE_TAIL);
+    const withCaption: Scene = { ...noCaption, caption: "One command." };
+    expect(sceneDuration(withCaption)).toBe(80 + CAPTION_HOLD + SCENE_TAIL);
+  });
+
+  it("computes code-reveal duration from line count, with room for the caption (F7)", () => {
+    const noCaption: Scene = { type: "code-reveal", language: "ts", code: "a\nb\nc" };
+    // captionStart = 14 + 3*9 + 20 = 61
+    expect(codeRevealCaptionStart(noCaption)).toBe(61);
+    expect(sceneDuration(noCaption)).toBe(61 + SCENE_TAIL);
+    const withCaption: Scene = { ...noCaption, caption: "Type-safe." };
+    expect(sceneDuration(withCaption)).toBe(61 + CAPTION_HOLD + SCENE_TAIL);
+  });
+
+  it("keeps captionStart within the scene for every captioned scene type (F7)", () => {
+    // A caption must have time to appear before the scene ends. The previously
+    // fixed terminal/code-reveal durations could push captionStart past the end.
+    const scenes: Scene[] = [
+      {
+        type: "terminal",
+        commands: [
+          { input: "npx create-sprout-app my-app", output: "Creating project..." },
+          { input: "cd my-app && pnpm dev", output: "Local: http://localhost:3000" },
+        ],
+        caption: "One command. Production stack. Under 60 seconds.",
+      },
+      {
+        type: "code-reveal",
+        language: "ts",
+        code: Array.from({ length: 18 }, (_, i) => `const line${i} = ${i};`).join("\n"),
+        caption: "End-to-end type safety.",
+      },
+    ];
+    for (const scene of scenes) {
+      let start: number;
+      if (scene.type === "terminal") start = terminalCaptionStart(scene);
+      else if (scene.type === "code-reveal") start = codeRevealCaptionStart(scene);
+      else continue;
+      expect(start).toBeLessThan(sceneDuration(scene));
+      expect(start + CAPTION_HOLD).toBeLessThanOrEqual(sceneDuration(scene));
     }
   });
 

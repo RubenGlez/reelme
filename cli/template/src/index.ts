@@ -31,19 +31,21 @@ if (!brief.cuts || !Array.isArray(brief.cuts.main) || brief.cuts.main.length ===
   );
 }
 
-// A vertical platform without cuts.vertical falls back to the main cut.
+// A vertical platform without a (non-empty) cuts.vertical falls back to the main
+// cut. An empty array is treated as absent so it never builds a 0-scene, and
+// therefore 0-frame, composition that Remotion rejects (F3).
 function scenesForCut(cut: "main" | "vertical"): Scene[] {
-  if (cut === "vertical") return brief.cuts.vertical ?? brief.cuts.main;
+  if (cut === "vertical") return brief.cuts.vertical?.length ? brief.cuts.vertical : brief.cuts.main;
   return brief.cuts.main;
 }
 
 const verticalFallback = platformIds.filter(
-  (id) => cutForPlatform(id) === "vertical" && !brief.cuts.vertical
+  (id) => cutForPlatform(id) === "vertical" && !brief.cuts.vertical?.length
 );
 if (verticalFallback.length > 0) {
   console.warn(
-    `reelme: no cuts.vertical in the brief — ${verticalFallback.join(", ")} will render the main cut ` +
-      `letterboxed into 9:16. Author a vertical cut for better results.`
+    `reelme: no cuts.vertical in the brief — ${verticalFallback.join(", ")} will re-render the main cut ` +
+      `at 9:16. Dense wide scenes may cramp — author a vertical cut for better results.`
   );
 }
 

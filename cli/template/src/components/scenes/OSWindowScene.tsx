@@ -2,7 +2,7 @@ import React from "react";
 import { AbsoluteFill, useCurrentFrame, useVideoConfig, spring, interpolate } from "remotion";
 import { OSWindowScene as OSWindowBrief } from "../../brief";
 import { Theme } from "../../theme";
-import { Icon } from "../primitives/Icon";
+import { Icon, hasIcon } from "../primitives/Icon";
 import { Caption } from "../primitives/Caption";
 
 interface Props {
@@ -128,7 +128,7 @@ export const OSWindow: React.FC<Props> = ({ scene, theme, bottomInset = 0 }) => 
                   translate: `${tx}px 0`,
                 }}
               >
-                {item.icon && (
+                {item.icon && hasIcon(item.icon) && (
                   <div
                     style={{
                       width: 30,

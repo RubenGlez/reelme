@@ -54,6 +54,13 @@ const ICON_MAP: Record<string, LucideIcon> = {
   zap: Zap,
 };
 
+// Whether a name resolves to a real icon. Callers use this to fall back visibly
+// (e.g. to a numbered marker) instead of rendering an empty slot when a brief
+// names an icon outside the registry (F6).
+export function hasIcon(name: string): boolean {
+  return name.toLowerCase() in ICON_MAP;
+}
+
 export interface IconProps {
   name: string;
   size?: number;

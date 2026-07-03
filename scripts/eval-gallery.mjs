@@ -32,22 +32,41 @@ if (briefs.length === 0) {
   process.exit(1);
 }
 
+// A hung Chrome download or a stuck render should fail loudly, not look like a
+// slow success. Cap each brief; a timeout counts as a failure.
+const RENDER_TIMEOUT_MS = 15 * 60 * 1000;
+
 let failed = 0;
 for (const name of briefs) {
-  process.stdout.write(`▶ ${name} … `);
+  const cwd = join(galleryDir, name);
+
+  // Deterministic pre-pass: validate the brief (schema, platforms, scene types,
+  // required fields, asset extensions) before spending minutes on a render. This
+  // catches the mechanical class of regressions without waiting for Remotion.
+  const check = spawnSync("node", [cli, "validate"], { cwd, encoding: "utf8" });
+  if (check.status !== 0) {
+    failed++;
+    console.log(`▶ ${name} … INVALID`);
+    console.log((check.stderr || check.stdout || "").trim().replace(/^/gm, "    "));
+    continue;
+  }
+
+  console.log(`▶ ${name} … rendering`);
+  // Stream Remotion's own progress live (stdio: inherit) so a multi-minute
+  // render shows movement instead of going dark until PASS/FAIL.
   const res = spawnSync("node", [cli, "render"], {
-    cwd: join(galleryDir, name),
-    encoding: "utf8",
+    cwd,
+    stdio: "inherit",
+    timeout: RENDER_TIMEOUT_MS,
   });
   if (res.status === 0) {
-    console.log("PASS");
+    console.log(`  ${name}: PASS`);
   } else {
     failed++;
-    console.log("FAIL");
-    const out = (res.stderr || res.stdout || "").trim().split("\n").slice(-6).join("\n");
-    console.log(out.replace(/^/gm, "    "));
+    const why = res.error?.code === "ETIMEDOUT" ? `TIMEOUT after ${RENDER_TIMEOUT_MS / 60000}m` : `exit ${res.status}`;
+    console.log(`  ${name}: FAIL (${why})`);
   }
 }
 
-console.log(`\n${briefs.length - failed}/${briefs.length} gallery briefs rendered.`);
+console.log(`\n${briefs.length - failed}/${briefs.length} gallery briefs passed.`);
 process.exit(failed ? 1 : 0);

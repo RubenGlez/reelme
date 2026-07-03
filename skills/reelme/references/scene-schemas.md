@@ -47,18 +47,20 @@ Read this file when creating or editing `reelme.json`. Current briefs use schema
 }
 ```
 
-Required:
+Enforced by the CLI (a brief that omits these fails to render):
 
 - `schemaVersion: 2`
-- `project.name`
-- `project.tagline`
-- `project.problem`
-- `project.installCommand`
-- `project.repoUrl`
-- `project.primaryColor`
-- `project.tone`
 - `project.platforms` with at least one valid platform id
 - `cuts.main` with at least one scene
+
+Always write these too — scenes reference them and the interview collects them, even though the CLI doesn't hard-fail on their absence:
+
+- `project.name`, `project.installCommand`, `project.repoUrl` (used by `cta`)
+- `project.primaryColor`, `project.tone` (drive the theme and default look)
+
+Agent-context only — collected to steer copy, but **not rendered anywhere**:
+
+- `project.tagline`, `project.problem`
 
 Optional:
 
@@ -67,7 +69,6 @@ Optional:
 - `project.logo`: filename for a logo copied into the render cache
 - `project.font`, `project.monoFont`
 - `project.look`: art-direction preset that sets lighting, camera move, color grade, film grain, and cut rhythm: `keynote` (clean stage), `noir` (low-key, cool, dips to black), `arcade` (saturated, scanlines, snappy), `blueprint` (engineering grid, measured), or `editorial` (warm, premium, slow). Defaults from tone: professional→keynote, playful→arcade, technical→blueprint. Pick distinct looks across a project's reels so they don't feel templated.
-- `project.transition`: legacy per-scene transition (`fade`/`slide`/`zoom`); superseded by the look's cut rhythm and ignored.
 - `project.bgStyle`: `deep`, `branded`, or `light`
 - `project.watermark`: default `true`; set `false` to hide the CTA footer credit
 - `project.audio`: `{ "track": "calm-keys.mp3", "volume": 0.25 }` for bundled background music, or `false` for silent output. Omit `volume` to use the default 0.25.
@@ -93,7 +94,7 @@ Set `project.platforms` to one or more platform ids.
 
 When `cuts.teaser` exists, the CLI also renders `<platform>-teaser.mp4` for each selected non-GIF platform. `github-readme` does not get a teaser.
 
-If a vertical platform is selected and `cuts.vertical` is missing, the CLI renders the main cut letterboxed into 9:16 and prints a warning.
+If a vertical platform is selected and `cuts.vertical` is missing, the CLI re-renders the main cut at 9:16 (scenes are responsive, not letterboxed) and prints a warning. Dense wide scenes can cramp at 9:16, so author `cuts.vertical` whenever a vertical platform is selected.
 
 ---
 
@@ -116,7 +117,6 @@ If a vertical platform is selected and `cuts.vertical` is missing, the CLI rende
   logo?: string;
   font?: string;
   monoFont?: string;
-  transition?: "fade" | "slide" | "zoom";
   bgStyle?: "deep" | "branded" | "light";
 }
 ```
@@ -133,15 +133,21 @@ If a vertical platform is selected and `cuts.vertical` is missing, the CLI rende
 
 The skill should write an explicit audio choice. `undefined` is treated like `false` by the renderer, so missing audio never breaks a render.
 
-Bundled track defaults:
+The full bundled track list (set `project.audio.track` to one of these filenames). The tone column is a suggestion, not a restriction — any track works with any tone:
 
-| tone | default track | filename |
+| filename | title | tones |
 |---|---|---|
-| `professional` | Calm Keys | `calm-keys.mp3` |
-| `playful` | Bright Sparks | `bright-sparks.mp3` |
-| `technical` | Circuit Pulse | `circuit-pulse.mp3` |
+| `calm-keys.mp3` | Calm Keys | professional |
+| `steady-launch.mp3` | Steady Launch | professional, technical |
+| `clean-horizon.mp3` | Clean Horizon | professional |
+| `bright-sparks.mp3` | Bright Sparks | playful |
+| `pixel-bounce.mp3` | Pixel Bounce | playful, technical |
+| `sunny-loop.mp3` | Sunny Loop | playful |
+| `circuit-pulse.mp3` | Circuit Pulse | technical |
+| `vector-grid.mp3` | Vector Grid | technical |
+| `midnight-protocol.mp3` | Midnight Protocol | technical, professional |
 
-The full curated manifest lives at `cli/assets/audio/manifest.json`. The CLI validates `project.audio.track` against that manifest and copies only the chosen file into `public/audio/` in the cache scaffold. GIF outputs do not include audio.
+Tone defaults: professional → Calm Keys, playful → Bright Sparks, technical → Circuit Pulse. The CLI validates `project.audio.track` against this list and copies only the chosen file into the render cache. GIF outputs do not include audio.
 
 ### Fonts
 
@@ -155,11 +161,7 @@ The full curated manifest lives at `cli/assets/audio/manifest.json`. The CLI val
 - `branded` - background visibly carries the brand hue.
 - `light` - white-based background with light surfaces.
 
-### Transition
-
-- `fade` - neutral default.
-- `slide` - more kinetic.
-- `zoom` - punchier launch feel.
+Edit rhythm and transitions are driven entirely by `project.look` — there is no per-scene transition field.
 
 ---
 

@@ -44,7 +44,29 @@ export const RevealText: React.FC<RevealTextProps> = ({
   const frame = useCurrentFrame();
   const { fps } = useVideoConfig();
   const words = text.split(" ");
-  const emphWord = emphasis?.trim().toLowerCase();
+
+  // Resolve which word indices the accent covers. A multi-word accent phrase
+  // ("one command") must emphasize the whole contiguous run, not silently no-op
+  // because no single word equals the phrase (F2). Punctuation is stripped from
+  // both sides so "video." matches "video".
+  const clean = (w: string) => w.replace(/[.,!?:;]/g, "").toLowerCase();
+  const cleanedWords = words.map(clean);
+  const emphIndices = new Set<number>();
+  const accentWords = emphasis?.trim() ? emphasis.trim().split(/\s+/).map(clean).filter(Boolean) : [];
+  if (accentWords.length === 1) {
+    const a = accentWords[0];
+    cleanedWords.forEach((c, i) => {
+      if (c === a || c.includes(a)) emphIndices.add(i);
+    });
+  } else if (accentWords.length > 1) {
+    for (let i = 0; i + accentWords.length <= cleanedWords.length; i++) {
+      const matches = accentWords.every((a, j) => {
+        const c = cleanedWords[i + j];
+        return c === a || c.includes(a);
+      });
+      if (matches) accentWords.forEach((_, j) => emphIndices.add(i + j));
+    }
+  }
 
   return (
     <div
@@ -69,8 +91,7 @@ export const RevealText: React.FC<RevealTextProps> = ({
           extrapolateLeft: "clamp",
           extrapolateRight: "clamp",
         });
-        const clean = word.replace(/[.,!?:;]/g, "").toLowerCase();
-        const isEmph = emphWord && (clean === emphWord || word.toLowerCase().includes(emphWord));
+        const isEmph = emphIndices.has(i);
         return (
           <React.Fragment key={i}>
             <span

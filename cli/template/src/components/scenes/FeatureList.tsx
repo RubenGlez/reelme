@@ -5,7 +5,7 @@ import { Theme } from "../../theme";
 import { PlatformPreset, typeScale } from "../../platforms";
 import { Label } from "../primitives/Label";
 import { Stage } from "../primitives/Stage";
-import { Icon } from "../primitives/Icon";
+import { Icon, hasIcon } from "../primitives/Icon";
 
 interface Props {
   scene: FeatureListBrief;
@@ -22,7 +22,8 @@ export const FeatureList: React.FC<Props> = ({ scene, theme, platform, bottomIns
   const { fps } = useVideoConfig();
   const scale = platform ? typeScale(platform) : 1.0;
 
-  const captionStart = HEADLINE_FRAMES + scene.items.length * FRAMES_PER_ITEM + 20;
+  const items = scene.items ?? [];
+  const captionStart = HEADLINE_FRAMES + items.length * FRAMES_PER_ITEM + 20;
   const left = scene.align === "left";
 
   return (
@@ -39,9 +40,10 @@ export const FeatureList: React.FC<Props> = ({ scene, theme, platform, bottomIns
         )}
 
         <div style={{ display: "flex", flexDirection: "column", gap: 34 }}>
-          {scene.items.map((item, i) => {
+          {items.map((item, i) => {
             const text = typeof item === "string" ? item : item.text;
             const icon = typeof item === "string" ? undefined : item.icon;
+            const showIcon = icon !== undefined && hasIcon(icon);
 
             const itemStart = HEADLINE_FRAMES + i * FRAMES_PER_ITEM;
             const progress = spring({ frame: frame - itemStart, fps, config: theme.motion });
@@ -70,7 +72,7 @@ export const FeatureList: React.FC<Props> = ({ scene, theme, platform, bottomIns
                     flexShrink: 0,
                   }}
                 >
-                  {icon ? (
+                  {showIcon ? (
                     <Icon name={icon} size={34} color={theme.accent} />
                   ) : (
                     <span

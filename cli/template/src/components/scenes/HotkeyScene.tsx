@@ -18,7 +18,8 @@ export const Hotkey: React.FC<Props> = ({ scene, theme, bottomInset = 0 }) => {
   const frame = useCurrentFrame();
   const { fps } = useVideoConfig();
 
-  const actionStart = scene.keys.length * FRAMES_PER_KEY + ACTION_DELAY;
+  const keys = scene.keys ?? [];
+  const actionStart = keys.length * FRAMES_PER_KEY + ACTION_DELAY;
   const captionStart = actionStart + 50;
 
   const actionProgress = spring({ frame: frame - actionStart, fps, config: theme.motion });
@@ -37,7 +38,7 @@ export const Hotkey: React.FC<Props> = ({ scene, theme, bottomInset = 0 }) => {
       }}
     >
       <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
-        {scene.keys.map((key, i) => (
+        {keys.map((key, i) => (
           <React.Fragment key={i}>
             {i > 0 && (
               <span

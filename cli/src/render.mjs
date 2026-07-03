@@ -2,13 +2,29 @@
 // variant per social platform when the brief has a teaser cut. Outputs land
 // in <repo>/reelme-out/; the heavy Remotion project stays in the cache.
 
-import { cpSync, existsSync, mkdirSync, readFileSync } from "node:fs";
-import { basename, dirname, join } from "node:path";
+import { cpSync, existsSync, mkdirSync, readFileSync, rmSync } from "node:fs";
+import { basename, dirname, join, resolve, relative, isAbsolute } from "node:path";
 import { spawnSync } from "node:child_process";
 import { createRequire } from "node:module";
-import { AUDIO_DIR, ensureScaffold, loadPlatforms, readBrief, fail } from "./cache.mjs";
+import { AUDIO_DIR, ensureScaffold, loadPlatforms, readBrief, runShell, fail } from "./cache.mjs";
 
 const require = createRequire(import.meta.url);
+
+// Reject asset paths that escape their base dir. A reelme.json is authored by an
+// agent and gets committed/shared, so a `../../…` src/logo would otherwise copy
+// (or read) files outside the cache at render time (F11). Guards both the repo
+// source and the cache destination.
+function safeJoin(baseDir, relPath, label) {
+  if (typeof relPath !== "string" || relPath.length === 0 || isAbsolute(relPath)) {
+    fail(`${label} "${relPath}" must be a repo-relative path.`);
+  }
+  const dest = resolve(baseDir, relPath);
+  const rel = relative(baseDir, dest);
+  if (rel.startsWith("..") || isAbsolute(rel)) {
+    fail(`${label} "${relPath}" escapes the project directory — refusing to copy.`);
+  }
+  return dest;
+}
 
 // Resolve the gifsicle binary: prefer the optionalDependency's bundled build,
 // fall back to a system install on PATH. Returns null when neither is present.
@@ -49,7 +65,7 @@ function renderComposition(cacheDir, compositionId, outFile, codec) {
     args.push("--crf=20");
   }
   console.log(`reelme: rendering ${compositionId} → reelme-out/${outFile}`);
-  const result = spawnSync("pnpm", args, { cwd: cacheDir, stdio: "inherit" });
+  const result = runShell("pnpm", args, cacheDir);
   if (result.error || result.status !== 0) {
     fail(`render failed for platform composition "${compositionId}".`);
   }
@@ -74,14 +90,19 @@ function copyAssets(repoRoot, cacheDir, brief) {
   if (assets.length === 0) return;
   const publicDir = join(cacheDir, "public");
   mkdirSync(publicDir, { recursive: true });
-  const missing = assets.filter((a) => !existsSync(join(repoRoot, a)));
+  // Resolve every path through the traversal guard before touching the disk.
+  const resolved = assets.map((asset) => ({
+    asset,
+    source: safeJoin(repoRoot, asset, "asset"),
+    dest: safeJoin(publicDir, asset, "asset"),
+  }));
+  const missing = resolved.filter(({ source }) => !existsSync(source));
   if (missing.length > 0) {
-    fail(`missing asset file(s):\n${missing.map((a) => `  ${join(repoRoot, a)}`).join("\n")}`);
+    fail(`missing asset file(s):\n${missing.map(({ source }) => `  ${source}`).join("\n")}`);
   }
-  for (const asset of assets) {
-    const dest = join(publicDir, asset);
+  for (const { source, dest } of resolved) {
     mkdirSync(dirname(dest), { recursive: true });
-    cpSync(join(repoRoot, asset), dest);
+    cpSync(source, dest);
   }
 }
 
@@ -130,14 +151,23 @@ function copyAudioTrack(cacheDir, brief) {
 function copyLogo(repoRoot, cacheDir, brief) {
   const logo = brief.project?.logo;
   if (!logo) return;
-  const source = join(repoRoot, logo);
+  const source = safeJoin(repoRoot, logo, "project.logo");
   if (!existsSync(source)) {
     fail(`project.logo file not found: ${source}`);
   }
   const publicDir = join(cacheDir, "public");
-  const dest = join(publicDir, logo);
+  const dest = safeJoin(publicDir, logo, "project.logo");
   mkdirSync(dirname(dest), { recursive: true });
   cpSync(source, dest);
+}
+
+// Stage every render input into the cache. Shared by render() and studio() so
+// Studio previews exactly what render() produces (F1) instead of showing 404s
+// for missing assets/audio/logo.
+export function stageInputs(repoRoot, cacheDir, brief) {
+  copyAssets(repoRoot, cacheDir, brief);
+  copyAudioTrack(cacheDir, brief);
+  copyLogo(repoRoot, cacheDir, brief);
 }
 
 export function render(repoRoot) {
@@ -147,17 +177,15 @@ export function render(repoRoot) {
   const outDir = join(repoRoot, "reelme-out");
   mkdirSync(outDir, { recursive: true });
 
-  copyAssets(repoRoot, cacheDir, brief);
-  copyAudioTrack(cacheDir, brief);
-  copyLogo(repoRoot, cacheDir, brief);
+  stageInputs(repoRoot, cacheDir, brief);
 
   const verticalFallback = brief.project.platforms.filter(
     (id) => platforms[id].cut === "vertical" && !brief.cuts.vertical?.length
   );
   if (verticalFallback.length > 0) {
     console.warn(
-      `reelme: warning — no cuts.vertical in reelme.json; ${verticalFallback.join(", ")} will render ` +
-        `the main cut letterboxed into 9:16. Author a vertical cut for better results.`
+      `reelme: warning — no cuts.vertical in reelme.json; ${verticalFallback.join(", ")} will re-render ` +
+        `the main cut at 9:16. Dense wide scenes may cramp — author a vertical cut for better results.`
     );
   }
 
@@ -165,7 +193,7 @@ export function render(repoRoot) {
     const preset = platforms[id];
     const outFile = basename(preset.output.file);
     renderComposition(cacheDir, `Reel-${id}`, outFile, preset.output.codec);
-    cpSync(join(cacheDir, "out", outFile), join(outDir, outFile));
+    copyOut(cacheDir, outFile, outDir);
   }
 
   const hasTeaser = Array.isArray(brief.cuts.teaser) && brief.cuts.teaser.length > 0;
@@ -176,9 +204,17 @@ export function render(repoRoot) {
     for (const id of socialIds) {
       const outFile = `${id}-teaser.mp4`;
       renderComposition(cacheDir, `Reel-${id}-teaser`, outFile, "h264");
-      cpSync(join(cacheDir, "out", outFile), join(outDir, outFile));
+      copyOut(cacheDir, outFile, outDir);
     }
   }
 
   console.log(`reelme: done — outputs in ${outDir}`);
+}
+
+// Copy a finished render to reelme-out/, then drop the cache copy so out/ doesn't
+// accumulate every render forever (F16). The deliverable already lives in the repo.
+function copyOut(cacheDir, outFile, outDir) {
+  const cached = join(cacheDir, "out", outFile);
+  cpSync(cached, join(outDir, outFile));
+  rmSync(cached, { force: true });
 }
