@@ -1,198 +1,656 @@
-# Adversarial codebase audit — 2026-07-03
-
-Auditor role: senior staff engineer + skeptical first-time user (`npx skills add RubenGlez/reelme` → `/reelme` → `npx reelme render`) + adversarial reviewer. Every tracked file in the repo was read (143 files; binaries and encrypted `.harness/**` accounted for). Findings are marked **CONFIRMED** (traced end-to-end in code, or arithmetic verified) or **PLAUSIBLE** (strongly indicated, not executed).
-
----
-
-## 1. System map
-
-### Architecture
-
-Three layers, deliberately split (ADR 0003 "hybrid skill + thin CLI"):
-
-1. **Agent skill** — `skills/reelme/SKILL.md` + `references/{narrative,copywriting,scene-schemas}.md`. Owns the intelligence: reads the target repo, interviews the user, writes `reelme.json` (schema v2) at the repo root. Never touches the cache.
-2. **npm CLI `reelme`** — `cli/src/{cli,cache,render}.mjs`, zero runtime deps (gifsicle optional). Owns mechanics: scaffolds the bundled Remotion template into `~/.reelme/cache/<sha256(repoRoot)[0:12]>/`, installs deps there with pnpm, copies the brief + referenced assets + one bundled audio track into the cache, invokes `pnpm exec remotion render` per platform, post-processes GIFs with gifsicle, copies outputs to `<repo>/reelme-out/`.
-3. **Remotion template** — `cli/template/src/`. `index.ts` re-validates the brief, registers one `Reel-<platform>` composition per selected platform (+ `Reel-<platform>-teaser` for non-GIF platforms when `cuts.teaser` exists). `Root.tsx` resolves the cinematic look, builds the theme, sequences scenes back-to-back (`duration.ts`), wraps each in `Enter` (transition) + `Camera` (move), and renders one of 16 scene components over a single continuous `Atmosphere`.
-
-### Real execution paths
-
-**Render:** `cli.mjs:38` → `render(repoRoot=process.cwd())` (`render.mjs:143`) → `readBrief` (`cache.mjs:51`: JSON parse, `schemaVersion === 2`, platforms valid & non-empty, `cuts.main` non-empty) → `ensureScaffold` (`cache.mjs:105`: version-marker staleness check → full template copy on first run → **unconditional `src/` re-sync every render** → brief copy to `src/brief.json` → `pnpm install` + `pnpm approve-builds --all` gated on missing `node_modules`) → `copyAssets`/`copyAudioTrack`/`copyLogo` into `cache/public/` → per platform: `pnpm exec remotion render Reel-<id> out/<file>` (`--codec=gif --scale=0.6` or `--crf=20`) → gifsicle `--lossy=60` (best-effort) → `cpSync` to `reelme-out/`. Failures at every CLI step call `fail()` → stderr + exit 1. Render subprocess failure is caught (`render.mjs:53`).
-
-**Studio:** `cli.mjs:24` → `ensureScaffold` only → `pnpm exec remotion studio`. Note what it does *not* do — see F1.
-
-**Eval:** `scripts/eval-gallery.mjs` runs `node cli/src/cli.mjs render` in each `gallery/<name>/` (cwd = brief dir), passes on exit 0. Smoke only; committed GIFs are the visual reference.
-
-### Key invariants (as documented)
-
-- Brief is schema v2: `{schemaVersion: 2, project, cuts: {main, vertical?, teaser?}}`; v1 (top-level `scenes` / `project.format`) rejected.
-- Scene roots are transparent (`Stage`), atmosphere is continuous behind all scenes.
-- Cut selection: teaser > platform preset cut; vertical falls back to main.
-- Cache invalidation: CLI version bump rebuilds scaffold; `src/` re-synced every render.
-- `platforms.json` is the single source of truth shared by CLI (raw JSON) and template (typed import).
-- Audio: bundled manifest only; `basename(track) === track` blocks traversal; GIF output silent; watermark default on.
-
----
-
-## 2. Findings
-
-Severity scale: **P1** (a first-time user following the docs hits a broken or badly wrong result), **P2** (real defect / drift, needs a specific path), **P3** (polish, dead code, doc nits).
-
-### P1 — Correctness / first-run breakage
-
-**F1. `reelme studio` skips brief validation and all asset/audio/logo copying — the documented "preview first" path is broken for exactly the briefs the skill produces.**
-`cli/src/cli.mjs:24-32` calls only `ensureScaffold`; `copyAssets`, `copyAudioTrack`, `copyLogo` live in the render path (`cli/src/render.mjs:150-152`). SKILL.md Step 6 explicitly offers "Preview first — run `npx reelme studio`", and Update Mode U4 does the same.
-Scenario: the skill writes a brief with `project.logo`, `project.audio`, or any `clip`/`browser`/`mobile` asset (5 of 7 gallery briefs have a logo; all have audio), user picks "preview first" → Studio opens against a cache whose `public/` lacks the files → `staticFile()` 404s, `<Img>`/`<Audio>` error overlays in every affected scene. Worse, with no `reelme.json` at all, `ensureScaffold`'s `cpSync(join(repoRoot, "reelme.json"), …)` (`cache.mjs:141`) throws a raw `ENOENT` stack trace instead of `readBrief`'s friendly "no reelme.json found" message. **CONFIRMED** (traced; studio never calls `readBrief` or the copy functions).
-Direction: make `studio()` run the same pipeline as `render()` minus the render loop (readBrief + copyAssets + copyAudioTrack + copyLogo), and validate the brief exists first.
-
-**F2. Multi-word `accent` phrases silently never highlight — and the docs and gallery briefs all use them.**
-`RevealText.tsx:46-47,72-73`: text is split on spaces and the emphasis test is per-word (`clean === emphWord || word.toLowerCase().includes(emphWord)`). A phrase accent (`"one command"`, `"desktop app."`, `"5 MB"`, `"launch video."`, `"one codebase."`) can never match any single word, so the hook renders with zero emphasis.
-This contradicts `skills/reelme/references/scene-schemas.md:410` ("`accent` highlights one word or phrase"), the schema example itself (`"accent": "one command"`, line 43), SKILL.md copy guidance, and 5 committed gallery briefs (expo, pake ×2 cuts + teaser, reelme). The render eval can't catch it (exit-0 smoke). **CONFIRMED**.
-Direction: match the accent as a substring across the joined text and emphasize the covered word range (or split the text into pre/accent/post segments before word-splitting).
-
-**F3. `cuts.vertical: []` (empty array) crashes the render after the CLI promises a letterbox fallback — `??` vs `?.length` divergence between the two validators.**
-`cli/src/render.mjs:155` treats empty-or-missing the same (`!brief.cuts.vertical?.length`) and prints "will render the main cut letterboxed". But `cli/template/src/index.ts:36` and `Root.tsx:56` use `brief.cuts.vertical ?? brief.cuts.main` — an empty array is *not* nullish, so the vertical composition gets 0 scenes and `durationInFrames: 0`, which Remotion rejects (composition duration must be positive), failing the render with an error that never mentions the real cause. `index.ts:41`'s own fallback warning uses `!brief.cuts.vertical`, so it doesn't even warn. **CONFIRMED** (traced both branches).
-Direction: normalize in one place — treat empty cuts as absent (or reject them in `readBrief` with a good message).
-
-**F4. No scene-level validation anywhere: a typo'd scene type or missing required prop dies minutes later inside Remotion with a cryptic error.**
-`readBrief` (`cache.mjs:51-87`) validates only schemaVersion/platforms/cuts.main-non-empty. A scene `{"type": "stat_callout"}` (underscore) reaches `duration.ts:57` where `SCENE_DURATION_MAP[scene.type]` is `undefined` → `undefined + 30` = `NaN` → `calcTotalDuration` = `NaN` → Remotion rejects the composition, or worse `SceneRenderer` (`Root.tsx:139`) silently renders `null` for a near-miss type that has a mapped duration. A `feature-list` missing `items` throws `TypeError: Cannot read properties of undefined (reading 'length')` at `duration.ts:39` during bundling — after the user has already sat through the first-run `pnpm install`. The agent writing the brief is an LLM; typos are the expected failure mode, and the primary interface (the skill) has no machine check. **CONFIRMED**.
-Direction: ship a `reelme validate` (or validate inside `readBrief`) against a real schema — per-scene type whitelist + required props — with errors that name the cut/index/field. The TS types in `brief.ts` already encode the contract; today nothing enforces it at runtime.
-
-**F5. The CLI is almost certainly broken on Windows: `spawnSync("pnpm", …)` without `shell` cannot resolve `pnpm.cmd`.**
-`cache.mjs:94-100` (`pnpm install`, `approve-builds`), `render.mjs:52` (`pnpm exec remotion render`), `cli.mjs:27` (studio). On Windows, pnpm/npx shims are `.cmd` files; Node's `spawnSync` without `shell: true` fails with `ENOENT` (and since the CVE-2024-27980 hardening, `shell: true` is the only sanctioned route for `.cmd`). No doc anywhere restricts the tool to macOS/Linux; README says only "Node.js >=18". **PLAUSIBLE** (well-known Node behavior; not executed on Windows here).
-Direction: use `shell: process.platform === "win32"` or resolve the pnpm binary via `process.env.npm_execpath`/`which`, and state OS support in the README either way.
-
-**F6. The template's own bundled sample brief references icons that don't exist in the icon registry — the showcase renders with empty marker boxes.**
-`cli/template/src/brief.json:64-68` (`"play"`, `"user-check"`, `"rocket"`) and `:85-86` (`"git-branch"`, `"rocket"`) are absent from `ICON_MAP` (`Icon.tsx:14-56`) and from the documented registry (`scene-schemas.md:446`). `Icon` returns `null` for unknown names; `FeatureList.tsx:73-88` then renders an empty 40px slot instead of falling back to the numbered marker (the fallback triggers on missing `icon` prop, not on unknown name); `OSWindowScene.tsx:131-147` renders an empty chip. First thing a curious user previews in Studio (the sample composition before their brief is synced) silently violates the product's own registry. **CONFIRMED**.
-Direction: fix the four icon names in `brief.json`; make `Icon` fall back visibly (or `FeatureList` fall back to the number when the lookup misses); consider registering the missing lucide icons since briefs in the wild will guess names.
-
-**F7. `terminal` and `code-reveal` durations are fixed while their content animation is content-length-driven — the bundled sample brief's own terminal caption mathematically never appears, and long commands get cut mid-typing.**
-`duration.ts:11-28` gives `terminal` a fixed 150+30 frames, but `Terminal.tsx:41-61` types inputs at 2 frames/char + 23/line. For the sample brief (`brief.json:25-37`): input1 (28 ch)=79f, output1=23f, input2 (21 ch)=65f, output2=23f → content ends at elapsed 190; `TerminalScene.tsx:21-24` sets `captionStart = 8+190+20 = 218` — past the 180-frame scene. The caption `"One command. Production stack. Under 60 seconds."` never renders; the second output pops in 5 frames before the cut. Any brief with 2+ realistic commands overruns. Same structural issue in `code-reveal` (fixed 165f vs `14 + lines*9 + 20` caption start → >14 lines of code overrun). Meanwhile `feature-list`/`stat-callout`/`file-tree`/`os-window`/`hotkey`/`benchmark` *do* scale with content (`duration.ts:37-55`) — the two most content-variable scenes are the ones left fixed. **CONFIRMED** (arithmetic above).
-Direction: compute `terminal`/`code-reveal` durations from the same formulas the components use (share one timing module), and unit-test the invariant `captionStart + captionAnimation < sceneDuration` for every scene type.
-
-### P2 — Cache lifecycle, drift, affordances
-
-**F8. Cache staleness check treats a *missing* version marker as fresh — caches created before the marker existed (or half-created) are never rebuilt.**
-`cache.mjs:109-111`: `stale = existsSync(versionMarker) && content !== CLI_VERSION`. A cache dir with `package.json` but no marker skips both the rebuild and the marker write forever. Related: the per-render re-sync covers only `template/src` (`cache.mjs:135`), so a change to `template/package.json` (e.g. bumping Remotion) never reaches an existing cache until a CLI version bump — including during local development and the gallery eval, which will happily "PASS" new scene code against old dependencies. The comment acknowledges deleted files aren't pruned but not the dependency skew. **CONFIRMED** (logic traced).
-Direction: treat a missing marker as stale; include a hash of `template/package.json` (or the whole template) in the marker instead of the CLI version.
-
-**F9. `clip` captions ignore platform safe areas — on TikTok/Reels the caption pill sits inside the platform UI overlay zone.**
-`Root.tsx:135` renders `<Clip scene theme />` without `bottomInset` (every other captioned scene gets it), and `Clip.tsx:97,114,122` calls `Caption` without `bottomInset`, so the pill lands 72px from the bottom of a 1920px-tall frame whose preset declares a 320-420px bottom safe area (`platforms.json:46,56`). SKILL.md tells authors vertical cuts should "favor … `clip`". **CONFIRMED**.
-Direction: pass `bottomInset` through `SceneRenderer` → `Clip` → `Caption` like the other scenes.
-
-**F10. `safeArea.top` is declared, tested, and documented ("presets resolve … safe areas internally") but consumed by nothing.**
-Only `safeArea.bottom` is read (`Root.tsx:104`). Content is vertically centered so this mostly self-heals, but tall scenes (mobile with copy above the device on portrait, `Kicker`+hero problem) can reach into TikTok's top 160px / Story's top 250px. `platforms.test.ts:32-41` asserts the data exists — it tests dead data. **CONFIRMED** (grep: no other consumer).
-Direction: apply top inset as stage padding on vertical platforms, or delete the field.
-
-**F11. Asset copy has a `../` path-traversal write primitive.**
-`render.mjs:81-84` and `copyLogo` (`:130-141`): `join(publicDir, asset)` with `asset = "../../…"` escapes the cache and copies any readable file (existence pre-checked against `join(repoRoot, asset)`, which also escapes) to a path outside `public/`. The brief is usually self-authored, but the *skill's whole premise* is an agent writing this file, and briefs get committed/shared — a malicious PR editing `reelme.json` gets a file-write on the maintainer's machine at render time. Audio does this right (`basename(track) === track`, `render.mjs:107`). Renders with escaped paths would fail later at `staticFile`, but the copy has already happened. **CONFIRMED** (no normalization anywhere in the path).
-Direction: resolve and reject any asset/logo path whose `path.resolve(repoRoot, p)` escapes `repoRoot`, and whose destination escapes `publicDir`.
-
-**F12. "Rendered locally, zero cloud, zero API keys" undersells real network requirements — first render needs the npm registry, a headless-browser download, and Google Fonts.**
-`cli/README.md:3` claims zero cloud; `fonts.ts:11-19` eagerly loads 9 font families from Google Fonts at bundle/render time; Remotion downloads Chrome Headless Shell on first render; the scaffold `pnpm install` pulls the tree. Offline, the render fails after a confusing distance from the claim. No doc mentions the browser download (hundreds of MB) or that fonts are fetched per render. **CONFIRMED** for install/fonts (code traced), **PLAUSIBLE** for exact offline failure mode.
-Direction: soften the claim to "renders on your machine (no accounts, no upload)", document first-run downloads, and consider `@remotion/fonts` with packaged font files to make renders genuinely offline-capable after first install.
-
-**F13. Two validators, two languages, drifting behavior — brief validation is duplicated between `cache.mjs:51-87` and `template/src/index.ts:13-48`.**
-Same checks, different messages, and already-different semantics (F3's `??` vs `?.length` is the symptom). The template validator's errors surface as bundling failures wrapped by Remotion. **CONFIRMED**.
-Direction: validate exhaustively in the CLI (it runs first and owns UX); reduce the template checks to assertions.
-
-**F14. `react`/`react-dom` are devDependencies of the template — any production-mode install produces a cache that can't render.**
-`template/package.json:19-30`. pnpm installs devDeps by default, so the happy path works, but `NODE_ENV=production` or `pnpm config production=true` on the user's machine silently yields a Remotion project without React. Remotion treats React as a peer/runtime requirement; these belong in `dependencies`. **PLAUSIBLE** (env-dependent; not executed).
-
-**F15. `pnpm approve-builds --all` approves *every* dependency's build scripts, not just esbuild — and `pnpm-workspace.yaml`'s `allowBuilds:` key doesn't appear to be a real pnpm setting.**
-`cache.mjs:147`, `template/pnpm-workspace.yaml:3-4`. The comment says the workspace file "persists the approval", but pnpm's mechanism is `onlyBuiltDependencies`; if `allowBuilds` is unrecognized, the only thing doing work is the blanket `--all`, which re-opens the supply-chain hole pnpm 10's gating exists to close. **PLAUSIBLE** (key validity not verified offline; `--all` breadth is CONFIRMED from the flag itself).
-Direction: replace with `onlyBuiltDependencies: [esbuild]` in the scaffolded workspace file and drop `approve-builds --all`.
-
-**F16. Unbounded cache growth with no lifecycle management.**
-Each repo path hash gets its own full Remotion install (`node_modules` several hundred MB) plus an ever-growing `out/` of every render (never pruned; outputs are *copied*, not moved, `render.mjs:168`). Renaming or moving a repo orphans its cache forever (hash of absolute path, `cache.mjs:90`). The only tool is `clean`, which nukes every project's cache at once. **CONFIRMED** (no eviction code exists).
-Direction: `reelme clean` for current project by default (`--all` for everything); prune `out/` after copying; print cache size.
-
-**F17. Ctrl+C mid-render leaves no cleanup and re-render clobbering is fine, but *concurrent* renders in one repo race on `src/brief.json` and `out/`.**
-Two `reelme render` processes in the same repo share a cache dir; the second's brief copy (`cache.mjs:141`) swaps the brief under the first's in-flight `remotion render` bundle step nondeterministically. Low likelihood, silent wrong-output failure mode. **PLAUSIBLE**.
-Direction: a simple lockfile in the cache dir.
-
-### P2 — Skill/doc vs code drift (the skill is the primary interface)
-
-**F18. `scene-schemas.md` "Required" list is fiction: `name`/`tagline`/`problem`/`installCommand`/`repoUrl`/`primaryColor`/`tone` are not required by the CLI — and `tagline` and `problem` are never rendered by anything.**
-`scene-schemas.md:50-61` vs `cache.mjs:64-85` (only schemaVersion/platforms/cuts.main enforced). Grep confirms `project.tagline` and `project.problem` have zero render-time consumers; the interview collects them, the brief carries them, nothing uses them. SKILL.md Step 5's own "Required" list (`:179-183`) disagrees with scene-schemas.md's. Two sources of truth, both partly wrong. **CONFIRMED**.
-Direction: pick one canonical requirements list (the CLI's), mark `tagline`/`problem` as agent-context-only (or render them somewhere — the CTA has no tagline line today), and make scene-schemas.md defer to it.
-
-**F19. `scene-schemas.md` still documents `transition` semantics as a live feature.**
-`scene-schemas.md:117-119` lists `transition?: "fade" | "slide" | "zoom"` in the Project fields type, and `:158-162` has a "### Transition" section explaining what each value does ("neutral default / more kinetic / punchier launch feel") — with no mention of it being ignored; only line 70 says superseded. AGENTS.md says it's ignored; the code confirms (`Root.tsx` never reads it). An agent reading the reference will keep writing and "tuning" a dead field. Relatedly, `CinematicLook.transition` (`look.ts:42,60,68,76,84,92`) is itself dead — `transitionFor` (`transitions.tsx:16-21`) uses only `RHYTHM[look.id]` and `look.energy`; the five per-look `transition:` values are never read. **CONFIRMED**.
-Direction: delete the "### Transition" section and the type field from docs; drop `transition` from `CinematicLook` or actually seed the rhythm from it.
-
-**F20. SKILL.md points agents at `cli/assets/audio/manifest.json` — a path that does not exist for a skill user.**
-`SKILL.md:109` and `scene-schemas.md:144`. The installed skill bundle is `skills/reelme/` only (ADR 0004); the manifest lives inside the npm package in some npx cache, not in the user's repo. The tone table in SKILL.md happens to enumerate all 9 tracks by name, which saves the flow, but the instruction "an alternative from the bundled manifest" is unfollowable as written. **CONFIRMED**.
-Direction: inline the full 9-track table (title, filename, tone) into SKILL.md/scene-schemas.md as canonical, or add `reelme tracks` to the CLI.
-
-**F21. "Letterboxed into 9:16" is not what happens — vertical fallback re-lays-out main-cut scenes at 1080×1920.**
-`render.mjs:158-161`, `index.ts:44-47`, SKILL.md `:187`, scene-schemas.md `:96` all say "letterboxed". Actually the main cut's scenes render natively into the vertical composition (components are responsive; `typeScale` bumps 1.25×). That's better than letterboxing but means wide scenes (`split`, `data-flow` with 4 nodes at `spacing=(1080-240)/4`, `benchmark` label column of 300px) can genuinely cramp or overflow — which "letterboxed" wouldn't. Users are being warned about the wrong artifact. **CONFIRMED**.
-Direction: reword to "re-rendered at 9:16 — dense wide scenes may cramp; author cuts.vertical".
-
-**F22. `brief.ts:21` still says the watermark "Rendering lands in Phase 2" — it shipped.**
-`CTA.tsx:109-124` renders it. Stale comment misleads contributors. Also `watermark.test.ts` tests a local re-implementation of `watermark !== false`, not the CTA code — it can never fail when the real logic changes. **CONFIRMED**.
-
-**F23. Clip `durationInFrames` shows ~30 extra frames of footage beyond what was asked.**
-`duration.ts:34` adds `SCENE_TAIL` (30) to the user-specified `durationInFrames`, and `Clip.tsx:26-31`'s `OffthreadVideo` has `startFrom` but no `endAt`, so the video keeps playing through the tail. A user trimming a demo to exactly frames 30-150 gets 30-180. scene-schemas.md documents `durationInFrames` as a plain frame count with no mention of the tail. **CONFIRMED** for the arithmetic; end-of-file behavior (freeze vs error when the source is too short) **PLAUSIBLE**.
-Direction: `endAt={startFrom + durationInFrames}` and document the tail.
-
-**F24. SKILL.md asset-extension validation (`mp4|mov|gif`, `png|jpg|jpeg|webp`) is skill-side prose only — the CLI accepts anything.**
-`render.mjs:59-86` copies whatever the brief references; `Clip.tsx:13` special-cases only `.gif`; a `.webm` or `.avif` fails later inside Remotion. Consistent with "skill owns intelligence", but nothing protects the direct-CLI path the cli/README advertises. **CONFIRMED**. Low priority; fold into F4's validator.
-
-### P3 — Dead things, packaging, DX
-
-**F25. Root `.npmignore` is dead.** The published package lives in `cli/` (its `files` allowlist governs packing); a root `.npmignore` listing `template/*` paths does nothing. Leftover from when the package was published from the root. **CONFIRMED**.
-
-**F26. Root `package.json` version 0.1.3 with a `postversion: git push --tags` script vs cli 0.3.0 and a manual-release doc.** Three version numbers in play (root 0.1.3, cli 0.3.0, template 1.0.0); AGENTS.md's release flow uses none of the root machinery. An `npm version` in the root would push a bogus tag. **CONFIRMED** (drift; consolidate or delete the root script).
-
-**F27. reelme's own AGENTS.md says `.harness/` is gitignored; it is tracked (doctier-encrypted).** `git ls-files` lists `.harness/**`; `.gitignore` doesn't contain it; `.gitattributes` applies the doctier filter. Doc drift inside the repo's own agent instructions. **CONFIRMED** (noting only — not editing AGENTS.md).
-
-**F28. CI covers only the template; `cli/src` has zero automated coverage and the gallery eval is never run in CI.** `.github/workflows/ci.yml` = template typecheck/lint/test. All of F1/F3/F8/F11 live in `cli/src/*.mjs` — untyped, unlinted, untested. The eval is manual by design (render cost), but even a `--help` / `readBrief`-unit smoke of the CLI would have caught the studio ENOENT path. **CONFIRMED**.
-
-**F29. Eval DX: `spawnSync` with buffered output means multi-minute renders emit nothing until PASS/FAIL, and there's no per-brief timeout.** A hung Chrome download looks identical to a slow render. Also gallery coverage note: no gallery brief exercises `mobile.screenshot` or `browser.image` (both mobile/browser scenes in the gallery use the mock/wireframe path), so the image-asset copy path in `collectAssets` is exercised only by `clip` (reelme/demo.mp4). **CONFIRMED**.
-
-**F30. `generate-tracks.mjs` leaves a stale MP3 if ffmpeg fails after a previous success, and deletes the intermediate WAV before checking the encode status.** Cosmetic; regeneration is rare. **CONFIRMED**.
-
-**F31. README "Requirements: Node.js >=18" omits pnpm.** cli/README and SKILL.md's gotchas have it; the top-level README — the first thing a user reads — doesn't. First render then dies at `failed to run pnpm: spawnSync pnpm ENOENT` after the interview. **CONFIRMED**.
-
-**F32. Icon fallback asymmetry:** `os-window` tolerates missing `items` (`?? []` in component and duration), `feature-list` crashes on missing `items` (F4), `hotkey` crashes on missing `keys`. Same-shaped scenes, different failure behavior. **CONFIRMED**.
-
----
-
-## 3. Design tensions
-
-**T1. The contract is enforced by prose, but the author is an LLM.** The skill (prose) instructs an agent to hand-write JSON that two ad-hoc validators check only at the top level. Every P1 in this report except F5 is some form of "the brief said something plausible and the renderer did something silent or cryptic." The natural fix is structural: ship a JSON Schema (or zod validation) for the brief *in the CLI*, add `reelme validate`, and make SKILL.md's last step before render "run `npx reelme validate`". That converts the whole class of scene-typo/missing-prop/unknown-icon/phrase-accent failures into immediate, named errors — and gives the skill a feedback loop it currently lacks.
-
-**T2. Timing is split between a duration oracle and the components' own animation math.** `duration.ts` guesses how long a scene needs; each component independently re-implements its reveal timeline (`TerminalScene` literally has a comment "Mirror Terminal's timing"). When they disagree (F7), captions vanish and typing gets cut — and nothing can test it because the two halves live in different modules with no shared constants. Alternative: each scene exports `contentDuration(scene)` next to its component; `duration.ts` sums those; a single unit test asserts caption-start < duration for every scene type at representative sizes.
-
-**T3. Cache invalidation is keyed to the CLI version, but the thing that changes is the template.** The `src/` re-sync papers over half of it (scene code) while dependencies, config, and deleted files drift (F8). The honest key is a content hash of `template/` (cheap: hash the file list + mtimes or the packed tarball at publish). That also fixes the dev/eval mismatch where local template `package.json` edits silently don't apply.
-
-**T4. Two brief validators in two languages will keep drifting.** F3 is the first observable divergence; F13 the structural cause. Since the template can't run without the CLI (it's scaffolded by it), the template's validator adds no safety for real users — only for people poking Studio directly in the cache. Collapse validation into the CLI; keep template-side checks as `console.warn` diagnostics at most.
-
-**T5. The eval suite asserts the wrong thing for the product's failure modes.** reelme's regressions are visual/semantic (accent no-op, empty icon slots, caption past scene end, safe-area collisions) — all exit-0. The smoke eval is still worth keeping for pipeline breakage, but the highest-leverage addition is a *brief linter* run over the gallery (icons in registry, accents matchable, caption timing invariant, assets exist) plus optionally a `renderStill` of one frame per scene with a pixel check for accent-color presence. Cheap, deterministic, and it would have caught F2/F6/F7 mechanically.
-
----
-
-## 4. Expectation gaps ("I expected X, found Y")
-
-- **Expected** `reelme studio` to preview exactly what `reelme render` would produce; **found** it skips asset/audio/logo staging and even brief-existence checks (F1).
-- **Expected** `accent` to highlight the phrase the docs told me to write; **found** only single words can ever match (F2).
-- **Expected** the CLI's "letterboxed" warning to describe the fallback; **found** re-layout, not letterboxing (F21) — and an empty vertical array crashes instead (F3).
-- **Expected** the bundled sample brief to be a working showcase of the scene registry; **found** four unregistered icon names rendering as empty boxes (F6).
-- **Expected** scene durations to fit the content, since half the scene types compute duration from content; **found** `terminal`/`code-reveal` fixed, with the sample brief's own caption unreachable (F7).
-- **Expected** "upgrading the CLI rebuilds the scaffold automatically" to be robust; **found** a missing marker means never-rebuild, and template dependency changes don't propagate at all between versions (F8).
-- **Expected** platform "safe areas" to be enforced; **found** `top` consumed by nothing and `clip` captions ignoring `bottom` (F9, F10).
-- **Expected** "zero cloud" to mean renders work offline; **found** Google Fonts + headless-browser + registry downloads on the critical path (F12).
-- **Expected** the fields the interview insists on (`tagline`, `problem`) to appear in the video; **found** they're never rendered (F18).
-- **Expected** `reelme.json` to be inert data; **found** `../` asset paths give it a file-write primitive at render time (F11).
-- **Expected** the npm package's `files` allowlist to be load-bearing; **found** it correct — template, assets, lockfile all ship; sample logo and tests excluded (verified; no finding).
-- **Expected** the audio path to be the sloppy one; **found** it's the best-validated input in the codebase (manifest check + basename guard) — the pattern the rest of the brief handling should copy.
-
-## 5. Open questions
-
-1. Is `accent` *meant* to support phrases (docs and gallery say yes) or should docs/gallery be corrected to single words? The fix direction differs.
-2. Is Windows in scope? If yes, F5 is P1; if no, one README line closes it.
-3. Should `tagline`/`problem` render somewhere (e.g., CTA subline / opening kicker), or be re-documented as agent-context-only fields?
-4. Is `allowBuilds` in `pnpm-workspace.yaml` a real pnpm key on the pnpm versions users have, or dead config that `approve-builds --all` is compensating for (F15)?
-5. What should `safeArea.top` do — pad the stage on vertical platforms, or be deleted (and the platforms test with it)?
-6. Cache policy: is ~1GB per rendered repo with no eviction acceptable for the target user, or should `clean` become per-project with an `--all` escape hatch (F16)?
-7. Does `project.watermark: true` vs absent ever need to differ (e.g., future "required attribution on free tier")? Today `!== false` folds them together.
+-----BEGIN AGE ENCRYPTED FILE-----
+YWdlLWVuY3J5cHRpb24ub3JnL3YxCi0+IHNzaC1lZDI1NTE5IExRMGNCZyAyZjBP
+VkxvdWdnMEI1OTNFeGhKNjFWN3dadjg3RmVYVHlmcnhJY2k2dTJ3CmNDczA2UzRM
+UlNGZFllK2tOWlBCQWJ1RmxmYnRHeE84Zk8vaFZBV3k2TlkKLS0tIFcySUNWaEVO
+eVd1dmpIRXlOYUlNcVh6VXBrZ0RXclRJL1R4eXgxMXBaeHMK6TXVmB+tZ2llJwLl
+hYLUf9gDUbuJlyYuI7QbuxeKoOloTnj9k1BjkfDSMBo/9ZwnwTeBt7WMb72oNcTW
+fWDyQkVF45gH/RKD3ADU3G9Nax350dbQSVUaYIvsQ/Rp2VZ7Ae6LgAqSQEGqjg7h
++0hr3ehCpzK5izNSYZLlK5O0yQyl4L2HpwFEBxdxs/W5eIkDyxiSZ3vP3IRBW5mV
+jz1K0ZATUCTO+Uv0ePm5Le4eLo4iV018mrMqt/2tj8spPL8k2sI8bqboc2lCxBA4
+R2/50oRJhMJqTTiWiZI45G60Jh7JfktYzknBDV7XWW8IYsOny+PVPk3sG5hSxBmh
+XFxs23W+pNjraQxl7aHx8Vth9rfcp75F5unQq25g6arh1hlryUQ7SXh53ydMCWU+
+6eYp+Wb8KzJEnuFm9E3q+efeHTroEaJbP/udtD9T14WoySbv9ueUA/cAKnBrrfo9
+cHXucyF0g8QRSJg1BYQWfe78gnR14X9YCRAW8G43ZA5v/6pFkR2dhxOV187HgPg9
+wbQWZbIoYxws8RGo3bVyefSiHD5vlZ6BBYu7C4GtKWabq39Z4aBBa72XtXJr3QGc
+SIhdzQWQYfNV0uvIRs9ebJ9OFsA7vsbD2ZToA6eFSQ5+BPnW6IgqjVgTvyuJeQdS
+B+V3ErjnKkFIbAruQCWOHV47mjxy8Da9+Kgk/ITOuPQcxhBk9MrGfIRHG7JQGQ5+
+XjtmZF4itVi+rhFKl9Ns3ZND48iJ+9fl8vDSOM9dWWEsnksagpqAh/CbilQckeKc
+GucdcBM+fz++9kppKwz2D5zuUeI6CTr87CvWjM/DqnRdoQOR6w8Jfy0DcET9vRxd
+ZmleAA9axh+WSE4Mm5mIiOY36NYN3Az1ZzFf6KYE/tk3cwcGoEF18b7AmbyTYzWQ
+SD15w6CAu8djODkomzTcWxPDgavuIEwlaWcBwoRrsxBvBqpt6NZERKR0FXH+5462
+vlMNd8oTV2veZjpzCEgvjcQYC5m6en8lIWtcZBAtQFv+3GpWBWM0VzsZ4cN2HjFG
+HJs7CeiKXKHA2PwYDyBxmv1FE/VyyRW2vSSVKfD6MZKFJGJXEDAACyb5j8Soo88t
+DQ7ZZgjPMogCLS6+s/0NEMmZel1ma6uql9oE1vfNiWmElNKWLqZVf+7bphqIyHLC
+P8t4h0JjHXE2hilLLFlMDh3ku8EYMWA6yXDuUdSgCP397Vdx1dKde955sPQiDFVH
+tdUCXy6tyPg1HLurh+h6Eo//qEOKesm4RK0/iJpnWIiM/sSSBlqjxJT67xEHAMnl
+yDhq8o/WV1yW81sBCInNsPsmZuoxjGkpCyvux3LdWnaz3OZiAnSz8AvQdncBbO86
+/H/aLkBr793kcECcS3p5iSeuzeBPh2uvXvZiIvpkUTE9sPI2+83oFTtuN9955DCZ
+KNoV0ascKq0+2dI94ZcNW8Ac5ivffPZrnIvmYUhVBVssOgDS6QFCkfAPDNgJdaHh
+A4q0G2zUIeIHanBUOVL41f/tWQLI9WtyAkfAI3MNSBdkOmNcdnbQBz54BlngyRO3
+Y0RRcJ/HWXPG6tqeJLJpphg36zSkLcAi6uqCee9+yYHy/NJYsg84ptB4Y+D4+lRA
+cZADil6gtx+KVZTZ6L0aJ/X/Y9jZwAjRwHqeQjAMnMc5AJbWeSv9K/x45yRDUPP4
+lqZRumJpuCDOqHD6g4xM9dSDetH1675eP7UqAxXRWxraoKfLyUEPwR04aJKBtXqK
+IbMq6MMTxPDjjGSjuVok3d3ynnJerSf9zciOq+3bserAyCbjEhJEVFqVWF0peFiX
+/IO6AcY6jns8TmyN8LcaJgdXsJWchjfw25+svSMo4JZ9v+8c7De1ldeDfr3edRkp
+/nVunFj9mGgPYb+Oo9FOX/2q92TE8J2w1hFRtrb5WvK+/wK1p/avJXcmkEOKGtlw
+XiQJRAdVL07FmG2qSC+z1hn7s8XNyKFlbZXuXAuB5ZHvMwwZy8i4swoikD2tEXYG
+ybEiWCeyO0bdK8Zi5YUK43O1sWlUmW0zZ8Wk9TH5hRFpqAqeSX+zL5BsW0atJQqD
+BJtzUzpGxc6/zZecUANVoNA+WG5b/pGWsGNxGHZk0WLxWF0Gh6UBgp3ei2QS08J9
+WJLrhUiVcOjpoFsmqXDPvrPvXwUdMd5cDSyzukblCHqsh/X3EWdcrn8F5jhngkHs
+wxCRFl8xieCkQRfXhgOPkd8A/jrpnmgAEEvHNdS1LUqe2qPasPfGyeiekRtZKsKB
+mK5yWmU/g+0hkxL8qI6Mrlfbx75YocXyPsyBhfmDaoR25zyp4lmLCtB+3/dmhW9o
+qO3L0Fz8xFuXyTeFAEgCYhEab5kxuaH9kQ3ePrz9PCtC1XSDJoJ6nhyCNHKut/jx
+qTV14t1PPSocpJLE+Fik/fqF2l99CmOiyMrvzJPGAPn9mek62Yq43yWAGSOzhwD4
+nr1LLw+JA28Yy3UiJP/gofr2/zlyS1kTPxUKspBMqfNXWu0ymMPVMe5I04diyiDv
+lwa2L55LBRqb4idq9hPdcAE9gKUMd3+V4ewXCMuk5isUdMBBrKUbhQeQUaqDYQJe
+O0/ZcZ3rj3zD+N92esIymP3LMOURTq51jMA/I+y0ocIEdk14BZWl/daWrG7qmKwh
+rl0zKMcLhujcsMBE2MN8RQrGhUJseK2RCm2KYCIcY2Dk6FY5oNLH9S1aJK1CKyjm
+d2ZYKV9VPfV05xICZKEgIb8KPFCOooW2Fdfx4RCCwIt+y90hP51gnQqcsffPQZVH
+VyIimTY3yRqnOl1bWCy1JAO830uWFguHh2m/wzLP2SmLHvBEpFxalAAqfkSrpUD7
+TSRh3rDEThrViTsakgyQ37eFKBhbTARhvE2VdVCfWuqXyD0n7I26dyrYjtQozEJG
+cmXd7xl29KJKcR7DaHJlKcBFIRwOVV/A/5JNYJJFnYf85xe1uzmqKCWvUQ0VMc8S
+ZEXB2tomiRf5zpbTCVBzQ/Sxssgx7KbWRgBsxwI8tCuMdemRzJSlvP8ksFOUCmwq
+xMv+52w4/8ciA1ZZQP0w71OZnwQVy2ELCFNOlWGFb+D9GkaS+8gNZbwTkajq2Z73
+0C3x7ZlWxOqUgAqDquW/vJdXwuG65j81bDxBz0qbLJwi4JZeMIu5buAzSiWahj8X
+eLOJXnHd0yGOg5jP9WWHX8AhKVt7A7k6/T03zk503bBI7KuYIKzocqJegCyalr/b
+TCLk84sJgK8gZHx1ogNiMj4Pg4I04T634qt3BAeJKCXR7EV09Ww7p8rK4IY2EOm5
+/oPERP+BSPUsd5aqvLbjN9O+HWTk8O9yfp506pOIACd+ngb+AEiopspNAbdFrkoC
+8JCq8GUcSz6umllhwzq8gJyqBM3F6N28loCTNpZPXGzEF5GIlQQtxFa/yuKEluUX
+fPXtwNdbVkulFFimnom5e26ow3+tGiJhRBEebLlePSBMuVbeiNPSntMXgWvVZFCo
+J2vXcZskTcDUpgZw0I1Iyjhc5IEJ4NfP/alIguOTqlKH0GmvsXXzoPVwyQX8hhF1
+g6YJ0dG3mdTW4FkwtvjgE5HAB+b+0zhfyXM5hqSGEwDdngebxFh5grAMLLIBa6E7
+60QevZXK157u4Q9kgzcd2oxSv5CXCag1rUAKwazhik1VKNs5aISe741RQve38XZK
+ACGvy0siLb5U9aCu79fa0Zh0jM18hLXt+EOlZG7eu9F2oTupU8/vmQ6x8DNKUNlb
+rdv7LJ6BxT4tmoZbylIAZAWrkcJ00UKcB4UT/WyON+CAm6VpvnFjZ2UoUVPvO2iI
+7HoQA+so5hBvI+lfKZAcGWqqGIjzF82D6genp1WHwMKt3RBQANQ5kW/yA1eVHQMJ
+Qxr6GApG9+GS+SxuNMTnfmY+9/1zTiZIrEbQVUYsQ552SphPLLBDUTOzaOjlwv+3
+rMwCS2BqKGKWKQTopNtLpIoEwfqCQJOKJxMU8RYMykItZ08/8kM5k/OA1kHjw8EW
+5IlE6HllX7jF4vkfU/KnWm+PjQ1Ns0SqNK3Rdc03UR7PgDr34/nwVro7iOLoQyz0
+zMNKDrObUzjks+fFjwTzVmDzugPyib5i7NMcj4kO9WvGYBTE+qc/lJfpW53I3cT1
+ROYr/ju4fMbNcKiYcsAHeC7OmAEVz04Kn6UuLxo/DbMQ2kgerPDCIqIeFZhYIvys
+cxcLAKnLQwTOVWcDc2tc74g87sHhFF62qP6Q4xElsMiPHA161IpkORONpp9T0UM8
+rLbCeWZDnBTuOuYgcUP0Jk7GfC54myTEmRdMAJvo8pKsJZFWrQY9kXLi5fNKESG8
+YXh4DG/EJ4geM1t+haiMXZmNVBrL16M05J69KdwfDNKXZhQdkVu+nnXpRha3l9U0
+z4iWlrmTlHU1sguQ7Swyw9/mH95jTQ1lnVuwCojY6b3xVS2hSJPdXs0X1Dbunne5
+rXb1TSMIfsnRugQlOzaSJ78N7MtSHtK8pYykd0j6w0Xns1NqPvDJYJ2QxFtNsakP
+g/AXrDMGzELhlbXtechRUERPg1GHRrpUQRzaqtSLaNzuTw5mItLrQGw1XGQUZBYJ
+3XLhKvGzpJ68+7FhXH3ci6yOPQQBnaL0YDoD86ztGEaEWUijq+d9EEoU3TWbv0z9
+aAxvr41MwBQ5giDUcIigFdjdnHNj6f/93PzCyXRzWzNky0lE25jAokBNaFlJXkJY
+hpGAtGbbIotDWfEn5kAvnMX/34OO1Yw40LkCh5ss0qE/+jGfcDaYwcKyFroxK0FS
+A5jln2mzQ2p3nD3Qx0Css102MNG6USTwunYOMAxnSD9TGKUuMc5eFvP7/Pl7K3Ek
+3e/0lQJFfvPmMky5g1wWIs3OJkJG4DK/6UgyKyN1y6tFF7+URNM3/341inWI5CTq
+MEquy9GsafzXhMyjYBRmRwoyJz9Po7+Pel2Xz5iHEa66PL/WGzzuwp66CnESZojy
+KtRnpsCKyy3o/PtDejFxRa3utvePELb9wOY4W2tAljF0XGswha4AwQsoViY3fWWm
+VcgMQfDrymcoKwx8RwR01FwZWqNnNbhhy4EkKQR7JmvPkNZQIU0URIBcwUnBamtm
+Ph9X5J2mZ5zL8yG8snXwcidyYT2FA4vChhDPo1A2Y7ingnv41A0QmeL1Rtap05Gn
+vrb4KqfyUAHMojYLhZAaYXEoTdtnk1RUQLm/A8QkPTY3PXD6052YuM3E9zkSTnyr
+3KbdZLWIUslAIhdgJ/w344EmFugYK/BszpzHA44TKGUKDLYtoj1Q/AunqNYYKsHu
+5shbn3h+1GWC3C0GMu4Z55ph4slMzky+8of33OlMPLIIOZn9G5r395VTgEzEGRhR
+nmoQqOpyP5ExX805Ip03K/cd4+QUiBCsMiXtvDaix8ey7dYRQIAGEawzTwfI4UHE
+/s7DRBmp3w7EqSg16vgZKfojqNVmER0068exLcG49augQrbP8NZlzAiK3+gpxlKm
+maTdo/k47TJ4kfO1vHlQwI95RPd8mBOlBwZYshcMCVM5v9CWutV7F3KB9C7XaHaz
+/PYQ57dfiqGSxvsRD6Czw+1wlD4zCNupiTlISGsPaDnPDKMc57yePP65+DL+ZQiM
+NXDFWcrZ9eVh6SRBzesCEjAuTYIGGoEretp/kZ6Oh+gEf9PA8RaJIr8lQo/l7XxU
+luNTl6r6ki0w/piZY5hIR8BYcT1/NeWpAVc1b0GBBUTeNga+/G7K1aRDUBaLHDM3
+nnl5Nwht+BR4d/74apiVEx68Fol4zb1iH9eSrymbsUqlfFNYWYGC8GPem2b6I3wL
+POlECOyt6bQ3AF0talPWB2CTC/hySHU/edvaWRYIzx+qAtmTtvGnQiq/P3KMJejv
++ZgtqX6fxV15JUQz4tfJPuwYNFkV8GlCXcVRCjVI8UfsyXLr0tdfMQesANN529gI
+FczOOLAJHSAwnK8o4fNS3oieDojwI9udHQamVWF02R1wbRIoEAgwBESyz3gKpJOc
+vtO6QUp0eUHfLrdLwRVFegQYoUr3c8EQNryiTckJMJF+qd5z5sU0ys5pgaOFcIGj
+6tHHifN+UigkIH9MLDLDZEIvO821Wlgbudp3o5dj15eYeuEBuOdW+E63MsvZE+CR
+9T7BFlJ+5QPvgkOA48diEiTNs+KKjqHwvZu+223nU0YECSjYmQCsUil1J2cb+zMi
+yZj2W6emoBN7qcfNPb+wirUA26xWFP4Hrx+OCVb5pBqHsxM9SKJdx3xJlbvcJ2eG
+GTwXxOU8C6jLZtuDPhhZ5x7IiWTyy0PcZ37EsmRQASn6OFOnJaSscz77xDgFoY70
+X26E+bG/29mp3ZFGmzoKBoaLnLwL3jlNhC8U8KV37DFdzml9XBEL4bcc/88vj7IZ
+Qx0rvyWj7nesg4lWXJ3l9AX5VNc3g9Hnucm9dYsFaaGFWGQNPmUk1RnBa8CCebJF
+wLP4uGSwXdW+mhDEWNHPaXr5Sg0pcpG8REWI4BlQt9t67Llnktdraj1GJK7kj4yf
+8y67vrGkcyTHrJbpZgCmzOgZmj4TbR0B79TKFa0jzAwcP3MXwSE/LkVJCYq+J4fe
+gBIJx+dhrh0//bp7kQefF9taTOlyt6E07ZyIozM6+o3jWXt/Igvm+b6KwfLNXVbX
+TmopUXQuWuOB9cWB2MpsxXeM5nUHIxFE1TqjmEdzsfbvCzvh8NyUiLs5DMpeLY2z
+630fAU1l8eQmffTdjwePC0BUvyo3kJm6INeA8JcUu/WCO54YsCkJUkE2hobiqo0e
+7yKmEZf7ZcU5Uz+Xa2UosCHzNJ9pn0le6pdNnsMYYmK0+eO6gEl+bQWhMZO4cLuc
+SEGpuqUhB+zWiS7iiceh+1vuuYfrYXSe8BKdayPKLRSxrrSu0Gzi9XkMfq+pSn1w
+KgKWCVA2xDRc22tapgccQiMVVzBmqHwiIIrOhyvliQLzt76VGiB+5l/2+BwnM9Fl
+7jXoXwYfodJBIBduZd025uwXL1OPvpvn11TWyt5VK+N9DA/rROQNf7rR7CmqnUpK
+g1w0t1A5B5RRU194et9sDg5PRnxfVQyG6P1mVYgCpE4VZxEWu2WfY8vI+7dJuDP6
+Hb5nKT/FNiSTWky7CDCjftGrQUqtfZrzmCEYrPLq13fiXAOiBbg0q9ww20VG7rHd
+bd+3Gebs1OPPSOLmdXw4Q9VCIyCOQ4Zs9Zb+lpqwxeLzLPLnXSs0BRlkglouyP7m
+a5fCRqRrDGRGmeUax9FSFSfy86hJaH5lsIusVJPMPiq3w0TQO1uIj/QPQJoWtRFv
+WoQ610M7es+noVueq2j469h8Cpx0Pq4PJJUmR0Rcnl9zejR98Mwdm/3pxL/Ctifj
+BS84OT/zfn2Aim71L068qs+ymRqg6+0rUgqoyhr4Be3wbh2xYhq1PytUeL7pgEGC
+2OM7dbklyfgKTxcN9x5czMwGmix6QYt3yrV7tRNiowiT/OoBQJGLYjoyUekMXNAN
+zVEgQC6x2SGQyUxnyk6MN2vnJIRJZs+wPbVgJWNjC5bTS3RdkJEuAo112V5B0uSY
+qBoRcFykUnAFPIn+1V1Yv7wyKbtvCxTGXXusXjXgcvyDAENLDmfKxvSI9Hjba0zR
+LbDKpka98ge5LOWPhevKpNsdTuCxl2HaYpAwKXzFRCt70JiyD5tLqYmxMrDoQVdL
+aHi9lLH7Nyczqli8PNFB5iH8ENSxWt9SM6cKoM/j2n69mQjle6kqRAvqOvxQaDSu
+dOR+1vGw61evVHA8UKL083U3ntC7SjqTtA6zXzHvHAYD3l1v6beGonmX4+u9xHqC
+Uh5Xz+k9hwOAsE5oWuGb4RxUR+SLjlza2el9Uz5gvYdxcbGWwm4DhckYGninHrqh
+JO1agbQM/Anc0qqTYr7G5PRAas0b9FAsNhgF7jpSUXgx+E0lS5ds82qr5QQHfO7g
+Ih8sxIWjzQzuKGy37ylPqTEv8dUObMpm20a1jVBI3L5+KLqUeXvckYn4RjKuNQ1C
+NZnG3Bo/s6lClYrrES+umbW6n57vy2CdJEWIndykt/Pih8JynP9BXY2jzSYthTWR
+jDYqQ7yAFthLey5RoKMWZMksFjAVDkcfp/RQP4ijkQ1X6/FfeKeVcEVB7n41+Bbm
+Dw06i46KqVKxJEfK9NQAXfdnI4+WJ70X7Njm2v/Gk549lkXjjBAzyQth6lVg2HO3
+yeV4d4wwsq0oTJ+H3PhnhPIgXK45hu+uwNRxDgNHWcEU8g7GLihYmQbD1fV/khr1
+JyZPmMBZ7BvwW0YLOfuGJQmzXQhsqYiI7TPrZQzS9m7bq+KfOaZlvLXlQbXMYTYi
+J7BEGcxbyfSuzNXCSepjeLj+UrAy/6w0TJ4iwBQSRnuoadBTR2P88mq/jIlmSMYr
+lilaP3w/FrLxgyaDYzt45fy5UuYmzNzR6wK9VmdZjoH807b6LZKCzfh/9cX5H7Wr
+3/sKhE5ui2PAk+gOOhIzaZdFwQDz+7Ixz4vU1InjYFbdRQhnt3jpWIeV3gkXBwf9
+doQ54vksigKAPQ0lCeA4juqjNvdyy2yLzHnkpNkPWXMuaRVcyQT3DUaMKTTGPIjM
+TUBL7vk0yndWsdmA4WuYlcFGUmQY12ltLJphEdkC3SnKsjFL75C4pXXzHWOemMNE
+9zvTQ1m6P9Mh3/AmFDMd1c9pvFGTx5IPKE1cArMkgPb+VJ1nz8osGo343KJphEBP
+pAQNCRB2TPzZFaz9F496SeacRAtfQLhj8KMP+LNKnsQz/LQ1KODQgY+3aEZ+fMMO
+L2YG9AyLtbS+dh76huJ1k+TO86GrUNQrikhePrv5wG8Wc620+sblY+3b6p1E7AoK
+ooU4/s1Wp7oydJ3deHdVvh7G+AG7/8WPVNWjDlIWjDws1yXnkjeqL+zt6oP34FrR
+I4y8/kH2rPLn74D9fYlt6lKhLaB1igFc/8ezavLGPi2FZq5JVORBazcOnRnbOPew
+EAcYo1kNgTeNScCJu8pi109BpbVBetJxAYtXxrr+kiy6QXE7pXdOTTC5hjtRn8FZ
+aa65fN0Aoekf6WUc5BBfj4JTxfmtLY4uATkXoNC/zSBWuXGmMwjj1uAqLPfSs+XI
+mq3hdx6nLBmWUi1apMrjxVmGMMe0/ah98VzdrBQHq/RiPoRHPeXWOotDxnB511fO
+F7wZiDaNG6uWv4pyBgnmli5Ilai0EXSjE7Ibgebrb6kO0NYW4eAlV5t+AdZpxQis
+ZVUJHCnkXEezpL/sOrhKqhsAdcdiUnbafkgP6WuS0UGMLSMQB2lFrLbGgsP++tyL
+CGEfQqMQKJEawEHmxmGte/IMpVyj9LaU8qD8FGK+Z+jYaa7Asrlr4lsGnIY+PL3y
+/oAOW34PGBydNcBjF+UmC3ngGk8OOXS6L6Amx8uPUQDUybPDKSIOx+4Lg3IfXy0i
+/Nfkpkk0zQvCngyBjAPOaYPdrzcGOTI3qaV/tNmctEokRv/+zb/sEHCSlZDLMzbf
+PudRZJUTwoO6Q8TyoYxqJaKrMeH49Yik0xR2XI5y2WMlQNpgGhY74OJ6CiSHxRUS
+QEEKmVaTg3qhM42hrBWOiLqml3qcVyoNplS6hnwULHTGtFxhwget4sOF9drkF9O0
+zogWqjHpj9zIG/ZLeX2cLUydt80Epln2IJMtHKKeFN5xO7RnkP47NeMemloaiOKL
+lbcZlGNv5HMZ1Wkfus6WrfazGS3xooiwlF/WgOLueni5tyFnbU0xJJa4orRzhjJU
+/baRowj5ECWvaFt3Q0bZnQ08athh3ArJfMPPeuSAa3xAIdpapDnGDwlj9N0mhx5Q
+Rsdro7OYBSLgcHC7iuupQbRoWUswe1fwqr+hE9tsf1UNgbbEl8ER+gvlHTwq4rRX
+JGqQVUTeyd+CkcdWGdfXYoRRB7hQ9rVPx4hskHeeQ6H0emY5OfX9jSXuzD0Zq8uI
+1u1AVxenqjkL8WO0l9LjIoPkELU5RJLk5a6xI4IY5cEWVnAP1FmRemPQrLIAcuIC
+fslq963eTqDJhZepLSzZyLNc/XCPXtbf2e+52C2a41hvsml6zP8h/tO3yHe+3BWg
+jnNzfHtcHXa6nDmWYHpcqeLomLuDlwgZoeoBhfxCDNlDXAPbiJLG7Pv5Ywv+nlF3
+m7m1UoJrxRDY/W5LoPuFeNEcUWmxL5mnQaaBMaO1MXn4VXrYLqUt9OrexfmqHdsU
+A44BvezYVw5Mj68PldAkEXUbcx/x4JPjbSUFJpIVgp340sIJXcPJK5LmpBKJzJ3w
+hYqiOUK2afI2CgJwDyfzAd7sbpC+nb+T3Td6HQ7cEQK4jOjj561Z3Kx+mKx/9/qI
+K39zOLLdKbnv4XTC67gsmykG+dTZbTlOnPRL7iNIfF8JZl9Ta5YRli/I8qSHesbG
+U6zfu7CsGB4UyaeyEQK8SomDPEjKmLH3catQuS82iu6cDpJSJA2MG0R/beLgj5mc
+NchC+S3CXnLbppoIARsO0w4dwoDe/sO5GIUvmf1eST5FYf+sbRFp3/kOWCLgXSsA
+ALhbrndHhzDc7clnJDQKHPF1JtWeA+NrtaxtTOeK5BEiFpbyM/jNof547a9on5yY
+XR476USz3eg3piwzIsnJVWefgeupcLWU8VXDJ2s40hza+a5LJHjI+aZFyLoQp8Kx
+nqCjVzPhk7ow/C3VeqogSBH3s+l2YJYYFJXcTt27xIoPatu1aMlS/0cvf+N2UO/y
+knqmvI3MoynXWe1HHDWBQl80SJUxisyWOfT/Z4RhkM5vJKJx26io7FGwe+R6NOM/
+sNrid4mVwkokKDV2V6l4aMAvxH1I8Q+BhnnDtp7DwIjuJhAFrfUy/uEgMA5W13gv
+83RjuR8b/6VXD6YxiX1WS1Nc/JZqbh1PuXG/jwogkJawlGEeZFM0z54Bzde8ANaA
+SquJpnAG81StBB6S3K31IN7B/GSFJR/JYAIfVzWK/VTya2Dma9UU4/kmH0TrjeFS
+OZsWS1TjqIRH7JJTTmJbD4hbAc3FYIfRPz72U9bqJvPpPx8IUwxVaaSUhcIwMBpr
+Yk8bFQzRuHSYI/L1outYF0Js9EdLBR/ihKbL92KAmXkhDyzyOUUYZ+LJbPNiJFKk
++lIxaybOokG+RKkipr6fcQb8aoG6zzvyixR3hmL/MN+Qmdt2mVqRq6z89SGImHxK
+eSn738HfhyLf53k8SvwebcYJ4FVhJTPDLixQcixeJ2/jsvGqW19s4dNpmInEtE1X
+8TyIoicbrCcxz+q/BnHPQNhh/gE6kj6MevXpHiQq7gmKDkLr+aLspqQfN19kUx2G
+sVSA4GSFv12ScTSZu8l/aLcAYrM4/lYfCLqzGHJjNXzVSRZ9Lbxd7HtSsfL5NYFq
+UuprsbZJ8AV/VucIkzw5dbXV7QdZ1mSjAFrlniJZh0RR5eh42qmBn0Wd30louL9T
+xaecQPG+aztXgKUebRdjLXd0R17PSGlWyJQAvu+9NcRcpTJ4LmIX8dLZFl2JOt5I
+NKAUVrWniUfL7DKQ1uie5VEuf0fFoND6rq3DOPF9wsBE2YvVKr7B6jblieTNkwqt
+ZO4wJSOx0IIozGHDYyEcDZglr32PD3UthF1X5yxXBHqcGWrBo2Gr2B7Nkrgji7Cu
+ggdkRb1kGRVG5F5wyYw0XJcPrGzzWkkcD5wCt3wh5j2OIbizGOLCCPih4/cULak/
+xkxPSXkgPtfVLhdKeESgbjwqpVBLg0vQJMtnxHOX4ZweaxwqtVT1cEwIsHcvLS3w
+h5s68WtAGt6GyXZa8GEuTGUoHDz1XfQp+BXsSL+fnReDwZ5l8LnO0LTiK++MT6S1
+tL+mNLSdoQudeBeb09Y3Fh77TIrJ/bIC50VghZ/hgAmWKdkd+vmsJAq6PjSxg22/
+LNIVZ1HB8FGlLdUh+Xrxfr58r9rR8tUEjzo1OAy6afhHPTvYwCdbn/1E4KdvWUC9
+JJ/zHxV5tq1L49kXy5FfR6KQCVXQhFZ1x8l4IOHB0LKLdhZy2UmqogVNRbQcqouB
+nQB28auRcMYW7lKhcj5eargfpeopIdH2MGeJzdymxo8qXY9XiMAqhA3VKNxs1dAr
+TFCq2rL+yKQENCA58qJVx5onPGsvyOrDbxI+c7UH5IA3Rb6ulTbiBZORpzpURqny
+07+Y2dNRghb8Sn6MkdzDNzeNQ92BR9mu5y/lGyTTg8BmrAAaTpvBxJU05ERNWH0O
+XUTmlFq9of0yvld3u2aqvA95oHzWQLxdxsS4gxPuIKampmy5KgB77SwMgfiIZLTG
+jsLVzWYJdZuKLH3bVLnLEbKk0Znx1Pb1/VhO/shZVjdMplsCM69V2ShQnplsEL0h
+miwqTha4UuDkY1y/uqwaPYeZumdbqfZ/wktFpi1iBV7Qc4+vZbkdbWKEvrmhs5Wz
+zKL87VeTG+h6qsYyElWb8dMkaP9Q75FP6vmDykYjY8BnppKSIRxF062+8fepDTgs
+Nf8OV5rEbKUfRHCBmtAVLjpHFcgIhryndzeAJiW95YYyreq4AURhuWuafZ3mfvTk
+ZLAOyI+4j6Jlj3maHASp/8WNPLI5UxJsqCRcaH+z7atZwLrmswsLC6hM/hAOSIJP
+v84LY6PzszMi9Eaw6vMPUM1MM3QBmsKMa6F94icrsSL5iW5n95dq500PzE1RDm0L
+w2kqRQx2PpRhxjLCfSLeo8XMg+0/yW1HKF9Ewdhm5mb0iHKa2VrKMWNCZ8GwSS+o
+nkWyIgUjGc54iCliXHDhmwmQODZZt+7TabLxKRmnVtQ5NB0lk6VzauApatwcDiQT
+1+WJ91f/FI9LeEjViicI5LV6mS62qfhpWGCw1i0t+tF7/C7bZSgRXWCVJGxuq1Wx
+cLpsxRpJDYyXH9ipiteGaIkzppjhKJCFASkF9RW0p/hoO0O1j7+alH1NhRT31U/5
+B1cL2AM+s2lAq2mOh/28uj4V438bv+e975jsX6bJINOI021hQ2oRaN5dUiI6PIJf
+/ptPfjreSmwUSId/nHV+dXeW0rGxowCqY3nHnmMlZCK4gS7O/FsqotRFjwu0rzHw
+YKcvZD3E7T8ubkkpd4y2NsmN4HQv0CntUqXXsuqVCLurLXsSeLAMUd/ZkTkbftcg
+Gbp7pPqNGWYji96O+2Z/oUsqqwMByTY124NT5Qh4rUMAwj9V/QXm1wpQpItaRa7Y
+chC8RBlDeTAIsaW7A1dTne7b3FvBzCLfBnNhuA/zMoCiJPhZfe5k/VmfDfK2ruhs
+8W8unMn8rrhBD0SWUCDeH1rMNb6dTXKlRCWZxPWFaenNbdcXewfPR+RYjNBa+xSe
+1ovTv11Xg0ts7iq7T/aJUSiY2ySaf5VG3xmUInhlJJxYylxv4AqXIROwHelusW66
+myU/8kZtBJO4AqeUQdCSglCdIY5ViZGvQNUJ7dOXcXsmIa+ANWPcdgWU0ym6UHR0
+0+Hy67dd+OReshsb5qiBWneuZZkCKTXt16VThoMCmC8QYHLAeWj+oRvwCppa1Ubf
+s7vm2E69I3VSiu/QrwbSEzzHkpkrgb9O72umLtsHctq3irvk4W2hQzlyTKN+y0E2
+cj6AOE9Kqvv5hz07CkSylSM0N/LOvJtT4hcWxZ4za67IdOnkyofFQ3/AIPAojWNy
+l+L36tq8U3r1U6FaMEgRv0n81etJSBFREgCuyEO4mgaWdhy7Ur39aUQCicgI92At
+rkL6msOA/jOGg2dpmn1zTjFfvUqoInca6mtigaEMMvHNaYzbEu0MHjomETvjZRns
+xda0mAJinrDbTeluvrPZgaKI+47nMbq4KcYfGOlt6IOPMoLZ07lVom08fu++Xaep
+842Ma5iRCrE/JHj/Hk4LNpCXzwJ3xHBdc4pzbMdlIYTWlPXBiVxCy0Vmrh+0veUU
+GVdHpIa5GqbMO2zit1e5QwluoHXP0klusTRflgv1XGQRF91qNSz7C3GhP6EVchFv
+x7Jzu5MvLJX06RgijruqzZ1sQKOCVROfPKYnV+Oqiaq/JYaEd306CvQEnGA1I2xv
+K/C9UyqOpWnTFLj9aoRM7zWLnPq5x5pkNISIxe7yegVxyLhUN9yMZih6rQZApy1T
+G4S0nsPiFkJCV8sLi/lzGQTtYscS6URbx5I3qBw4WUaS3B2O75WgDRfW1R0Hc46X
+6uWjd8KPA1D9AUzvbEfmyoTyzE3LSC9ZhPHnzQSN7fTNTGlMqzyZjqBXMAuUc1zS
+dEMrltplMAXCRDJKuJ/hbh/yVhotYQZV1J/iCiINx6wefEK3NBPK49mdGMbRx9Xa
+5URCCFbRgyan1nNdWdgoT1VcfDP62nP4bVrW7GgyDiQ3HB9bVg0QeewtWe3B0x44
+gvS3rWq8IPnMpdatCca55zQO2MaHCVC5eV6QKZVk9fwIOqChBrjrVxA/9uv5Pg1C
+wY1jTKJBhwEuuYjodB7wquHOnjgU9tfXCx3K7Rlm0uDUjh2mIW79KKOMro8G0ivk
+SmAA43y1p+fRKBXz49PEP7C6e9hrdAmkR9wWGrRp5okw9jCdAj3ydcPRu15JD/vN
+b+Y6NufYnsYYQpbu5naYH0TsjOedQvv+yUaD6Bb/OiOI8LutfX9Ao8F3fnxLwGzk
+NREKx4T/8ekIkcu1nxUY44+u8zKzBR5iXQyQVVrHt6QC/q2d8RrxnGrcxDurCkLx
+iNQiYTOlFXURwd8ErpdurfAhMQd/6lD8BOUmCkoBSG8y8jqiaUANQEpd8sHanDyN
+QOFvmp1nhyP/7V2vi+c2XMJ3reFgsc3jp8XQ6crNnMXSMw7vKQTOKFgCk2o/gdo9
+AjcvYKIFQY1PI9Gh73sz+jnrDJAZQqr3vbZ5bENUHUvMgofAXWO+gmP/CcIRwDvO
+qkl2BYb4NlT51e8X+8nUaaP5/YJo3tsb+IAmCvBjsISbFSkFhTJTxqtgbZM4mqsE
+wRLY9B/EarBZcCpaRHP+ymS5giFYG/aJv/tIeYR9tw8odIZT8yH/AqrwrJHyeySN
+oYqLHm3F3jVJYNDwo9Vn+swLwx+3gB/YN9PtbH8Yf8/pxNANq9D/NDicQ6fRepxr
+NYMUwmt325uJWbekyoV8SAbiaE5BPiqPm/xlOjwQdaUVfov2YyMLi82xZikueZCC
+mWdME9x2BbLHxYOgkklfwWoSAH6jdLsrxC9wSIPZ/AiTeXp5GpeucUF5hJJhm+Eo
+slXGE6oupNQK/ZsGUiDkf5OJYptYbrQeUU29DwUPunYnlQT7Qla+cHxIwYS8wpah
+tstIZ6xmJrQ2hvgrX4cZuozxR5pcoc16eDMXZN08xJwIRzhsK89EIXilyjMfGJtV
+kFqTjBK7nBamLhNU2jXq1tOSmx2Wn3YOT6GRbNdzfC5HadSDY1Ms6ofK1qbjB7Rs
+1qdFV17GqrhXV7oETqHOTVhAYn4IlVAp5MMDBn8VWDVKF5vieb4Lxza3YJ5MoBhF
+p80gpc2sDe2M+rcjkN+9wOUMy07ROpty50pAoDFZQ2QITB9lSNvFxYGAXgJKX43v
+Q2e6sqKp141LxVF9n92LOWHH2lMdw5Vtxm98H6y8NW1a42/RPWnYDFSOR2/txi2Z
+DBwL+jXmZRjmOvEEs+6k2K2xYxmc0CM3n2MUc8PLEJ3jw2lBYp/clAXujfT+qZXD
+dzH3hZAVTiRKi53eI+pl2usuU8rIJTFJRJOoD/i+bg/D9CHa5NAjUrmV8oE+bRyN
+ssseRv7/uKd+Rs4sYIgvF0h384HeHVoasPaHY9ba6wRhGVilhbri+w8JeuuGGg9a
+rk59R5xYpoGe8J4qoSGVKpoKquTsX108zW0v/614IwZqdQ6rOJJPYDAyjEr1ZdXf
+PbJf7UT1GAt7+oIA6uuSMTpB33j3SdSWXddlQvaW1tE7SOkUxyX3PJZawPp/1vR+
+FRYn2W0hqgGAW38n6J5Mxmi8dqay9ChODX2BkAcErxE9ZDVpg0707jPMw7kjQS+2
+KggkAoJs+ANqHGhCxJWhYL9cwE54jexU14n7/1cmakNduNCkTkov4mGMpVeHXh1d
++2vI9SrTOmVTugkYtGPyoCGU+QmbhysO+kFxQhu2DDhPFwFdxjjWDC5QW39c4fhH
+DanRYN3d4yrNTwrgdvyqFpv16W6QDh/U3Q/MjIrLiTSFEHqnQCcO/Kg9GWX9vsiS
+WxiIPtrwR6ZSJ4+LlluoISuv7T0GOtINJ2Wu27/H89XTQgGFKzt5U7wiKROuNmnr
+uzQuTHKVMNOMUVUZzPPrFPGYh+nstvfF4Z5C/WtJ78I20LC6Z14qCS5MHJOGsDfW
+isowfGf7VlcXS9JfTfM1QHOItjulOvSsVsEHY28rXUrjNB7p92J2hUfWVyDQC2Yb
+Dbhh7JmiaI5uZoAUavN2n3fHmeFVUbSekE7i5etb6BMRCYLhbdx0EbU3BL9mn/9i
+qCLxDofbx7bDTdrAkMLmVKrCZBH/ewdwshTKBs4MFmUL1hex9eaO70aTIqFvrxBw
+xckG/LMt28SbDdVAjEyNAaVX6jNtM/NGcISztfSWKnS4AyVVVSlnzr8etjYSMudD
+UNb3jLDgQF1GwwmT7YnvaJLFZ9AiRUYNTzE03XVrGATrvR23RADPRTLOkpSOOtdz
+OcVCJTgRMGGewTNQoewVMnht9nLJzQFMB9yLc1Dg7j5fV+LPKqW3NhUGbipWQ4yQ
+hgV3q5DJtpyQt90ui9xc7poPlek+7C3pizHLefsF9HT+hKG0gcXg9Yu7RC2K88UJ
+B/DxfdJpYd+cXcK4V/w+4r4KIJuoPWX4CIFSduVRpJaY4S28+5cVe+V344YWRD1M
+JJ8yqKcgYRgwsUq+PvgaJ2LmGYRtcpihQGTMo7dVFLi6GRsBU2Vs6hYgCTLxOuRZ
+kg3kGmGOIBc6A0ibCeqLk5JwJTW6aPUGVP0+rBs07shD6yxryDBgzQTsczA7KPaW
+kYGG8aAfEL9lnSFAKZ+IA2lhbl/9QVZRwtlMhIizsPCIsFZmMU+cQn9ezxz6v1HV
+PiNQ1SELNEA6J3K6mHjU/uQyq34YyZmT8armtW+HxEELfbqZ1+1EG1oYBwrjPUWC
+qHrgJElBIlwqb2pNermnCKgq+Zl6igzVSZ5v8sj+1T78mfw3/Z8WadOZCqADk2OS
+6N0WIiX1r2WE9WMXMYeMRvkIYEeDsXNxphRrW73lBH+s0ky448XkUZ5JJkv3prFn
+kzsGxo5f2qgUknaQkQpLWOGIBbvT9Pal0mNsk0XrNdNCgTn5OTlHutHdxeV7d3Cn
++zS//yrAFcJ76uEt42ZqsAPKQK8ND5N+9XwjqaJ6aiKm/1VEAvcoV5vJ1I6Vb1aW
+cwgl7JQBP5G2j0c1SHBzuLo5Q+f1nBUgZDjPiFqtF1OdcZdQ24TxgLbo/4Pwnu++
+LvP+aAYatj45M6K2n5KZxMX29j0HvCfKVyz4dP85p+J0AHUh6lqvWOQ0ktpwsAT+
+vI1HJyYAhGHPaapxTyVBzp1RQ0HUGKQ1SfeclFagoW3DmgTeN2IGSENhVpzD/qxp
+hDh6Lr7NrV71ZwgoL49CkWZ/7heOpQ98QwJyOhLLNpW9oSXWh8KRCvI7nNn/8EYm
+FGvSXCKrwH57Zy28fQ0rHLTvgV9m4+Gcuof6XE5LN3D92JRqS5/UlFdG8A5KV6Y3
+icTmEPn4jTiRRszxSOxySuwS1WW+Kj4J3czg1M5y9PSTflT0FIwjnnWcRzJznDSc
+B0pD97WcomipBtZQlclAzaxDPeMWVCKa5GZ3EVNJcgP0FcpxnaDQaRBNrD0FGWk6
+rD4cL0xlCIS0hSdD/V6sUc1XpIruDgMk/I7VKbaQ1n8ygtEcKAlJV92BbzPJkz3R
+0nnKbFWK5jXD7D6gJ7tcu7WoFWQy6iJ8J6Pcy17on3aD4snZ0iX0MoUjNB7Hr+JX
+iC4YkA4CudzEUpUd+h7Pip8X4rv19893c51ebPkeAqTbLXSHigiug9uuQP96cVt9
++uIhsOn0Je9fxF0VW3/JqMwQrlEsBvC2wQXmjMZ890xktNUwPtlbFqw+6jPKsKmL
+hSP+OJ8wCDW73deRSfl5IZXi5q73byoDiyiSfo82Qmk+pVXmtenAWI3Qi6Nh10CX
+Y0uTuYdfsUvzWE3eohKoUQDQfSQaFZlpAh/AhLtgKIE0eHf18DYHDkRQXsqoRZeY
+chaBqPR2qaSwlmllApAbI3B11zfv9nd7Whpa/6MXlZS/xnaQl4DxlXGxtaMB0sZU
+BT7qy/aAj6BOiTfI2+S2f8X7oMpHPXLY6mBq/WgMZ/3iJK4gd/XbrxJ0o/04Clsf
+6+KNkuUlicQmzVd1eQ+h7h8MAIpmmRmN8vfAqFZn9OOZYpJVYwM2hZUxuJia9NVp
+T8Bb+aqyzhKROTztF9CEAKyMsdRBg4Vli2dO7mQ+3MfSWBTR88u79s0jPyS+FGWM
+n06RP3OBtNBKNBglSmZoJVb8E3E1FWPczc62/hHogpw3L9hKv8dulsUjyPPO7ETT
+rWrUxIiOVr6I4Iedf4yi4+Er7UQ0t3ddq6gwILOAoZE4hTb7FCI3Rnan+lfkOQ6E
+o+Oil/W7o+mwGeIoY7/ZWopW2oPvVtPxrGGQo53tZVCO6Qbj3hz6NI3BPoNlbkMK
+1MshimN3IkH4JDPpsQJGvzZq9+JycZEgAzlcXTFah7916mMUQ80VNHpIBEZ+D9M/
+94IBYBXGxeg9dPrDhH/gKIK79VoclpxuHzJiS7JMK67QmfrNgaUt2AKbGa4SxSM/
+pZuK5/KyaloSSh07xgK9GFkv8t2YjfxVxt8r+4a7Gg8ZY4zNT+cNyVO4Jc5CRxj6
+mZzmiZhaquA15No+e+/R+Dv5qd5BD4N4i1B07KVrPa2DNJT6pOlvCcXAWwO/nEx2
+cMi5N+Dtbz0SEoCQ/8rDoeUq6wgyepOdEkWVP/7wT9qwABJtUjKocTXWdAq1RYJ0
+XBm8nfR5WycGtpf9UNhblS1zqBY1Y25cn4Io6Rwl/QqPmnAT9cN1lLi9ITnTYHj5
+9aoGYnyESZ/4upzeEEBUoWFNsvAOQ/6do7v26ePuJUCwvg3HMrH9SLPlDVReUZOo
+Z09pgnU9s/Giiu36oZ6W4qVtrxBLbVsFD+K4KhhW2oIpXBRRO6nAo2crAdsxbgJk
+2D+8cGyEEH75tFSyv7MSuad36KnZEoMrMNugEPi2O1sqjkF10NS99ctbfE2KwYEA
+o0v2ja+oRyoTo6sxEH2j5DF9sXlU8ASc078NWoPxx40Ep3c/k9ojyrdz2vXR9157
+e4dORl5IjWkVQdofljiyaWEhiWXCigGZdYxPEmZQiZbVkHnhEq7Y9KDfNAZbFw3w
++A76nWIpL3IHtL4rOu8akQdRgytrb22v48f0L9qdv5M7qc5wZIoOywThi/CO97vR
+ZN30pzHfcIzjPaCFLFwzrOjfwowgoAmiflvyfOt7cLI49/D/3oqjf63k1qvNBPYb
+VIeiCNh6TlO/OSKw2AEYfHrBC/Hvw5hQJGj7E3GeEMw0INih2+e9rUokCgRw/Wg6
+NaWk5PTFrZfRhQ8x/EwoDrTl9EapsGzbWX8uilubHI0/gBln+RpRRoBfg7ZJMany
+sMastfV8NnxE/DZuFLSiBARnfJYT8LqVp07gjXGW4ecEHl2jnP1t3FZR7pucMvRe
+yGzXFV4tpmtF7+mExHK22bjPFtmojyNJoQGuzbqxCccTB9u1gU/h4y8br/iybE4a
+IJt4fiZVHmZE5vGjdkBrUoXFO6IWQ9bQ7bzIodruS9nbDiToUHTWXJOfXhscG4pE
+Dfelzy9jYvU2tB98IPvVvqsat1ijT/dLih7JC+aNW1MTietpl3KmiN4BsOLYScbR
+M0SugHrr4jt9JUqjxfZnYHH4yN5C8kVHFHJe9fLxd7Sp06m37Yb6hFmu8J/SwMgs
+0H0gLp5oA6yXwxRQCxqdTGpTtmtxzNyRWyVCAr9r/6o4KGfOcyEVBi22ycRxVxBp
+u1y8/+eq8KbcGaNbDF3kyam53i8VVzOrsa6PrrSIXfrDAqUX7CBJj5n1/XSQZgiP
+/RnVKKHnngEcfz3tTvxZmlKJCuCiEKk+Xy0g4qJDG/NVPOce/AF9lD7VgSd+r1pa
+1WYlWumKLj6A0tKts1GO6eKxL+g4dSjz360EBB4stRjIpEB3HXNxqvuwNus6v+/1
+PnpMJq31S3GRowviYuv3oRwOssBEDnhl7lK6ukGRmdwfwEZhI3cfQBv5U4Z6ey2r
+vYVz37ZZEwK4brmDYYe++YytL19if+jEZEDsd6h8nByaV3BGmFI9V72r95Ses7ox
+J1dLIVCEJpafFRETpYnG4wqQAkFGkcmMRj2yYw9UWsEKwCcrxApt+JH3zGRbwDL6
+lBOLdLNFVpdupuloDIAZndtYBm59Kgm9GbJe9tUAKLeGQtBQSSf8DfpSageyME10
+ubXz0mEc81NiXTLRVm2pojFwTeG54KxDS9EoY4su3nTWUjEiMjvJw/87GQQLSR9H
+807fECoQXhqCIY09IWZZXa9D6UzcDbs8rALbc+GPdvKVNwYez22zdUAT5xTUVm2/
+RUvv/tX9wRbI9omDc4U290Hj0EPuHTzmnh8Gk6aMJXUpOa+IotuLbnzwUQHCd3rD
+79LLI8n1DhAtanSigKpc45jqN0MV2pumimBBj0GRGezcWsY1YMEVblae25b0lfTe
+u+NO1MfCoU1fa3lkb79UlXjk0ZBohAQIkVzg3S//eNJmJuI5c4hZqfQcHdqyPJKZ
+FPwJf4NYHr/Zx8nqF6szKMyi09bhNtosTJlW4pe/9q2XHtyf+4vLZt4IYeLQ3dYS
+NeEuC3Pz1vCMjgBuTDMJkJ7p84BBgS3BHtSAjcBKwl77r1iZpWFBpFlVgWGew2xl
+cMnmtv/eFF1SfSn2Te0i3eCEFPYaMcBGXLjHEAnVLaM7INv+DPqrREO5qPYogUGb
+cuS+zMphwho11Ta4VIqno9rStdzl8y0FsWORlSXH3YfpvB21dTCuJhQATYMFsVig
+3/VtF2t9d2he28nQjlTI0y0fYUDJe3DeleMVDyVi1/Si63qC2RpyVCPmzekLLbko
+LjG+YakQBkPuk33+ne2tgbAfp/84vHbZ9ukL4evjGZlb7a0FCKh9dP6sW7N0UwVE
+jyYyn8nEXCOieOxRNCGRWFZmc/ebJ6fNN8+a9WJ23f2x0x8O/CXjlN+QZMMBGw/y
+tgXv9TEb3mDkqqDCpfMJoxfR/rd+OsmhjMPtDKmwXkWLukfN090gqCvI5XZaKnva
+4F7gx60x0ICrMlU2/oKwNv6jxBOqVLDiW2OLOIxEjlHMms5XyOuyLRl3LR4zPZNr
+mMhTMpTKFee/4kC1BXKS0Fr//SJCpvSiBYs5OjwYrSnZwzvyKBchAAvLiVt8yHmH
++mVfdArCAUJKqIql5NJJbqSd3Iy85p19Lv/GCg6GK7rIcglFfQGWdo75yDnmiXmK
+Q41Q5XKW/MZWJ3im99P++7rSLmoPvDN2FA605TvOzl6RvvcjnO6fMT83IUc5Uwil
+9241mwjnVidX8KtYumyH+XcS5pi5AnkdNMviRF6Udef3F9wm8rr+G3nUacw3pI14
+ERXPmQrsfwM5B0sIVepQehTBLcOvNJs7GJMMVloMmqvW+sQGZXRJxShPp4qrVfK+
+TsAi6g+4TsLQFwYWusS8KSWhszhheqFs4DHpK0uv1DbEux+p+E3EJLUzX0Zz1qOI
+1+ZkwIS/zQY8VQwZbOI0XycofHgKKvILRS2vD4ws1YhSWGiF6+EEkplR5HyBSom+
+yvTo8JAAdhMPv7pfmHrI8bRG4fY51qQqiP63IRiw2Vu8GeLHZHHgVopJ0dkadIH+
+A/Zk3QhBicoC6nxZNHB+korVdpz4EBO02KHtxqe+oiA0rDOjexyy5/edLmNRHEBk
+DEOe/ciXW0+6WFpXPas8K/rUahtqyMFGMUE+Yq9dOtg5IaKKOPMu6UPEsih+LXlZ
+rGSC4r7dXYRz7Z+lKwths8EqYnn0DZbBPXA/bBmXPiYXa9jpk2ISuVk6Au3AdTfD
+jDI9jqbiQy8KQ6PrMBEw4bVx7rV69HdvE0CKqvn0Q8xrBZRQ10FFrWosHYnd9uW0
+Osa3Wejuw8ZwwxZTGIUFkugPE582cN111J8Wr2E16LscQo4c/e4HTcHqinCMDbj5
+8de7SQgLAdFy74i+6VnqI88Q0hB1VsNada5KTCOOTnZ5/VJygrmdEMEIyHuDcw5T
+o6AYDexzFZGdf5tawYsvJKvfbA6cf10NoBdqnparvr71i+ip7ZzTuchjR7CyEr+3
+vwgIXWCa80XZyEiRM6Zfjh2D4w/L9KEMCvfQ9Pc1V5sNz5sIUJL7BaMN8jrplE4N
+MMDzAm/XFY9VcjLoANOOBKAF2GYXuqSNb/72BFDAbsigSpg9COJYo6eRGLW2e32a
+EoB1wgn68XsewSD90DCGP2Q6+qA1TYKqIbYbO56GAHuruE8FJPhvlo/KiAE/2sQL
++d2kOCqMPeIIwhrMWKx5Sucd8KIZf+6C5Fhf5HA03/tg4Un9UIcT26NczoimrUYv
+H/h8gFylXgvsdXGTl5cwtXBtV6R6KThmHGBAZ+9VYcY0o3HWlLM6gzegmstORCZc
+NRD+u/FTuBy+6MDBVCICEeiWtnEtWSYoMNDOa6h+aBpyLL3h7LRU+KDlV/Nmd7jB
+yZ5aFPGtV8boT1+fUvhWo3ECbPXK2OEXKVf4Ebbkp6H3OipEOw8tdg5P7a6YUwJ/
+b0HbGDsxWWjH2/wGuqtCTRkr4eCe4iZGYVrAciSGHnlDHdXkZVJ/ggELW5FCl6bB
+kG0NQRkHvUy5r0ZKUvIh+vwIV5/TzBWIBjN5JTQWY+paYeGorTVhbL9MWDzQKRkO
+3YaRP+pMYUj4ik1dxjdSdZTWh4DOqALenj1ivKmRzEoFtoLQBgudpRSdt+VeW27r
+Qx2tjywdcIF5VfbZvaocQMO/SyLfy5XN54dpkrnzBiCrt1eg+B1SYt2kVQwyVA72
+kbk/GlaMYOcTh6R5D7qxfZ+qxFk1e6gQQPTychA8a4U5pHL/6bvtrA7Ih6p/xFjp
+Lb6PEgkiFqQPUgyOUP1m08jhR2LgoOZAiAucWZahVihBUl7o0Mj5r785NXppHNMd
+DZXRnsiRPuuF3UOqBB6fEr6WPJfxd9CH0GgPN8WdJ8F+45EhbQbLLm+mAGTcngyn
+L6lT3T7B4idqqjOZpcAIZ8JOQ+ubMGjLpXGqZZdqzOwl+yCU5GsdX5zwdPRrEciK
+zola3CD0mL+m895+sR97/SRvFq4wrCp4yn4c2VMdG6egwdppfhkFsCLun23yIJ/E
+KFa6mcNwuS2fdK518VK02XRYyxNO7V7XoIU4tAiuJVws+GdmVX1KSyUtc1Pxlk5V
+lIGy+CeivMd4j5KhM9/fzUeQ89mZMuVJF22CS0ekTKg1hwQODDNs7h3DNICMDth7
+Gln9HPjbSlOqK1mdpVfRNlOGlvw+ei/Gofmc3V5ZueFlXXbpFbXJafmV0mjXoHAj
+oCq0aJNthCOYcd+2KpeEYCrzgaAA1S4Xck5936NBVlAYPseIvdyRvlYCqi/V96BV
+f3aNUNOCWJ/v7LOAyJlJJIAE/Loxo7VcISfpqDK5JpwcGmJIDtpXs91H7gR/gn4M
+a368OlGkwzqoViDf7KtJvoRYe2y92V3as2l0ssGJDkOm5ye6nkeOLleU59+Qr40b
+Dwbk61AsthHNoWf/A4K2N1s/12OBYouumnjwHyFuJeSeNeW0n9pjJi5d+Ut5ccPX
+uQRKkDubZMoAcvrXV3KGonP1CBrzHuZ1BmgFyeS95iiwo3TUtH83QIfe7biOuhtI
+ryMoHp28kg1BZ3I0F08aFEKh1AGw+HVOXWJoQiZLwMgahscYH/gqhsMwOEv7oGsh
+SMzYXbitju+IJT+A1/3YbkO4gNZ9ZjCLN0ilrH+FwbaBA05lW4/10EPLTj0mUPGw
+Iayvcb6wQ83FIdN9tHcHez+TvHFmAGvb0oJKB0XMaawodfZwd1IYq1vwVf7uEB6W
+Gc92x8v+Jevy7VVp/pHD2hKM/RI6+vRujFRrr/3oyjI483l+K+/F7YgBSJ5i+Ya7
+BWD0t5tfyaUeJl1MbFaXcZCXjCRfB8mKKppB6D5FBDDjs5x949xV3UDd6/UeJ+kY
+vmZ6AGCOOepZwMugIs/kUdxotdPjk506S8LEYBg3wfVbQrhp/uEXIHhR+t1KZa07
+biR18OMipwrvTMW/hRKmA+qMG4bMt0d66iftX1n99uCCpa+UF1Bz2rx+K0HI3vR+
+bdhJXcDBzxIWgpbyWvxQ2GFF/W8KJ7mPYqCGa2MGbbUtS3rDQaluJEp+3xaKhh+e
+YRX9olYE3W1v+u5BHHcFmBQ/lqsLqj5yWMsBHn3tVdwWSzOdhSeAztxVbDrsi3P5
+yfjss00aK5RGaNAbI2E2uKJuJ1eI+YVAdvaO3VNNSknogFzQsEkDRUEKhomKe+Kj
+VLRViQ8xMwsYUWFNZ6sU4ItONpqsS+UlHXGOISbF3xwGt9KSdH84GNGMdbOaOOV2
+NDxRQghdCUIv7nr5FlFiVYgsfhCxZbWd6Wz7ebtV94S5fLi8WLVXnDoxdtJLeOgo
+6gflSl6aYKwrmKpdL6iG4IzT2mnlJLJo7CAIZng7g1Yg64/LveSgK+uFO4OCqx+8
+6cluSdKWg2uND4Mb15htnRkbf4WWMePeZWwuum8LCSNUcPLYpvHTi0L37iN3Cb24
+FtWolvaTP6pwMGbZ0Zwlf7AHhiQSFEoCYw6ZNXzrEGpu3sKWKP3quK8K4++23kos
+3QPyIrf5AVlmMpAzj77Xm3+ahk4TxxvzV+sZ7fHaUH0Ph8zDZD+E4hwswbM3ctZD
+Nxh78UOHCZVqfBMmGa8FajMw/Jhy53GZmQt1S6mQiOr0+javrPg3H3lEk8E+z8IW
+gVaYCwURGO7Wh3R6/Vdzkzd3GQn+j8c/cuqUZKSIu9EeuQsCAI9dMEkzXUXlXn1v
+RwljJuQ+MnyMWzje9JhkHkQdVsF+jFrCFqFh4PkKcSyZtVVINZ/QftT5Xo/kNntB
+i3ZW+KjYcTsPjXFl20sR+n538yp+/kJXqshhhKhi1C29URGAus03AStw9PRS2HPF
+QXqwLWD/cfNQaFGanhyP8yB07d+fnvKnJlhARfcrl2cNO6t3Bsd7Kc8qXAn/PMbH
+Ta7PfLCbkGibklxaqA82yYJ2wOTa4cL21oH6HLRUVNLt+iZZY/q9SDayU1gupXmN
++k5CKodyXiaG/uanRUD09N4hTjlVgZ13tRrJ5vvWSgQZfzwN5iFgyDGApWgZLObN
+XEvZVEQtO7Kc1kJYtI0DpdkY+lCxNIBlrQRa/G4D7IdhoJDvGJnRDfjqiGXRWWQg
+6ZY4gKE5jcxXjTuxMN6aAx8SSNhViwGCjocDbUgM7An+avq3CCwDbO7zaL440LSx
+43pOVh2NVq37mn6jXUzx7e1Q1D/WgzQCjSWUKyNAi0FRSAO7C3v2Fbzo4FChiY5O
+DfU1UxmY8rFUsOOF/Ct3YVxfVx2OWk/0owcjp+uMXM6IavNfItQ24pFlOnxoFOMs
+mlxTuoQ9DNJoubd16Y8zU56as2eRLgIUHDW/shlzv40blOEyOaUEHcCCRU6iuh7B
+FmUmSpmPfcQ/r629JppCnSDuX20kMHwXpfUS9PzTn3CVCMkYWeXsgOWzsdApnRgY
+DBS26X+uNBHRI73q+BDvNw9Fu2i0v3Ne2jW3mxAVK0L8C1AlnGPeBHhopa08r4wW
+m+dK0rUl6MKgy8VsAVgxH17LOzqyN9ONBoFhEVBfXAhw6ig39o0EZnG1mSDNS9Fn
+T9g1fHA6bOlAL4NTC90bA5qg+sEsT24faO21/SjoxyHtsLFgeQ/7H0pM8NjOieNx
+6hRMnF1NwOodusQAiFKlsHVFacxwZQSa38Uo2K0CH++Mxvbg7P2eXXJaDnbhmZKe
+bglx1xc1efBJwsNu+sQUfTQiIDcvCcrx3Khr6NTuy1fiyq3E18L8JRqnDnn58QEN
+fKt6zboajUH6Y+b54LPD6DPEAaNsZH36qRK3k4YebhLkEkmU4UVFrWcd6CBy3mxW
+dFRakUpygKPPGthuMEPfPqkw5H788GVA7VvPLMwbSUlSWF1cm23G2bXzxVYKJcj5
+zFw5hrvIKvLCeO3eS+IXAXIHW2gdk99+lgOMsKx4+WvCFawLSlr495PkOlxI1olR
+As9RQViMKILuL2vo2l8NFlILFjSlEVYSrFk2k67dymHZx71ELifQo/q6e35MLyRH
+OlX6pkMRDZZwnkNU45EmZidqpKXMey2RpoI21McV1YBpLtawgJApmAQpDFSctfEr
+81gOTDBMbmTwu4Gr918lnoWcr2d+GTbIwuysiVc6JXrVTymcKMh7zxKhQc3cLVXt
+9JNQQppL1yRtpoHM22oHaEHU1kak12rAaq/ZE0fct4jqXCX/HCI/M4VbcxhSrlzc
+PGPenf1Qp17avKn6ZpXEkXK94FQ22ABAC/XW+YWGcRHBO1B5pKXEnNu8CrvocVnI
+8Ukkt/LXmgNcgj4V1uaa23nEyhodvE4wEzFjMQ5VHClaOiA1ZAqMmhTVJAGgqv09
+N2yR7q47d7bb7L5/4VcGrPKL3W1U3f9lTCmoElLJWvP/ZfH2iUnmQHjPlHNFrc1H
+nyiM8b2DB9ooVh3j3j1150rD8L0wwvtdwCDK6tmZusanxexNARVEyKiH2Jw56RWx
+FOnbkWAmdnc3PFXX18iS/eWbdrv5v/QJk9h0j7/TdxGkFsvJW3ptQXSLdvd/ezfj
+/eBvgj2i0nso+TDh6cpmyQfwrETQwVTAdFXlwdlptfXtzQmb/afGxqowNvSKVwZ6
+k+OkL7vS0gKL3SHdEfIhb+uEfbGvHoOjyHJ2ns4b9ehik7VcCd98U1icw4vWRtfP
+tP9RrCwF5o7vIdISLomJtZ4+Lcn4UD0JCYpo4epyrJ/kdK9bpFae8brApNPDgZrT
++q1ATpj89NiH60PVTZ2oMBbhXmanASWH2TftpzK5ml4ZFQHtMV1E+Rj+hq+z5jhp
+MKCuPCbuDYYPXSZOGJechcOuxm7VdHOARDmbUyQWL7mZqea7WQIwiwq51uyfc9Av
++IJ3qP52nVhTkIARV8S+tcTQ9vK7ONUmKfMzz7+xDXmvCNFGb62xEorrd1nopm5Z
+GI1AHLF0+WEEkR7i3UQ+hjKc7a4JNZKc+5v8TfATyVHBF4LyBsQw6TSd3EU5/SKw
+wO7etd+QFD1rMhYZ+V3Imy2q6Y6hS+iS+oe9+GCr7cfwBVZsEig/FESOfD2qzOwM
+GSPQSA/K6dbSfZ/od9mWLluSk8Mc6VjBzSA/yWe0aDggNFVRfqiCvhb59dhaA/sQ
+rSDfnYypKp55YeLQTR35URt0ROzlx8E586dQGZrUi9e2epjGiGEsTAbMoCJltwTN
++v1tDmyNv55+ASiIZUuG/giwxd47ILFAxoDLKp1S/HBQxEZVMKPlCCOiaoJ0xeA+
+r3BaZE4dzMxOqzw6afs8k2pvpOS+fklUXVIQ2b9czOEU0oU9A3VI0ZmiccQvtscL
+LV2bIlJ4l+uekixC6qALuvdj0W2Hs/6o4Sq2dGLIPtPbZn+pwTRaWnzLoAqN2eZk
+Fc9XzKzTlrbvKfcJDKTFJt7euyKE9zYDtRn2DRupRatQv6nJHvZWHaFafhqgRSpD
+i37ZylYlj+eqT7sRHeLvZ9QgJ4xMbopXgOMSbRHZgC8jvkqUP+OYufx8wV4aGBrR
+1GmlsgUE6jq5bR8zS508p23Ph2JzCDSCRGn6+kow9n/hPzyQy8s9F8AUJ4Pv4ECf
+wHv//DmAvtTZndOKLgumVjtBnyyTD38E1oATQeko/7evk+iUwzRhw4F97xiSM4WR
+LSSdQRHZQAvCMAPgf8Cr0TujUPUlgjcmiYO1BLigDsn8BnUjwrUTMnunSo24BqMd
+/zDqjg/gZUVP5c7FcLMxGas002hml9JUZwKPnTunps9oFvMDDvOdEW/lDxR/2tUb
+YHjmfPkD8OLt8mniVdaXaY1NzIeskVwzam0jIruS6NV69g+1YaqiVFMwIePDsDW1
+MS8+aQZOTpJ8a5YStl3dEPLD51QBcZ78Pv8zzQFHENwRCem5gTas6lZ16rX5SLIp
+1i+cGBNQdlwUuiWZyv0aKDzIcydSyKdXnXu5UViJ7QuUZmCKI3S2UaLobpVo92rP
+kSWJeEvwiI3waLDK79sNSOqj7E4ffid4I/Q18mmSLm+kWBKWNZ+KTxhsuP1HmVa3
+tMmKTBZInu9e1T9coGeZrHGCgazQoADKpvpnrNkvfzMhpypNksp+SvgL0W4HKeqM
+xRuxNgYtc+BKrJoNfQHZ8R6VEfb/2gYC5tz8AmhgKh6nS2SPzi21aw+OfU88g/x/
+BlaxEKJwJgc38sebFTcQnGPrR1jmPeSzuzoCAE4dGnMQtkVH54ARIBM4NTntydCA
+dGwbt0Cl1wL9rQFNAkoPkylKcDAaw94B0nI504yqLkz5JDrpaeL64+ISJRuWmRiw
+3rZRyCzjWuqzNOJ7P/XaSV97Z9hS8fdJ/LuJCB9e/prI5QVuSK5An7jfz5mx0GgX
+u4hRgTKfuXKmKsae3FGpakDbJJWj96tNSG1AOzmgCeOE/02pYLGQ3/r4lWxntjMc
+3JyuXhBHyP8lWhq90iqu2RLyAueFlvAt/mipwI7DAbqK2stipyssT3qmtOvAaxON
+WuVnRIky/7hZzCEtq8PHcp3vTLZF5P7TZswK1w8YbY4pQl2yO8Ht0wn0BcnChSY6
+rSKj2soQVRFpAGkvgEvwA2YAXLiHL33AdS+2269OBUKVxUi4CZrRB4anynkOn0xR
+QQipguSBPy6pIXjS4inTXW7QDSzgh7f2850e32Lm8S3XRyRq6Oj/7QzPkvTmMiF6
+pplboLCp3RYR6RCqD/z0QcO3iQQgtKO0FLPG8l0f4DN1APRMu577bjZrgZABCN+X
+8PyuaJubxBShOejZG3U3dQUEmFVFdU3D0hjDh9LpUANdZrbKcELF+Yog0hz+8ge2
+s5GBWFLmJeVInd7kZOA3mF4/Z55m6Pc7nQ9wnEvw3kXh0EK+jyeFImUjUXOWdH9s
+uzcwh/DqEkr+Eme+l5LixksXYqWSFywjwJ7HY1vG1x+q9mA+7DI9AOP2sc2MbPR4
+mM5dkvVzLRKmHXnSnGMBY9Nmr9eWGeguOcjPufImOa8aXOrQPjStwyKr62oiBETo
+jkxMjLTUVjlfSnZsr1khbRjcPWyvv8qkUbgM9mLtrHQCTgtWoGTUM8mHaO79yBwg
+FCwL6T9hVIy9AS/Q/gjvLWoA2LxjRiHmoUyJu2lvMA4bQmN0BeAWMiCkxgqc38Gw
+grBmTysP5Ixao87E+fAw7msK1B6z+QJSniTlTVxNwSCrOqfrZqcPxzaM0VmMnMSN
+AoLv1GUAW4EY4KL9Z5AfB61jufmCK9YPExVt9+geaLKjX/ODyYLkEMreEI2+MWcP
+J2TxXUiI8wP912lwyDwDViej4DBwAxBaarxVYQlRha1vyD+hfMYFShz5ebv4E2zL
+T+olDjkbOLDZMl9m2iLPLKm7zilq7XCBYETBkZ9Mkvw5ZmpQngC8N6frMoQMo2UO
+Ji0uO/QGv8JeSVZouZKJwDc4gjnxeajJby+xW8fha8RoRzRc51NH5qnf96sotXDj
+KbOgveicoXnV0SAoUqMstU3NQTx0xeHUJfH3QNwMJSw7FqyOFXVvuCJw0fz42HA2
+abAU+cGa+DlvSHoT6K9w7ZiuvnoevpxfmdDD2UWR4kmrXciMeaqFpRtQ7BcyfWGQ
+us8Ef93m8YFyxHAKs+Ba6PetIaIgZn8ubRVZYakVHa/pskeAJIaDYKFSflzA7Irc
+Rb1a4KkM6GKy3Jg+BqtB1OXxCFz/Ys0ieH67SVQRs8P7NKNMF0Kq0o/pe/5NiVTj
+oY13x0EEynh6qn2+PgLjrWC+DwwcngsmgJSXDpiujWyhQY91CU3E1yeL/6axRfE+
+44Yp9POQiw2netS3jKceDpi9JMXlIy0rp7Hn1r0Xe0JXEsHaT+Kw39/YIXiPy9Yi
+H84Of0U027kF2jjDsfa1fE66+1Ab2aqYm5viR85ngkPDB+V3K621jc+C1igNpK+r
+tFfeK/xGcRuQ4JIqnbAL+Hd3UvJZlvklkE8nm9dVWBUcXuDLNE/04+BGM3Q/l4aZ
+NJD1yDzLCUOYy4lWMLrQRu+ZHfyoABhEA/w35nWol/lHXs9KNQJH0VJwPzEMrT3w
+CARpd+8o5Ts2RVRf2DMPDhd7QiANASr3aZYc9UjN1ecwMXiIHHRJDuE9PfEM6C1Q
+1CjV+gPp5O4f98ZpMQxOH9aInuVeN4Y+4B/oNFhnxRc6F6j38r/85/bQrdSTYHK1
+rlij86AIzyxFCId5G0HJRyz63BCpOMZ1eQMvI4KVAFKxf9vz9x4Fnc6jeUhjnn9l
+m3oslT3mOsFkD8VoCSys0SKC2NOIrAkOMeG4jLAzR4FkqHxlSQ3XknXDz+xcthiP
+dk0L+XT8ykbtupB0+vtr5xGynHWMV82q2uv6yXhtP5AhJmJSNtMyP+Xg2Rj8J8oH
+mvisBCsv74VDlD0aG5kqaVYCWL3HaPSFcG/KeQFGk3IHSSqYR1xJVgHMXrPq3W40
+l7nmDns/YDgpk2n6VPLQxm08nkFj1zbL4p2+4awLPXA6o4y2Z3cRNIKa08dN76i3
+99VdnPry+XFCrEBqHyQfBu9k6izac+v7wyfDnhePBR5ILiOXpo/3Ax44B32SXxC+
+cH5pFxgWTbZZliKt/lDbe/eE11IKLBaQFSz/nzL2Ras2FdGy8gA9bT641J1G6ymb
+8O9n9iCohMO6Bp7JNXFSBPu/prr2Y2exq0DZMGFca3KSk/udwOQr75902I1e1/vG
+0c31fNxzIxQjTEquTS7CRVB6Jn3zE3c2toOmn+zLhSzdbAQOCKxBv6IeimcimMT3
+5wlU+L/InDeiN0NL/nBK1MxklPhvfDicf372NZ2fM6a6n/uOU8ECstZoHHawU6UN
+yKEgoEJEu99GSquTwrnvhMArEgK3eLoSsmYdskpU2Ol4EdIOE/tnI1v55QdptgYm
+epvV+mLoFgOHc3tRnksTvbSGbhhR6HRniKiI7ZcWZx0tj7J6MDAkP0rv6L6Zm+k7
+y+XAjTl/UTOVnlXOA0W0MU+q+AmkzL5YuFhFfIodMBYlAwAPJlZVUPCRDEclXeZg
+KkLywP8vWus60THXCzAcALdv0AhpAnWc0Hswkfl8WuoAVPbfwvFsc6uOyvEXi7L/
+RO+H0PCXV8xpTF2WPXzgD1lGTFZK9Ae1QamifYzF/hXBFKN42AKmMIwSmiLYJciF
+DRrRAfKjg08QpcS6XVYVaLjve+23289d3okYjONAPs90ZkMdwMHRdsEyk9bRWYLq
+JshcT8a24HHQ0LfVmOL6XHSkVId+WvNtuR3QblpuYKciWJhgC2W9z/3XFo6NjqLc
+jZr9aqbbcYDjZbpwD4zcH4BzCfB9vMf+n1JPtCoLVZK7Ps3jymZpa/xDiDCwfRVi
+UXNk3Z4H/dgtJabtarBt6QeXnQ+YLCfWmOxirvyZUCx/eZJVNPScRE9HZEGJg3Dg
+Uv/tVoQxnsw8NKT5YI/D6WAG3TbM8VXfai62oi5Rf0nRb8adVX/VAk7j8065SCN2
+FU0WHmveY9+ClTnZ/zmcicJ9w2xnAnKSiYYnpI3xTH4gh7mg2GScq5riY3ZE28Ed
+A72oqoIVmh3d9HQBabKjxvJApXulNul70A4qBEgp2RIVTn9YxXpUBASKxHM45gwF
+0AOTaYj7TL1hJX6kyxn+nNyZgSAeqm2p0FyC+LeUcojc6+zoutgfR/0sufDa+MaN
+voHaaOAiSk43Mp6VZ8jwtP+mUIZ5kWNkK8qS3BpYvE60H+A+w0NHNtwPIuFxLDNg
+HEsK5h3GgQTViO2zSoX7nxIIqOcGrcDie0X6QPSCPtAVmTf+E3Q8YduBzBnbI47R
+D6qpqFStmP3O8+zivTXVfB7SmzKyQ0bbDIurgW4JCsaBnmZC7b8/GqfVw1Miz4O8
+/Hf8SriBSPBSnuYATG6+wUV9zi8pLRWFOc+z51dV/31eG0Gm+Bo7yBfLlOVG/IPr
+BNh+9ryR1xXr5Rm253nibPHM5DZUMw43utVLafVefRLPo1sspLXcluUmDg2gdmzN
+mXWQ9h2Gqh24iJevnihOI7WR//cVXkSGxV5vtRqJTl69t6c7v4q8Fp9C80QXZtJ2
+CMbg7N6X6tcR+/i8cxUK3tnQJHiZohTilzuJ+Aoj0Q3lsvmSXrUZQ8CuOk3J9aY1
+bynAeGYL11UVWJuipc48/Co+h4C/7ImdANOHRAXwbxLv9yRI/hC7v7WBtOYGSRpi
+45eW3rNs4/LwirnPuUU/jFb/+XMolBjKSzRclIign+W83cOsmCkx0Rv6SmJu5ha1
+UqtZPCl1WNjLT1cy8qEOvafP1x7gwVCjI4HVVpTZSglyQMWi0zpiC85Pmt11ntVk
+KJRdJBt7OOIjIp9qmBaWLgOGawg47/MDtg6yA2V42VcsUBvypn+2xILtjbJl/ZWv
+z5iloOD4CstrL932Lw9+AbQp6WBdoY5mRzCcVa7jp4+x9mbpmAOkRJYIYydAlXFu
+bW9vVmI0LvpaKG01sAH9FG0gvFRj/wqTZkEn+wPPP5/blwYZEyMO4voHvKCzFD00
+N0i8JkQMHIG58BEdQYGDMOXMPRciVk0UBdnhGG8T9V4ID62o2ILcn5YIwZBBYX/L
+aYHmXGuI7awvLhrIJa/6YdOC4Uit6Rh1BhOnPZQrEuOJcvMHX8k42VITnfWKzGeL
+NAmJDmmDoTxK+9T/sZXcFVn83OqbO1B6Q94pOAkE4QM67wglsS9CuRKaxXHFvpzP
+Dns0sNdhXMPzvJCVWzanOK6uyjUPWXTX1JpI/yO2onyg/7BzYFBopj/Z4gEfR+LS
+/7OpV4aqjgEPAGnOhTZr1iw9AV7jAZPsXvx5q7HpGXV4O12bHE9SJ9ttt5+hiRDT
+097c1ZMu+1k3ohqrUW6SIIaBtpkrO8aSml3N5urqkbpKbmEF6846QsMcukbXuUU2
+HyCLSgVwQetinGtOTcxLtuD1wp3ZOVxx5/1jpUe9+/lAhh5ei//A3xQriagYhJ/F
+ry0tJ8Ktile6yDFjbU9nap3o9lHyxpe+XPxHhg4WpqfvwdOz/Hl9ZyBq+lT70C3K
+VqgBpXI/RvpOAcHsvcVw8xK+ucB67AOola741h4GSKs4cfmiuJ8O0EK/ZdTjQt78
+rWkEJVR2ounufDqihlrb25+ICHTM7R+Fruhe+unWdhY7rF97J6OdwHjyZX9g2fSq
+6bEe3S0Qi8MWH2H94yhRxUTGRYTGo9QqgnV2P6XttTVm8Z2TzSX8FnB3vZPn9c7z
+MxbDmQsd2c8t1IQtUk3WtvFqK0G/WkcPYZBduyX+temFW/RWic/jhjBiCrJd8Bn0
+0kXOTU3CHf1qyzsGliC0GdnBSRWrjptJfV/Yc4mKhb0vzsyfiavABWCkaGU7Psvc
+QougzMmI5lvrRQ55XslnAOtyFUMJ1UxZS9b3hycADLfil4XNnOEumwhlZ70BanZb
+Vwyahtk4E36j7WpcqFnkdm3c/zapLgz6QFKYSO5R4+V4ctVB2mN9fUW3mjmbHmFb
+9ZVlpphkcKJPzjWrMJpt6Vta9RMz1IklzFund/ZteIKCodkzUCGH/pYQua3HYwB2
+1j2sSk8VU3kbkXeossvkgOOKqSJVCQPKdzXXaHBmRYCndJF6sVLpXdwzvxFE4Imi
+JeyyZQhU3OlpSdXO5J4ui1hJhmHlkwW+RJdZJas2a6W7GJdYACN2SJK7VwzVyAwo
+YdO9g2JriBMdXgn4uD4v7iVutnYwBPktTxFzA8R+u/BC2jSIlA4KswfnHJLeMej6
+bHJB0l+nIqo8aOPrMybYMuzj9ojyhXLuLFs5kwlNtRPxZdPuWOHzjTjTa4Jmmw/d
+XKV0RNWtwVJI0cFcsPacb6aGf9yzoBj163sAESxm5lvYFIWhOIGNklb3x+Ab4Uvp
+lYMhkgcdcM4Q1IAO0gU3PVQ2m9VqbU1j/9Yk74WKk/F+3x00SgALVy68LexkL6eU
+EJ/P2csox7aJRKI+ySuAh8UvXcUB4cNCaNzhijsSayuo5aNdWQiYs4bRKsgtFyW0
+KHIjETw7+vYpm3fcuYH5QFJgEqbubaaBY4YTIPR9KAtARvCZFykF/V3FD7YtAjTs
++cL5vh0lHPc8rhg4IIQvazsnjFcbQbVICSSP/AgaCdDhUVYcaJFKQB63FKZJ2KP6
+NPAW8xvGoQtC7Exh4Bl9OiZbRNT5aW8YF5XwZcLwF7rOODWf2q9ijbuIIlJUoj5y
+1mjhIshj6hqzdHKevnQ1Vbbcq6fU4mbwl36hDTQEdTLpqa2ojVtpcw3QaIMOT8+s
+YnJJob2S5NjxQhJPsBiufPt09hE0n0xvpeO+Xihq+iyEpO9rwjq2ml+w7h+etjAv
+EzkRmRnKHbTquGaT5l56JKTehGiPuxsJrc+xF2squPaS/WJm8iDJK4YaiGm71jE8
+Q07QgnYwQS8bWoM1CXtZnI/IqCWAxGe9ScV3JUUnQPVfnIPlXuxEVHittPT/A3qk
+3bTy7WUKEAN869AhKQhx3LnkMxjhSEZor9F4wGGpJw+MOVmRx9PktCdEbZqIMxZk
+QmJO+ToK+FtTRawFdmy7zCrFpwlu/r+cIj+uHOaWNN65I1RoJDKlYeHs4ssa2RjL
+ue0GAuafayOEfevhceQtIetXaG1CokKi8YNZYgEmZcxIyfQ7w2SC7D586kP35CEG
+SyY/L6sVe134EqXpc1BS7hr5zqzPi90u0n4FbMqatK6E/YzIn0HDVHq3ss4pKDyT
+CMIvqL/KGDjdaPteslmXld8pTmcm/zwZpP9OPMjr42r4nP+qgLkigGwDMYRGMqLy
+w0KkdDgV7FYUU7ztSfIoaj76bFpLXLFC3jQStAS/i0KHlWGh2vP83t3nFCeLQOAw
+VszUCC0Xj35+czsiCkapkTBl3+CTJM0A5ejg3Lps0GhGc5hhN4kIZLnezfWQcICJ
+r1HMY7to3yBdQ09QpMY7zCb/eGwYkoYgkAdUHu/UhTdC0/x7tJmWpOhBvPf8PCmT
+K05/5AlsrsESGf2KbleId0OXsrC+ZeFLOvhQbao7ixrIgG5oNUHuy5g0RgPBWHH7
+Wfggx2wAGpj5aDo6rse/nFP+kgufyUYsE/3CG7QFak5GiNFQyr9dWxXAMRJ0VTlL
+yYcUUrjnvvWZvGk4Wdqj/pPUnIzCix79u5PN6Q4yOww/NcilRuDL88qZOq9D8J/2
+1s9L2JunZvWYftqpNCU959nfruFMUHYh3IIgiRUnUuDkQfQd5WBnhRpDKiOEz8lE
+STDe6+wgSRXwGIy76eR3Nf5u7JZ0n+/St9Inp0cwOYEPSyEteHe+jpbi492P0J/X
+UwqnLft3Aq5oYdjsfmGTwixYLqqMJm+ozS5r4MY+Snj06b12i7uzSen1bHVNDEJb
+7Ey92sWz6mPiA2VQ5yexWeHPGrozo4b58L+eiIQKRwfREyDh7ja2Fozw9gnA9f+E
+cBv0dLER0KjuEyKZO4k08/hAViF2bYF7EUKKkh+qEL6Qwo7jVDFCC0eU0uQ3XOUQ
+A8Gzd6Lzq2UqghslKvpfr4R7Kr+cvIF01r32j9MbcgQQkK6SZRORirsK6E0kQoQI
+sNVgMbivP0vQEKJxPJ99ldTdaerBwfvxEjDAQqhpBu9C+czHISUqXehF+uF6LhbJ
+PeEauUo8QFLiMXb3cBzOmXH5340JGehAzSECjKzg1EXNgLAATSjQMQ5h/RgUQz+0
+ub9KC9OPHlEpVGMBM+grkl2jpImalw2xbXdN2cH9bQ/rCcTflNoE0S3GhA97lk3z
+hPXETxVu7REiebzQEZsxrj/FA6OwwhrD4HKJ3Ig4tHvDty9EfddvoBbRyTU19Ld8
+QVwY7EQvMqclZZxzjORQQMYjAl5jMbrbzBjRlr+vC4FeFGSqsEPFByGaQxC/cEEn
+zpA+6kVgyfi2sqlfjwDrnj/7edxNeWl+GobrwD9CjgutOqZQtlLHiNlygJzRIi1t
+I8pFkfMXSb18n9fyYInmMYuaKNMVaDlIsDXyvLGQ2RjGi7l5jTTszp8OJb98+914
+sz1qyaRl2ZdstuzLWWuRx6E1MSfDlEeMOsq5PmsTthk3Y+W4cQKDF52kzAq/koFU
+tsyvoSONEpch0ZBM2hzvLyy3ajOxZHkX+GLwwEgS2JLvZbSWtQ79KkSduV3PEZNA
+f2/L4BvHDtBJrQhUgtbHiWjehHfHIuF4Ms7ScIai1VH3ZrYh5qIEtE00uKWwJMRb
+2cZyHCKJltvsHKcwRoVZfU1gCihLfRJMVZHrGCDXWXEkk48FdaLyNOz7b/u5mRdw
+048AthvLR0tkBeREKIGMjTJ+spBmT3xe5Yxwg23JLyd+MMyTKegiDDvV5rACuX7L
+lp506v8JRd60jkAUYDNVo9hAzWR11B3lqz7FMGrIVqZKHdkAyX5cVv8T/C2w9Wov
+Gt7iffB6be9/zuSb+G42ia73sbEfd1gI24FeoWHV/PlcPI8swDktt2Ikbi0VU2B4
+nmBCzounRGlE4flUsDuz0jNxnUq9BaQVWcXJwKh81JcNn3jX0p16m9Woe/IWQTCV
+EA5kChFaKPB3qvGKLRTf0Oy0A3cKbbT6v35RyP0SDdNAAzINNAB02xguYmICQlQ2
+1PhbGClp3sskTXCKmSQHkxE/35yIc/Cr99D07gvnvdWSpNQ3J5z8BNjoe0I1Bs7z
+JEgFzrI0Z/SbQhgDy2beyLFneezj+bO1n2l41o9Hsh7CaHIMMbu7zWykYVXM/qEV
+dTqi8HKQcRrfVOIjPVX8ajT1nugVhb/df1pGDKES1ZaeChlj9c2nMg3Wi48kGKO9
+PcRMEibZZCenFxBBqDxSEdtJIu5BA7vBcxilLyj+HTtrhbQee03jeOwDq1XnfLT1
+ow9NPdBshC94ZQQ/xnXeqfzH7WdiMsdjnvWh98NZjpBquFDU0n9BVb9U5EBX2J1p
+Bl6Fph6MRlAGmcFF7CtLnCsm8WpRZJ4O+uE393kTdSuA7PYDkUNdo9+5MUUsMkZC
+ea6hF6+IXxz72wk72b/Gpa5SEQL67SSDPrBqXl4OANAR2AMJrXLJ9OZSf8/KRJ50
+RFv9obG6WaravJFUC4ZTyPwGVhRsE/VKu/5grAQsKM6nCtkaAYmRyENvsPMgveS0
+CeGj8QLKxW8WnjNo8PlylkCOYKajH7nNpaJwcJndCR1oOkS3PM3966aNTNKj4ZQV
+lz44jMqdXA+FNUBY6Gwg0D8xe5PL4KSSeoE1btMusiN3xtBZn7HfcbW5gFevzlOs
+KjILldGPd4o6Zhb1594A3XPmpp/tHOFCMA8TG8whqiQDBbJaKwWDX756SYgTCRnA
+4SsW0g7qthncrmagzVV9zEG/fxamISDYYvZfdzlwLJDuKErkC/F8igRWr0SIm/d5
+KBR75oK/IZzYLskpyzq6prIy4BekXVzEFf/Afm5IYjqwU8rrzhgJoSmPLqvp8oV+
+N+WjBuPmqKzz3WoNjCcy11UhFtKGP8/eQCB+CLnFDhHYCq4dM3CiDyxclP+a+1Kl
+ifymUa2mEcxUOjAZgc2LEpBL6Y37LadxzEoeGvyDutv+EoH3NFwXIO3hgwQA1V3t
+hN6MRJOYAO8Bjv/SvINe1CvoU3jvaqq281yxq6J/uLNZuZhml7SUKlJ4K0QOgQIC
+Wi0qoeJrL/cG2z3O/nUU7hW4y6sv8jsrafNiH+z4V1D6RAK1+G450QXxnE4Zs2CP
+G/K6YUOkhobpmbUSNtf/ocA7LO3Y0+fQ+vjB2TZU7ICUpZUE+RReCjm3TXKXM45W
+AzlKp9qH4DEWgpVphmDjqebyktb50UlYFktQW6sOIaO44CRxZ6s7ZGqRTxRyGYc5
+Iq0mjGSpCStMB3QMdNJ23FwrCLJmqKQlcE1Y4rbgzMqoW7YLehtEvL2NgITWgM2u
+RLWNz9yYZWTItjzBD40HrQHSslnKnw28pz8owW8OqW+JzvNgqBfDf4P69LpRzM3O
+bEo+hDAFb4zXK2PNmEAwmO8G43SK7HVCm1rNi/5S8qWQw2kd1lS+aD2fZlFheTFZ
+iV0G//RqLIfFLV8oeXZcKm4mAul2dD69jCd6cmXN/ZbSn/F+cDyl9Pftby2Jk8qo
+dAYSD8RDljq+lpcSszQl6XNqEna9zS+e+isdNhSLh9RSHsRNJlilwpa2AAZ3FoDS
+Ag1hj3HHoW42c7fSHEYpXPKdmSyHPm+pot1p8l1jQcouQztdXYD52ODbf7t4tjEo
+1BSkO7QApWMPWsVivuddBBjSZYz3s1zL+vEzPy7TwH22h3KUrj6LlzAsaTcMO92D
+oVM0dAMTftx8MlAgNWrH62tGNlrqaE8CAUoJ0WYUtWra1j0Vr/tWjCsy1QV6iPsf
+x8S4cxGzxFZu1wB/bzNVo2UPsGXV5tIAXzs30DVYI1u5vBJ4ca+WXVGRutBzylY2
+ZkLPNRig0AH4/ncgMGTDn0pNdCgRpKffKpgcI8g+EThvPjIhjUNJHLgQ6CXfaMnX
+LnuWkiTWWGFgQmnFHlIhl40T6R52EHdXweH0pUQ1zwuQwQ6EP3JfnBsWhtGd9WjW
+AC4pqAC9OlPQQ2ZAN4ByLkFr1r7AI88ZjheSu0SnR0x2NRU6LC0CB067dSUEcXOp
+coqNvnjevjr55mUEG1FAgPgvgWl1/PwdiwZUuQ8yE6gPaWMiz/zZ5BYkHYz+Bj4h
+NbqPgTMuwlPZyK9nzPPdfeidjWSYn0mKuS7GEzsRr8y6wh0SCPAyhb62jtuRx/QX
+0WDb6iEC6XQ329pFfWYYdKhSTcGmrqvZp3jekVaomM38KtNxNxpoM3qJXJGBCm/6
+SOf1Qj7en9YMu2ROECjiu7mIPwFnHHXsMM+UC3FDuFdW/qsP5CToKxoeIU2WJir2
+jeg0riWBUOjKewYECb4uOJi1KIt09r7NxcB0pO5jhoqP5gZ8RuSxFeW8e9p5zJSl
+HheDaIrnmEfMulB8na10HxyxAbdfP5QEIUwRWtsvrB2HLs2//mLL5yHNlXBXU1Fq
+uQJAu+24AM4AC12Zqd3KQssIudjk0BxB8Nf8lr2JfOoEpgln9w6yf+snUipcjrSB
+6ymg5hyGw6Liuh8MizI/u8YxSdK1U9Grre58BtWKHwZvxMRTzIo6X1BVZ/dEIFFx
+sEipQc1Mel8SmRt1z82Qld8C1jaleadTueIlrLM5NzpT/qx/DPH+FTqHIw5nGzbw
+Vt0LKUfg+pDzIVO4Bp+hVCKF/myOuNzEsbiIGXyFC0xm3EjlQqAJG8fTp0+PPbUX
+r2TISczU+YRbvX5JMp80ycbP6W4Uo/lO8+mWjJJjS7jZKcsoNgAm02rLOvc7GGDt
+LItQgZNpV2PjbaDyQ175iWtjGSYai2SgkccxabPArE4uajnSCVQsajK48PhELjY8
+jPdZbJgsb3oWDrMiQbiDcuTnINQHoV1YIvW2XihrYlld3Wtwoskor+h/EN9Xe/mC
+CRGJxrgUao6FQaFE+USOfyUaPDV9YOxhfLxc9XUwXnswwWCbKCsMombQgQuzNeRK
+K0tZy/GhDEIhRpSaPUUJP/G0rawjjSntz7jc1/TI0twiVXqPnBRcnp/C7Iaw4QMH
+7ufA4Pn3zOm9zL6Q7eUOmjeXAO65rd3UtbEgMaRRQOnBb2GvGdXrYNMeFC0L9iIC
+mKeHKiF1IvTVkiCDAKSxS8inMwUPWPgei57EtTpLO0yAXe/1QbjMbZqOgVUvpNUh
+N7mmNaBblLRhrHmancyj6lCxpoY5EaC/OwcmWw83EejGH7jzjafYWs21QOc1eLVe
+PPEmFI2QYkVwrXEPj7yrolZ4YlMkwMKeRFYdg0Zqrmw2DDDXeWtN1kO/nAYY010H
+4yC8IA3is7R2FQqtgCy79WQkBRqzKHGzIFh6/pdx/dv0Id+eMUzZkG+5E4WP09XI
+A7id9ZXCLrLab2qc5yMJf2QTFcOsnEncGUDw6gF0ldU8GWc0GzsWzndBPHGZZX8j
+/OFx7yq0EIH9jhSZNomJlfUQ3Rj93YXyb07VoM9l9aTy1gJ84u6UNF/VA/sZxM6D
+LkPF3PKyf4tHueW9H9wfpkin8RzAtIDjqbwalErV6Y4tTHQkXZT9kY6ipM+M6FcQ
+mW8pQ6wrNjqLDTLYpv3iFtnA9naQ7oViGHjDMdyvd7KsxuVABrcN3zdOwdhArgKg
+U1doaQr4R6jXAo9E2g+JetXBdkzDdCXMUINL3k/n+tqNw27oUL3c+eA7vkSIslS/
+YKukouYOecnas3lxTSk6SuRn9khbgMpCANZJOUDoG6oxUmycntbFhTKF3eKpkIDP
+JMIHLFhzAaL3XtcFHrkf/DcY6iDoL68li66LiJ8aWDZXRWjGOqRlpbF6FlL3GqDe
+MItZSIMKpe8K1WsC6XZqt/XbEKLoS2A6Ehxd8CusIB/vrTzWPdexVd9K9BZlUr88
+rDl57DQDiNVYsiHWc40tVbEZYRqiOb0qOVCnKPsU3JT0ro4E/fukQgtxMTNMCDqW
+yQJxs1ayNxNc+twBqdpig0VYKvkPuryL7kIolbQbzymfxaZzZK0XihTiRcU8wBcS
+PaniwvWB7VIyRmE9prv5XCACuxZibK7Vu6vHxhH074qa12BWWCqannEG2aiWs+Ob
+MLZbYU75dDecIgNX1KTMAdxuNb8DhEKS8IOxTg4PjokgvuHuAlLT40v6tz8BO/Rp
+jRHQgKTvej7PQEx6oslN5byLOyeFMlbw1SFujbpY6Q8U7kSxrhzx3AGr8mmYfNzc
+Nl9PpASo3uG8q+N03g/4mEld7xR36fmoHRsBz8+vurwgm4A6LXpQWJzwHWNjA6Hu
+5VacuYzuLxaPuWq570VbH8oqruN+dBMmAH1Xy0EzL0LBkB5EoZNnEHN+D5Q9JGfi
+ehLUeu3e4LO3Wce5WRaYqjmE8Kx4T8tOnJwUsKDTSzFpdFfEqhoz4ZJHFvjQb/k+
+ELO5yDZB6+h2HuG9yrUbj6E3DaJautHTuJOGGpAlA1ivAYIvOm50Okpjo5Ym95sF
+OBw5u4EIzBxOLk7t61g3QsptLqyhTBsecnCiI0MINx+uUNt0TUxW7FW86fCTD55m
+jhdMmE36WNE6vd+0zjJAI3c0yx6x4JOZcp+o/Kv8fAlcS//9qJfP5KnPfS4KB9SF
+sDM61oVSsjM055piBsds7rtPjSgQeISMGTFmclgVNZG+l4RYBgwWcwwBkVJKzBax
+VtEdYrT4JO3jRCJkfl62pa/0+eRfh+IYHPEFF8r4e+wDa5AC4Fdg29rQOl+6UngZ
+hnMCz2g+a8stdbzG66oQf4U94kdMDKK4s2h5SrIu6gQf/TCRpn5/gNP569EFuuKp
+Oj5ocRBGEShVujtPLS5gS3kWtF2P3O+tRVxgQZ3cHBKRGvdvPsOp1aoHfqn/qJ4I
+5ifm7RhsUjMjSnbtuIeyrTiU/Z2pML3v9Yb62Jk+MvPRaq0yPlHs6eT1X1QHDRyE
+35PB0lnkWCHlC9Q60KT/8bO3f6WUfHZFViRZK8ZMGtK7PG9uoFm049vcg3GGkVxt
+qjeWBvroy9kdvGN+d4zCU/D17PLEUVkKo0f59Q4+tbCGRF6Bp08UQ1NUD7Az+HvE
+RzVEGkvMbyavDKKpKWItGWf3wA0loyq27Ec/K+lggOwTWnCN0TdyEAOSG1vDMt0N
+wG0/zmk0qaU8L7QCU9c0NtB2MYZNokHeUXQyU+GSOpM0hjRpijxf9EXcplAbaK9+
+2RB6RxZ2jgA1whu8TLqOv9JH
+-----END AGE ENCRYPTED FILE-----
