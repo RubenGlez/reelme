@@ -106,7 +106,7 @@ If assets are provided, verify each path exists and has a supported extension:
 
 Use repo-relative paths in the brief. The CLI copies referenced `clip.src`, `mobile.screenshot`, and `browser.image` files into the render cache at render time.
 
-Audio choices come from the bundled manifest in `cli/assets/audio/manifest.json`. The CLI copies only the chosen track into the render cache at render time. Default by project tone:
+Audio choices come from the bundled track list (the nine tracks in the tables below; the full list with filenames is in [`references/scene-schemas.md`](references/scene-schemas.md#audio)). The CLI copies only the chosen track into the render cache at render time. Default by project tone:
 
 | tone | default | alternatives |
 |---|---|---|
@@ -184,7 +184,7 @@ Required:
 
 Optional:
 
-- `cuts.vertical` for 9:16 platforms. If omitted, the CLI renders the main cut letterboxed into vertical outputs and warns the user.
+- `cuts.vertical` for 9:16 platforms. If omitted, the CLI re-renders the main cut at 9:16 (responsive re-layout, not letterboxing) and warns; dense wide scenes can cramp, so author a vertical cut when a vertical platform is selected.
 - `cuts.teaser` for additional `<platform>-teaser.mp4` outputs on social platforms. GIF platforms are excluded from teaser rendering.
 - `project.watermark`; defaults to `true`. Set `false` only if the user asks to remove the CTA footer credit.
 - `project.logo`, `font`, `monoFont`, `look`, `bgStyle`, `version`. (`transition` is legacy and ignored; the look drives the edit rhythm.)
@@ -227,9 +227,15 @@ Use `cuts.vertical` whenever any selected platform is `tiktok`, `instagram-reel`
 - Favor `hook`, `problem`, `feature-list`, `stat-callout`, `terminal`, `mobile`, `clip`, and `cta`.
 - Keep captions short and avoid dense file trees, data flows, or long code.
 
-## Step 6: Preview or render
+## Step 6: Validate, then preview or render
 
-Ask:
+After writing `reelme.json`, validate it before anything else — this catches schema, platform, scene-type, missing-field, and asset-extension problems immediately, without waiting for a render:
+
+```bash
+npx reelme validate
+```
+
+Fix any reported problems before continuing. Then ask:
 
 > Preview in Remotion Studio before rendering, or render now?
 >
@@ -314,5 +320,5 @@ Ask the same preview/render question from Step 6, then run `npx reelme studio` o
 - **`mobile` uses `screenshot`, not `image`.** `browser` still uses `image`; `clip` uses `src`.
 - **Teasers render only for non-GIF platforms.** `github-readme` does not get a teaser.
 - **Vertical platforms can fall back to the main cut, but it is lower quality.** Author `cuts.vertical` for TikTok/Reels/Stories whenever possible.
-- **pnpm is required.** The CLI installs render dependencies in the cache on first run and runs `pnpm approve-builds --all` for esbuild.
+- **pnpm is required.** The CLI installs render dependencies in the cache on first run (esbuild's build script is pre-approved in the scaffold's `pnpm-workspace.yaml`).
 - **Node >=18 required.** If dependency install fails, check the user's Node version.

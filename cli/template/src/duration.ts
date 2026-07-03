@@ -1,4 +1,5 @@
-import { BenchmarkScene, ClipScene, FeatureListScene, FileTreeScene, HotkeyScene, OSWindowScene, Scene, StatCalloutScene } from "./brief";
+import { BenchmarkScene, ClipScene, CodeRevealScene, FeatureListScene, FileTreeScene, HotkeyScene, OSWindowScene, Scene, StatCalloutScene, TerminalScene } from "./brief";
+import { CAPTION_HOLD, codeRevealCaptionStart, terminalCaptionStart } from "./timing";
 
 // Hard ceiling for the teaser cut: 10s at 30fps. Renders over the limit
 // succeed, but the CLI prints a prominent warning.
@@ -34,7 +35,16 @@ export function sceneDuration(scene: Scene): number {
     return (s.durationInFrames ?? SCENE_DURATION_MAP.clip) + SCENE_TAIL;
   }
   let content: number;
-  if (scene.type === "feature-list") {
+  if (scene.type === "terminal") {
+    // Long enough to type every command out, then show the caption (F7).
+    const s = scene as TerminalScene;
+    const start = terminalCaptionStart(s);
+    content = s.caption ? start + CAPTION_HOLD : start;
+  } else if (scene.type === "code-reveal") {
+    const s = scene as CodeRevealScene;
+    const start = codeRevealCaptionStart(s);
+    content = s.caption ? start + CAPTION_HOLD : start;
+  } else if (scene.type === "feature-list") {
     const s = scene as FeatureListScene;
     content = 20 + s.items.length * 25 + 60;
   } else if (scene.type === "stat-callout") {

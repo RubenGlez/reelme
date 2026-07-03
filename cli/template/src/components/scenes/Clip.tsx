@@ -8,6 +8,7 @@ import { Caption } from "../primitives/Caption";
 interface Props {
   scene: ClipScene;
   theme: Theme;
+  bottomInset?: number;
 }
 
 const isGif = (src: string) => src.endsWith(".gif");
@@ -22,12 +23,17 @@ const MediaElement: React.FC<{ scene: ClipScene }> = ({ scene }) => {
       />
     );
   }
+  // Stop the source at the requested trim point so the scene's tail doesn't keep
+  // playing past what the brief asked for (F23).
+  const endAt =
+    scene.durationInFrames !== undefined ? (scene.startFrom ?? 0) + scene.durationInFrames : undefined;
   return (
     <OffthreadVideo
       src={staticFile(scene.src)}
       style={{ width: "100%", height: "100%", objectFit: "cover" }}
       muted
       startFrom={scene.startFrom}
+      endAt={endAt}
     />
   );
 };
@@ -79,7 +85,7 @@ const MobileChrome: React.FC<{ children: React.ReactNode; theme: Theme }> = ({ c
   </div>
 );
 
-export const Clip: React.FC<Props> = ({ scene, theme }) => {
+export const Clip: React.FC<Props> = ({ scene, theme, bottomInset = 0 }) => {
   const renderMedia = () => <MediaElement scene={scene} />;
 
   if (scene.frame === "browser") {
@@ -94,7 +100,7 @@ export const Clip: React.FC<Props> = ({ scene, theme }) => {
         }}
       >
         <BrowserChrome theme={theme}>{renderMedia()}</BrowserChrome>
-        {scene.caption && <Caption text={scene.caption} theme={theme} startFrame={30} />}
+        {scene.caption && <Caption text={scene.caption} theme={theme} startFrame={30} bottomInset={bottomInset} />}
       </AbsoluteFill>
     );
   }
@@ -111,7 +117,7 @@ export const Clip: React.FC<Props> = ({ scene, theme }) => {
         }}
       >
         <MobileChrome theme={theme}>{renderMedia()}</MobileChrome>
-        {scene.caption && <Caption text={scene.caption} theme={theme} startFrame={30} />}
+        {scene.caption && <Caption text={scene.caption} theme={theme} startFrame={30} bottomInset={bottomInset} />}
       </AbsoluteFill>
     );
   }

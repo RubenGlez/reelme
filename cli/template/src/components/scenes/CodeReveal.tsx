@@ -4,6 +4,7 @@ import { CodeRevealScene as CodeRevealBrief } from "../../brief";
 import { Theme } from "../../theme";
 import { CodeBlock } from "../primitives/CodeBlock";
 import { Caption } from "../primitives/Caption";
+import { CODE_FRAMES_PER_LINE, CODE_START, codeRevealCaptionStart } from "../../timing";
 
 interface Props {
   scene: CodeRevealBrief;
@@ -12,9 +13,9 @@ interface Props {
 }
 
 export const CodeReveal: React.FC<Props> = ({ scene, theme, bottomInset = 0 }) => {
-  const lines = scene.code.split("\n");
-  // Caption appears after all lines are revealed: startFrame=14, framesPerLine=9, plus 20-frame buffer
-  const captionStart = 14 + lines.length * 9 + 20;
+  // Timing is shared with the duration oracle so the scene lasts long enough for
+  // every line to reveal and the caption to appear (see timing.ts).
+  const captionStart = codeRevealCaptionStart(scene);
 
   return (
     <AbsoluteFill
@@ -32,8 +33,8 @@ export const CodeReveal: React.FC<Props> = ({ scene, theme, bottomInset = 0 }) =
           language={scene.language}
           highlightLine={scene.highlightLine}
           theme={theme}
-          startFrame={14}
-          framesPerLine={9}
+          startFrame={CODE_START}
+          framesPerLine={CODE_FRAMES_PER_LINE}
         />
       </div>
       {scene.caption && <Caption text={scene.caption} theme={theme} startFrame={captionStart} bottomInset={bottomInset} />}

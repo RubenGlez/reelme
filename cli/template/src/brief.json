@@ -61,11 +61,11 @@
         "title": "Sprout Commands",
         "searchQuery": "sprout",
         "items": [
-          { "icon": "play", "label": "sprout dev", "value": "Start dev server + Prisma Studio", "highlighted": true },
+          { "icon": "terminal", "label": "sprout dev", "value": "Start dev server + Prisma Studio", "highlighted": true },
           { "icon": "database", "label": "sprout db:push", "value": "Sync schema to database" },
-          { "icon": "user-check", "label": "sprout auth:setup", "value": "Configure OAuth providers" },
+          { "icon": "key", "label": "sprout auth:setup", "value": "Configure OAuth providers" },
           { "icon": "package", "label": "sprout add", "value": "Add a feature module" },
-          { "icon": "rocket", "label": "sprout deploy", "value": "Deploy to Vercel, Railway, or Fly" }
+          { "icon": "cloud", "label": "sprout deploy", "value": "Deploy to Vercel, Railway, or Fly" }
         ],
         "caption": "Every task is one command away."
       },
@@ -82,8 +82,8 @@
           { "text": "Type-safe API layer with tRPC out of the box", "icon": "shield" },
           { "text": "Auth in one command — email, GitHub, Google", "icon": "lock" },
           { "text": "Database ORM with auto-generated migrations", "icon": "database" },
-          { "text": "CI/CD templates for GitHub Actions baked in", "icon": "git-branch" },
-          { "text": "One-click deploy to Vercel, Fly, or Railway", "icon": "rocket" }
+          { "text": "CI/CD templates for GitHub Actions baked in", "icon": "settings" },
+          { "text": "One-click deploy to Vercel, Fly, or Railway", "icon": "cloud" }
         ],
         "caption": "Start building features on day one."
       },
@@ -117,7 +117,7 @@
         "items": [
           { "text": "Type-safe API layer out of the box", "icon": "shield" },
           { "text": "Auth in one command", "icon": "lock" },
-          { "text": "One-click deploy", "icon": "rocket" }
+          { "text": "One-click deploy", "icon": "cloud" }
         ],
         "caption": "Start building on day one."
       },

@@ -38,8 +38,6 @@ export interface CinematicLook {
   /** Camera amplitude multiplier (1 = default). */
   cameraIntensity: number;
   grade: Grade;
-  /** Default cut style; the rhythm picker varies around it. */
-  transition: TransitionStyle;
   /** Editing energy: higher tightens enter timings and favors hard cuts. */
   energy: number;
   /**
@@ -57,7 +55,7 @@ const LOOKS: Record<LookId, Omit<CinematicLook, "id">> = {
   keynote: {
     glow: 0.5, twoTone: false, vignette: 0.35, grain: 0.04, overlay: "none",
     camera: "push", cameraIntensity: 1, grade: { color: "#ffffff", blend: "soft-light", alpha: 0.05 },
-    transition: "fade", energy: 0.4,
+    energy: 0.4,
     motion: { damping: 22, stiffness: 100, mass: 1.0 },
   },
   // Low-key cinema — deep vignette, cool grade, slow drift, dips to black.
@@ -65,7 +63,7 @@ const LOOKS: Record<LookId, Omit<CinematicLook, "id">> = {
   noir: {
     glow: 0.42, twoTone: true, vignette: 0.62, grain: 0.09, overlay: "dust",
     camera: "drift", cameraIntensity: 1.1, grade: { color: "#2a3550", blend: "multiply", alpha: 0.22 },
-    transition: "dip", energy: 0.35,
+    energy: 0.35,
     motion: { damping: 28, stiffness: 78, mass: 1.4 },
   },
   // Saturated arcade — dual lights, scanlines, snappy whips and zooms.
@@ -73,7 +71,7 @@ const LOOKS: Record<LookId, Omit<CinematicLook, "id">> = {
   arcade: {
     glow: 0.72, twoTone: true, vignette: 0.3, grain: 0.05, overlay: "scanlines",
     camera: "float", cameraIntensity: 1.25, grade: { color: "#ff3da6", blend: "screen", alpha: 0.06 },
-    transition: "whip", energy: 0.85,
+    energy: 0.85,
     motion: { damping: 11, stiffness: 155, mass: 0.7 },
   },
   // Engineering blueprint — cool tint, faint grid, measured pans, mixed cuts.
@@ -81,7 +79,7 @@ const LOOKS: Record<LookId, Omit<CinematicLook, "id">> = {
   blueprint: {
     glow: 0.45, twoTone: false, vignette: 0.42, grain: 0.06, overlay: "grid",
     camera: "pan", cameraIntensity: 1, grade: { color: "#1e3a5f", blend: "soft-light", alpha: 0.12 },
-    transition: "cut", energy: 0.6,
+    energy: 0.6,
     motion: { damping: 30, stiffness: 150, mass: 1.1 },
   },
   // Premium brand film — warm grade, big soft vignette, very slow elegant push.
@@ -89,7 +87,7 @@ const LOOKS: Record<LookId, Omit<CinematicLook, "id">> = {
   editorial: {
     glow: 0.55, twoTone: false, vignette: 0.5, grain: 0.07, overlay: "none",
     camera: "push", cameraIntensity: 0.7, grade: { color: "#ffb27a", blend: "overlay", alpha: 0.08 },
-    transition: "fade", energy: 0.3,
+    energy: 0.3,
     motion: { damping: 26, stiffness: 88, mass: 1.15 },
   },
 };

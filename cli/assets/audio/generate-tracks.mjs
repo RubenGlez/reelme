@@ -204,10 +204,15 @@ for (const track of TRACKS) {
     ],
     { stdio: "inherit" }
   );
-  rmSync(wavPath, { force: true });
+  // Check the encode status before cleaning up. On failure, remove both the
+  // intermediate WAV and any partial/stale MP3 so a broken encode never leaves a
+  // misleading file from this or a previous run on disk.
   if (result.error || result.status !== 0) {
+    rmSync(wavPath, { force: true });
+    rmSync(mp3Path, { force: true });
     process.exitCode = result.status || 1;
     break;
   }
+  rmSync(wavPath, { force: true });
   console.log(`wrote ${mp3Path}`);
 }

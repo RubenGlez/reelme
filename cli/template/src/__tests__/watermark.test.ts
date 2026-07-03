@@ -1,8 +1,5 @@
 import { describe, it, expect } from "vitest";
-
-function showWatermark(watermark: boolean | undefined): boolean {
-  return watermark !== false;
-}
+import { showWatermark } from "../brief";
 
 describe("watermark resolution", () => {
   it("is on by default when undefined", () => {

@@ -5,6 +5,12 @@ import { LookId } from "./cinematic/look";
 // the CLI refuses briefs whose schemaVersion doesn't match.
 export const BRIEF_SCHEMA_VERSION = 2;
 
+// The CTA footer credit shows unless the brief explicitly opts out. Exported so
+// the component and its test share one definition instead of drifting (F22).
+export function showWatermark(watermark: boolean | undefined): boolean {
+  return watermark !== false;
+}
+
 export interface ProjectMeta {
   name: string;
   tagline: string;
@@ -17,15 +23,13 @@ export interface ProjectMeta {
   platforms: PlatformId[];
   /** Bundled CC0 track selection; false disables audio. */
   audio?: { track: string; volume?: number } | false;
-  /** "made with reelme" credit in the CTA footer; default true. (Rendering lands in Phase 2.) */
+  /** "made with reelme" credit in the CTA footer; default true. */
   watermark?: boolean;
   mode?: "intro" | "announcement";
   version?: string;
   logo?: string;
   font?: string;
   monoFont?: string;
-  /** Legacy per-scene transition; superseded by the look's edit rhythm. */
-  transition?: "fade" | "slide" | "zoom";
   bgStyle?: "deep" | "branded" | "light";
   /**
    * Art-direction preset: lighting, camera, grade, grain, and cut rhythm.

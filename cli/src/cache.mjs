@@ -26,6 +26,19 @@ const CLI_VERSION = JSON.parse(
   readFileSync(join(PKG_ROOT, "package.json"), "utf8")
 ).version;
 
+// Cache-invalidation key. The per-render `src/` re-sync keeps scene code fresh,
+// but dependencies and pnpm config only reach an existing cache on a full
+// rebuild — so the marker hashes those files, not just the CLI version (F8).
+// A bumped Remotion version or workspace change now forces a reinstall.
+function templateFingerprint() {
+  const hash = createHash("sha256").update(CLI_VERSION);
+  for (const file of ["package.json", "pnpm-workspace.yaml"]) {
+    const path = join(TEMPLATE_DIR, file);
+    if (existsSync(path)) hash.update(readFileSync(path));
+  }
+  return hash.digest("hex").slice(0, 16);
+}
+
 // Not copied into the cache scaffold (mirrors the old SKILL.md rsync excludes).
 const SCAFFOLD_EXCLUDES = new Set([
   "node_modules",
@@ -46,6 +59,84 @@ export function loadPlatforms() {
   return JSON.parse(
     readFileSync(join(TEMPLATE_DIR, "src", "platforms.json"), "utf8")
   );
+}
+
+// Per-scene contract, mirroring the TypeScript union in template/src/brief.ts.
+// The CLI runs first and owns the error UX, so it validates exhaustively here
+// (F4/F13/F24): a typo'd scene type or a missing required prop is caught with a
+// named error instead of a cryptic NaN duration or crash minutes into Remotion.
+const SCENE_REQUIRED = {
+  problem: ["headline"],
+  "code-reveal": ["language", "code"],
+  terminal: ["commands"],
+  "data-flow": ["nodes", "edges"],
+  cta: ["installCommand", "repoUrl"],
+  browser: ["url"],
+  split: ["before", "after"],
+  "feature-list": ["items"],
+  "stat-callout": ["stats"],
+  "file-tree": ["entries"],
+  mobile: [],
+  "os-window": ["items"],
+  hotkey: ["keys"],
+  hook: ["text"],
+  clip: ["src", "frame"],
+  benchmark: ["bars"],
+};
+const ARRAY_FIELDS = new Set([
+  "commands", "nodes", "edges", "items", "stats", "entries", "keys", "bars",
+]);
+const CLIP_EXTS = ["mp4", "mov", "gif"];
+const IMAGE_EXTS = ["png", "jpg", "jpeg", "webp"];
+
+function extOf(p) {
+  const dot = p.lastIndexOf(".");
+  return dot === -1 ? "" : p.slice(dot + 1).toLowerCase();
+}
+
+function validateScene(scene, where, errors) {
+  if (!scene || typeof scene !== "object") {
+    errors.push(`${where}: scene must be an object.`);
+    return;
+  }
+  const spec = SCENE_REQUIRED[scene.type];
+  if (!spec) {
+    errors.push(
+      `${where}: unknown scene type "${scene.type ?? "(none)"}". Valid types: ${Object.keys(SCENE_REQUIRED).join(", ")}.`
+    );
+    return;
+  }
+  for (const field of spec) {
+    if (scene[field] === undefined || scene[field] === null) {
+      errors.push(`${where} (${scene.type}): missing required field "${field}".`);
+    } else if (ARRAY_FIELDS.has(field) && !Array.isArray(scene[field])) {
+      errors.push(`${where} (${scene.type}): "${field}" must be an array.`);
+    }
+  }
+  // Asset extension checks — the direct-CLI path has no skill to pre-validate.
+  const assetChecks = [
+    ["clip", "src", CLIP_EXTS],
+    ["mobile", "screenshot", IMAGE_EXTS],
+    ["browser", "image", IMAGE_EXTS],
+  ];
+  for (const [type, field, exts] of assetChecks) {
+    if (scene.type === type && typeof scene[field] === "string" && !exts.includes(extOf(scene[field]))) {
+      errors.push(
+        `${where} (${type}): "${field}" must be one of ${exts.join(", ")} (got "${scene[field]}").`
+      );
+    }
+  }
+}
+
+// Empty cut arrays are normalized to absent so a `"vertical": []` behaves like a
+// missing vertical cut everywhere (F3): the CLI and the template agree on the
+// main-cut fallback instead of building a zero-duration composition.
+function normalizeCuts(brief) {
+  for (const key of ["vertical", "teaser"]) {
+    if (Array.isArray(brief.cuts?.[key]) && brief.cuts[key].length === 0) {
+      delete brief.cuts[key];
+    }
+  }
 }
 
 export function readBrief(repoRoot) {
@@ -83,6 +174,17 @@ export function readBrief(repoRoot) {
   if (!Array.isArray(brief.cuts?.main) || brief.cuts.main.length === 0) {
     fail(`cuts.main is missing or empty — the main cut is required.`);
   }
+  normalizeCuts(brief);
+
+  const errors = [];
+  for (const key of ["main", "vertical", "teaser"]) {
+    const cut = brief.cuts[key];
+    if (!Array.isArray(cut)) continue;
+    cut.forEach((scene, i) => validateScene(scene, `cuts.${key}[${i}]`, errors));
+  }
+  if (errors.length > 0) {
+    fail(`reelme.json has ${errors.length} scene problem(s):\n${errors.map((e) => `  ${e}`).join("\n")}`);
+  }
   return brief;
 }
 
@@ -91,8 +193,16 @@ export function projectCacheDir(repoRoot) {
   return join(CACHE_ROOT, hash);
 }
 
+// spawnSync with the pnpm/npx shims resolved on every OS. On Windows those
+// shims are `.cmd` files, which Node's spawnSync can only launch via a shell
+// (and since CVE-2024-27980 that is the only sanctioned route). Elsewhere we
+// avoid the shell so arguments never go through word-splitting.
+export function runShell(command, args, cwd) {
+  return spawnSync(command, args, { cwd, stdio: "inherit", shell: process.platform === "win32" });
+}
+
 function run(command, args, cwd) {
-  const result = spawnSync(command, args, { cwd, stdio: "inherit" });
+  const result = runShell(command, args, cwd);
   if (result.error) fail(`failed to run ${command}: ${result.error.message}`);
   if (result.status !== 0) {
     fail(`${command} ${args.join(" ")} exited with status ${result.status}`);
@@ -105,13 +215,18 @@ function run(command, args, cwd) {
 export function ensureScaffold(repoRoot) {
   const cacheDir = projectCacheDir(repoRoot);
   const versionMarker = join(cacheDir, ".reelme-template-version");
+  const fingerprint = templateFingerprint();
 
-  const stale =
-    existsSync(versionMarker) &&
-    readFileSync(versionMarker, "utf8").trim() !== CLI_VERSION;
-  if (stale) {
+  // A cache with a package.json but a missing or mismatched marker is stale — a
+  // missing marker is treated as stale, not fresh (F8), so half-built or
+  // pre-marker caches always rebuild.
+  const cacheExists = existsSync(join(cacheDir, "package.json"));
+  const markerValue = existsSync(versionMarker)
+    ? readFileSync(versionMarker, "utf8").trim()
+    : null;
+  if (cacheExists && markerValue !== fingerprint) {
     console.log(
-      `reelme: template updated (CLI ${CLI_VERSION}) — rebuilding the cache scaffold.`
+      `reelme: template changed (CLI ${CLI_VERSION}) — rebuilding the cache scaffold.`
     );
     rmSync(cacheDir, { recursive: true, force: true });
   }
@@ -123,7 +238,7 @@ export function ensureScaffold(repoRoot) {
       recursive: true,
       filter: (src) => !SCAFFOLD_EXCLUDES.has(basename(src)),
     });
-    writeFileSync(versionMarker, `${CLI_VERSION}\n`);
+    writeFileSync(versionMarker, `${fingerprint}\n`);
   }
 
   // Re-sync the template source on every render. The version marker only fires
@@ -142,19 +257,33 @@ export function ensureScaffold(repoRoot) {
 
   if (!existsSync(join(cacheDir, "node_modules"))) {
     console.log("reelme: installing render dependencies (first run only)…");
+    // esbuild's build script is pre-approved in template/pnpm-workspace.yaml
+    // (allowBuilds), so `pnpm install` runs it without a blanket approval of
+    // every dependency's scripts (F15) — the supply-chain gate stays closed.
     run("pnpm", ["install"], cacheDir);
-    // esbuild needs its post-install script; pnpm-workspace.yaml persists the approval.
-    run("pnpm", ["approve-builds", "--all"], cacheDir);
   }
 
   return cacheDir;
 }
 
-export function cleanCache() {
-  if (!existsSync(CACHE_ROOT)) {
-    console.log("reelme: cache is already empty.");
+// Removes the current project's cache by default; pass `all` to wipe every
+// project's cache (F16). A moved/renamed repo hashes to a new dir, so `--all`
+// is the way to reclaim orphaned caches.
+export function cleanCache(repoRoot, all = false) {
+  if (all) {
+    if (!existsSync(CACHE_ROOT)) {
+      console.log("reelme: cache is already empty.");
+      return;
+    }
+    rmSync(CACHE_ROOT, { recursive: true, force: true });
+    console.log(`reelme: removed all project caches (${CACHE_ROOT})`);
     return;
   }
-  rmSync(CACHE_ROOT, { recursive: true, force: true });
-  console.log(`reelme: removed ${CACHE_ROOT}`);
+  const cacheDir = projectCacheDir(repoRoot);
+  if (!existsSync(cacheDir)) {
+    console.log("reelme: no cache for this project. Use `reelme clean --all` to wipe every project's cache.");
+    return;
+  }
+  rmSync(cacheDir, { recursive: true, force: true });
+  console.log(`reelme: removed this project's cache (${cacheDir})`);
 }

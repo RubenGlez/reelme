@@ -1,11 +1,7 @@
 {
   "name": "reelme-skill",
   "private": true,
-  "version": "0.1.3",
   "description": "Generate animated explainer videos for any open-source project",
-  "scripts": {
-    "postversion": "git push && git push --tags"
-  },
   "engines": {
     "node": ">=18"
   },

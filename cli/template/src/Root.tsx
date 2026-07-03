@@ -53,7 +53,7 @@ export const Reel: React.FC<ReelProps> = ({ brief, platform, cut }) => {
     cut === "teaser"
       ? brief.cuts.teaser ?? []
       : platform.cut === "vertical"
-        ? brief.cuts.vertical ?? brief.cuts.main
+        ? (brief.cuts.vertical?.length ? brief.cuts.vertical : brief.cuts.main)
         : brief.cuts.main;
 
   let cursor = 0;
@@ -63,6 +63,12 @@ export const Reel: React.FC<ReelProps> = ({ brief, platform, cut }) => {
     cursor += duration;
     return { scene, from, duration };
   });
+
+  // Keep scene content out of the platform's top UI overlay zone (F10). The
+  // Atmosphere still fills the whole frame; only the content band starts below
+  // safeArea.top. The bottom is left at the frame edge because captions manage
+  // their own bottom inset, so this never double-counts.
+  const topInset = platform.safeArea?.top ?? 0;
 
   return (
     <AbsoluteFill style={{ background: theme.bg }}>
@@ -78,15 +84,17 @@ export const Reel: React.FC<ReelProps> = ({ brief, platform, cut }) => {
         />
       ) : null}
 
-      {sequenced.map(({ scene, from, duration }, i) => (
-        <Sequence key={i} from={from} durationInFrames={duration} premountFor={fps}>
-          <Enter style={transitionFor(look, i, sequenced.length)} look={look} fromBlack={i === 0} seed={i}>
-            <Camera look={look} durationInFrames={duration} seed={i} disabled={isGif}>
-              <SceneRenderer scene={scene} theme={theme} project={brief.project} platform={platform} />
-            </Camera>
-          </Enter>
-        </Sequence>
-      ))}
+      <div style={{ position: "absolute", top: topInset, left: 0, right: 0, bottom: 0 }}>
+        {sequenced.map(({ scene, from, duration }, i) => (
+          <Sequence key={i} from={from} durationInFrames={duration} premountFor={fps}>
+            <Enter style={transitionFor(look, i, sequenced.length)} look={look} fromBlack={i === 0} seed={i}>
+              <Camera look={look} durationInFrames={duration} seed={i} disabled={isGif}>
+                <SceneRenderer scene={scene} theme={theme} project={brief.project} platform={platform} />
+              </Camera>
+            </Enter>
+          </Sequence>
+        ))}
+      </div>
 
       {!isGif && <Grain look={look} />}
     </AbsoluteFill>
@@ -132,7 +140,7 @@ const SceneRenderer: React.FC<SceneRendererProps> = ({ scene, theme, project, pl
     case "hook":
       return <Hook scene={scene} theme={theme} platform={platform} />;
     case "clip":
-      return <Clip scene={scene} theme={theme} />;
+      return <Clip scene={scene} theme={theme} bottomInset={bottomInset} />;
     case "benchmark":
       return <Benchmark scene={scene} theme={theme} bottomInset={bottomInset} />;
     default:
