@@ -5,6 +5,28 @@ All notable changes to this project are documented here.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.4.0] - 2026-07-03
+
+### Added
+- `reelme validate` command with exhaustive brief and scene validation, run as a pre-pass before rendering.
+- Per-project `reelme clean` (with `--all`) that prunes stale render output.
+- Composition rebuild of the stat, CTA, feature-list, and mobile scenes on a shared `Stage` root, plus a `Loop` motion primitive and wipe/flip transitions.
+- CLI smoke test suite and a CI job to run it.
+
+### Changed
+- Cache staleness is keyed to a template fingerprint; a missing marker now counts as stale.
+- Studio staging validates assets, audio, and logo before rendering.
+- Smaller GIF output via gifsicle and a lower h264 bitrate.
+
+### Fixed
+- Hardened against path traversal on asset and logo copy, and made pnpm spawns Windows-safe.
+- Scene timing fixes so captions fit, clips honor the bottom inset, and vertical scenes respect `safeArea.top`.
+- Moved `react`/`react-dom` to dependencies and removed the dead `transition` field.
+- Resolved high and critical dependency CVEs.
+
+### Removed
+- Over-broad `approve-builds --all` and a dangerous root `postversion` script.
+
 ## [0.3.0] - 2026-06-24
 
 ### Added
