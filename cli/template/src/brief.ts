@@ -18,11 +18,21 @@ export interface ProjectMeta {
   installCommand: string;
   repoUrl: string;
   primaryColor: string;
+  /**
+   * Second brand hue for backdrops and gradients (taken from the project's
+   * logo or site). Without it one is derived from primaryColor — a real brand
+   * pair reads noticeably less generic than a derived one.
+   */
+  secondaryColor?: string;
   tone: "professional" | "playful" | "technical";
   /** Publishing targets; required, at least one. Presets derive dimensions. */
   platforms: PlatformId[];
-  /** Bundled CC0 track selection; false disables audio. */
-  audio?: { track: string; volume?: number } | false;
+  /**
+   * Bundled CC0 track selection; false disables audio (music, SFX, and beat
+   * quantization together). `bpm` is injected by the CLI from the audio
+   * manifest at stage time — briefs don't set it by hand.
+   */
+  audio?: { track: string; volume?: number; bpm?: number } | false;
   /** "made with reelme" credit in the CTA footer; default true. */
   watermark?: boolean;
   mode?: "intro" | "announcement";
@@ -198,6 +208,18 @@ export interface HotkeyScene {
   caption?: string;
 }
 
+export interface CustomScene {
+  type: "custom";
+  /**
+   * Repo-relative path to a bespoke scene component (a .tsx default export),
+   * usually authored by the skill for THIS project's one differentiating
+   * moment. The CLI stages the file and registers it (custom-scenes.ts).
+   */
+  component: string;
+  durationInFrames: number;
+  caption?: string;
+}
+
 export interface HookScene {
   type: "hook";
   text: string;
@@ -245,7 +267,8 @@ export type Scene =
   | HotkeyScene
   | HookScene
   | BenchmarkScene
-  | ClipScene;
+  | ClipScene
+  | CustomScene;
 
 export interface Cuts {
   /** The full narrative arc. Always required. */

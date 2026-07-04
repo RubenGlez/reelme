@@ -28,7 +28,7 @@ function getName(path: string): string {
 }
 
 const FolderIcon: React.FC<{ color: string }> = ({ color }) => (
-  <svg width="18" height="18" viewBox="0 0 18 18" fill="none">
+  <svg width="24" height="24" viewBox="0 0 18 18" fill="none">
     <path
       d="M1 4.5C1 3.67 1.67 3 2.5 3H7L9 5h6.5c.83 0 1.5.67 1.5 1.5v7c0 .83-.67 1.5-1.5 1.5h-13C1.67 15 1 14.33 1 13.5v-9z"
       fill={color}
@@ -38,7 +38,7 @@ const FolderIcon: React.FC<{ color: string }> = ({ color }) => (
 );
 
 const FileIcon: React.FC<{ color: string }> = ({ color }) => (
-  <svg width="15" height="18" viewBox="0 0 15 18" fill="none">
+  <svg width="20" height="24" viewBox="0 0 15 18" fill="none">
     <path d="M2 1h8l4 4v12a1 1 0 01-1 1H2a1 1 0 01-1-1V2a1 1 0 011-1z" stroke={color} strokeWidth="1.5" fill="none" />
     <path d="M9 1v5h5" stroke={color} strokeWidth="1.5" />
   </svg>
@@ -62,12 +62,28 @@ export const FileTree: React.FC<Props> = ({ scene, theme, bottomInset = 0 }) => 
       }}
     >
       {scene.headline && (
-        <div style={{ marginBottom: 48, alignSelf: "flex-start" }}>
-          <Label text={scene.headline} theme={theme} size="lg" startFrame={0} align="left" />
+        <div style={{ marginBottom: 48 }}>
+          <Label text={scene.headline} theme={theme} size="lg" startFrame={0} align="center" />
         </div>
       )}
 
-      <div style={{ display: "flex", flexDirection: "column", gap: 2, width: "100%" }}>
+      {/* The tree lives in a real panel (solid surface, brand-lit) so it has
+          graphic mass — a bare list of faint rows floating on the stage reads
+          as a wireframe, not a shot. */}
+      <div
+        style={{
+          display: "flex",
+          flexDirection: "column",
+          gap: 6,
+          minWidth: 560,
+          maxWidth: "100%",
+          background: theme.surface,
+          border: `1px solid ${theme.border}`,
+          borderRadius: 16,
+          padding: "32px 40px",
+          boxShadow: `0 30px 90px -18px ${theme.accent}59, 0 24px 60px rgba(0,0,0,0.45)`,
+        }}
+      >
         {scene.entries.map((entry, i) => {
           const entryStart = HEADLINE_FRAMES + i * FRAMES_PER_ENTRY;
           const progress = spring({
@@ -107,7 +123,7 @@ export const FileTree: React.FC<Props> = ({ scene, theme, bottomInset = 0 }) => 
               <span
                 style={{
                   fontFamily: theme.fontMono,
-                  fontSize: 22,
+                  fontSize: 30,
                   fontWeight: isDir ? 600 : 400,
                   color: textColor,
                   letterSpacing: "-0.01em",

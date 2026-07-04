@@ -10,11 +10,14 @@ interface ArrowProps {
   label?: string;
   theme: Theme;
   startFrame?: number;
+  /** Line weight; supporting graphics need real presence at video size. */
+  strokeWidth?: number;
+  labelSize?: number;
 }
 
-const ARROW_HEAD_SIZE = 10;
+const ARROW_HEAD_SIZE = 14;
 
-export const Arrow: React.FC<ArrowProps> = ({ x1, y1, x2, y2, label, theme, startFrame = 0 }) => {
+export const Arrow: React.FC<ArrowProps> = ({ x1, y1, x2, y2, label, theme, startFrame = 0, strokeWidth = 3.5, labelSize = 22 }) => {
   const frame = useCurrentFrame();
   const { fps } = useVideoConfig();
   const elapsed = frame - startFrame;
@@ -50,7 +53,7 @@ export const Arrow: React.FC<ArrowProps> = ({ x1, y1, x2, y2, label, theme, star
         x2={x2short}
         y2={y2short}
         stroke={theme.accent}
-        strokeWidth={2.5}
+        strokeWidth={strokeWidth}
         strokeDasharray={len}
         strokeDashoffset={dashOffset}
         strokeLinecap="round"
@@ -68,9 +71,9 @@ export const Arrow: React.FC<ArrowProps> = ({ x1, y1, x2, y2, label, theme, star
       {label && progress > 0.5 && (
         <text
           x={midX}
-          y={midY - 10}
+          y={midY - 14}
           fill={theme.textMuted}
-          fontSize={15}
+          fontSize={labelSize}
           textAnchor="middle"
           fontFamily={theme.fontSans}
           opacity={interpolate(progress, [0.5, 1], [0, 1])}

@@ -19,6 +19,10 @@ describe("audio manifest", () => {
       expect(entry.source).toMatch(/^https:\/\//);
       expect(["CC0", "CC-BY"]).toContain(entry.license);
       expect(entry.tones.length).toBeGreaterThan(0);
+      // Beat quantization needs a real tempo for every track (cache.mjs
+      // injects it into the staged brief at render time).
+      expect(entry.bpm).toBeGreaterThanOrEqual(60);
+      expect(entry.bpm).toBeLessThanOrEqual(200);
       expect(existsSync(join(audioDir, entry.file))).toBe(true);
       expect(statSync(join(audioDir, entry.file)).size).toBeLessThanOrEqual(2 * 1024 * 1024);
       if (entry.license !== "CC0") {

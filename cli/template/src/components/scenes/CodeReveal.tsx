@@ -27,16 +27,14 @@ export const CodeReveal: React.FC<Props> = ({ scene, theme, bottomInset = 0 }) =
         padding: "60px 100px",
       }}
     >
-      <div style={{ width: "100%" }}>
-        <CodeBlock
-          code={scene.code}
-          language={scene.language}
-          highlightLine={scene.highlightLine}
-          theme={theme}
-          startFrame={CODE_START}
-          framesPerLine={CODE_FRAMES_PER_LINE}
-        />
-      </div>
+      <CodeBlock
+        code={scene.code}
+        language={scene.language}
+        highlightLine={scene.highlightLine}
+        theme={theme}
+        startFrame={CODE_START}
+        framesPerLine={CODE_FRAMES_PER_LINE}
+      />
       {scene.caption && <Caption text={scene.caption} theme={theme} startFrame={captionStart} bottomInset={bottomInset} />}
     </AbsoluteFill>
   );

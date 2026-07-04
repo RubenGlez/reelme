@@ -2,12 +2,14 @@ import React from "react";
 import { AbsoluteFill, useCurrentFrame, useVideoConfig, spring, interpolate, Img, staticFile } from "remotion";
 import { MobileScene as MobileBrief } from "../../brief";
 import { Theme } from "../../theme";
+import { PlatformPreset } from "../../platforms";
 import { Caption } from "../primitives/Caption";
 import { Icon } from "../primitives/Icon";
 
 interface Props {
   scene: MobileBrief;
   theme: Theme;
+  platform?: PlatformPreset;
   bottomInset?: number;
 }
 
@@ -16,7 +18,7 @@ const PHONE_H = 808;
 const NOTCH_H = 32;
 const RADIUS = 46;
 
-export const MobileScreen: React.FC<Props> = ({ scene, theme, bottomInset = 0 }) => {
+export const MobileScreen: React.FC<Props> = ({ scene, theme, platform, bottomInset = 0 }) => {
   const frame = useCurrentFrame();
   const { fps, width, height } = useVideoConfig();
   const portrait = height > width;
@@ -50,7 +52,7 @@ export const MobileScreen: React.FC<Props> = ({ scene, theme, bottomInset = 0 })
       }}
     >
       <div style={{ scale: String(enterScale * fit), transformOrigin: "top left" }}>
-        <PhoneFrame scene={scene} theme={theme} frame={frame} fps={fps} />
+        <PhoneFrame scene={scene} theme={theme} frame={frame} fps={fps} isGif={platform?.output.codec === "gif"} />
       </div>
     </div>
   );
@@ -159,7 +161,7 @@ const CopyColumn: React.FC<{
 };
 
 /** The fixed-size device. Scaled to the frame by its parent. */
-const PhoneFrame: React.FC<{ scene: MobileBrief; theme: Theme; frame: number; fps: number }> = ({ scene, theme, frame, fps }) => {
+const PhoneFrame: React.FC<{ scene: MobileBrief; theme: Theme; frame: number; fps: number; isGif?: boolean }> = ({ scene, theme, frame, fps, isGif }) => {
   return (
     <div
       style={{
@@ -168,7 +170,7 @@ const PhoneFrame: React.FC<{ scene: MobileBrief; theme: Theme; frame: number; fp
         borderRadius: RADIUS,
         border: `3px solid ${theme.border}`,
         background: theme.surface,
-        boxShadow: `0 50px 120px rgba(0,0,0,0.6), inset 0 0 0 1px rgba(255,255,255,0.05)`,
+        boxShadow: `0 30px 100px -20px ${theme.accent}59, 0 50px 120px rgba(0,0,0,0.6), inset 0 0 0 1px rgba(255,255,255,0.05)`,
         position: "relative",
         overflow: "hidden",
       }}
@@ -237,7 +239,9 @@ const PhoneFrame: React.FC<{ scene: MobileBrief; theme: Theme; frame: number; fp
         {/* Content */}
         <div style={{ flex: 1, overflow: "hidden", position: "relative" }}>
           {scene.screenshot ? (
-            <KenBurns frame={frame}>
+            // Frozen for gif: a moving screenshot re-encodes the whole screen
+            // area every frame and balloons the file.
+            <KenBurns frame={isGif ? 0 : frame}>
               <Img
                 src={staticFile(scene.screenshot)}
                 style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }}

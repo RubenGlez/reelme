@@ -12,7 +12,12 @@ interface Props {
 
 export const SplitComparison: React.FC<Props> = ({ scene, theme, bottomInset = 0 }) => {
   const frame = useCurrentFrame();
-  const { fps } = useVideoConfig();
+  const { fps, width, height } = useVideoConfig();
+  // On portrait frames the before/after stack vertically — two panels squeezed
+  // side by side into a 1080-wide frame waste the whole vertical canvas and
+  // read as thumbnails (gallery feedback). The panels then slide in along the
+  // stacking axis.
+  const portrait = height > width;
 
   const leftProgress = spring({ frame, fps, config: theme.motion });
   const rightProgress = spring({ frame: frame - 12, fps, config: theme.motion });
@@ -35,7 +40,7 @@ export const SplitComparison: React.FC<Props> = ({ scene, theme, bottomInset = 0
       style={{
         flex: 1,
         opacity,
-        translate: `${x}px 0`,
+        translate: portrait ? `0 ${x}px` : `${x}px 0`,
         display: "flex",
         flexDirection: "column",
         gap: 18,
@@ -85,21 +90,43 @@ export const SplitComparison: React.FC<Props> = ({ scene, theme, bottomInset = 0
         display: "flex",
         alignItems: "center",
         justifyContent: "center",
-        padding: "0 100px",
+        padding: portrait ? "0 120px" : "0 100px",
       }}
     >
-      <div style={{ display: "flex", width: "100%", maxWidth: 1500, alignItems: "stretch", gap: 0 }}>
+      <div
+        style={{
+          display: "flex",
+          flexDirection: portrait ? "column" : "row",
+          width: "100%",
+          maxWidth: portrait ? 840 : 1500,
+          alignItems: "stretch",
+          gap: 0,
+        }}
+      >
         <Panel label={scene.before.label} content={scene.before.content} accent={false} opacity={leftOpacity} x={leftX} />
-        <div
-          style={{
-            width: 2,
-            alignSelf: "center",
-            height: 200,
-            background: theme.border,
-            margin: "44px 36px 0",
-            opacity: dividerOpacity,
-          }}
-        />
+        {portrait ? (
+          <div
+            style={{
+              height: 2,
+              alignSelf: "center",
+              width: 220,
+              background: theme.border,
+              margin: "40px 0",
+              opacity: dividerOpacity,
+            }}
+          />
+        ) : (
+          <div
+            style={{
+              width: 2,
+              alignSelf: "center",
+              height: 200,
+              background: theme.border,
+              margin: "44px 36px 0",
+              opacity: dividerOpacity,
+            }}
+          />
+        )}
         <Panel label={scene.after.label} content={scene.after.content} accent opacity={rightOpacity} x={rightX} />
       </div>
 

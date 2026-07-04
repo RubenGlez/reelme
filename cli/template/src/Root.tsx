@@ -3,13 +3,15 @@ import { AbsoluteFill, Audio, Sequence, staticFile, useVideoConfig } from "remot
 import { Brief, ProjectMeta, Scene } from "./brief";
 import { PlatformPreset } from "./platforms";
 import { buildTheme } from "./theme";
-import { sceneDuration } from "./duration";
+import { sceneDurationsOnGrid } from "./duration";
 import { audioVolume } from "./audio";
-import { resolveLook } from "./cinematic/look";
+import { resolveLook, TransitionStyle } from "./cinematic/look";
 import { Atmosphere, Grain } from "./cinematic/Atmosphere";
 import { Camera } from "./cinematic/Camera";
 import { Enter, transitionFor } from "./cinematic/transitions";
 import "./fonts";
+import { CUSTOM_SCENES } from "./custom-scenes";
+import { Caption } from "./components/primitives/Caption";
 import { Problem } from "./components/scenes/Problem";
 import { CodeReveal } from "./components/scenes/CodeReveal";
 import { TerminalScene } from "./components/scenes/TerminalScene";
@@ -41,11 +43,12 @@ export const Reel: React.FC<ReelProps> = ({ brief, platform, cut }) => {
   // The look owns motion personality: override the tone-derived default so every
   // scene's springs (which read theme.motion) inherit the look's physics.
   const theme = {
-    ...buildTheme(brief.project.primaryColor || "#6366f1", brief.project.font, brief.project.monoFont, brief.project.tone, brief.project.bgStyle),
+    ...buildTheme(brief.project.primaryColor || "#6366f1", brief.project.font, brief.project.monoFont, brief.project.tone, brief.project.bgStyle, brief.project.secondaryColor),
     motion: look.motion,
   };
   const isGif = platform.output.codec === "gif";
   const shouldRenderAudio = !isGif && Boolean(brief.project.audio);
+  const bpm = brief.project.audio ? brief.project.audio.bpm : undefined;
 
   // Cut selection: teaser when requested, otherwise the cut named by the
   // platform preset, falling back to main when vertical is absent.
@@ -56,10 +59,13 @@ export const Reel: React.FC<ReelProps> = ({ brief, platform, cut }) => {
         ? (brief.cuts.vertical?.length ? brief.cuts.vertical : brief.cuts.main)
         : brief.cuts.main;
 
+  // Cut timing on the music's beat grid (falls back to natural durations when
+  // no track/bpm) — the same grid index.ts used for the composition length.
+  const durations = sceneDurationsOnGrid(scenes, fps, bpm);
   let cursor = 0;
-  const sequenced = scenes.map((scene) => {
+  const sequenced = scenes.map((scene, i) => {
     const from = cursor;
-    const duration = sceneDuration(scene);
+    const duration = durations[i];
     cursor += duration;
     return { scene, from, duration };
   });
@@ -96,10 +102,56 @@ export const Reel: React.FC<ReelProps> = ({ brief, platform, cut }) => {
         ))}
       </div>
 
+      {/* Cut SFX: a subtle cue under each transition makes the edit tactile.
+          The end-card gets a rise that starts BEFORE its cut so the swell
+          lands on the arrival, not after it. */}
+      {shouldRenderAudio &&
+        sequenced.map(({ from }, i) => {
+          if (i === 0) return null;
+          const isLast = i === sequenced.length - 1;
+          const style = transitionFor(look, i, sequenced.length);
+          const sfx = isLast ? null : cutSfx(style);
+          if (isLast) {
+            return (
+              <Sequence key={`sfx-${i}`} from={Math.max(0, from - 18)} durationInFrames={40}>
+                <Audio src={staticFile("audio/sfx/rise.mp3")} volume={0.5} />
+              </Sequence>
+            );
+          }
+          if (!sfx) return null;
+          return (
+            <Sequence key={`sfx-${i}`} from={from} durationInFrames={20}>
+              <Audio src={staticFile(`audio/sfx/${sfx.file}`)} volume={sfx.volume} />
+            </Sequence>
+          );
+        })}
+
       {!isGif && <Grain look={look} />}
     </AbsoluteFill>
   );
 };
+
+/**
+ * Which cue a transition earns. Fast lateral cuts get air (whoosh); settle
+ * cuts get a soft knock; hard cuts stay silent — silence is also a cue.
+ */
+function cutSfx(style: TransitionStyle): { file: string; volume: number } | null {
+  switch (style) {
+    case "whip":
+    case "wipe":
+    case "flip":
+      return { file: "whoosh.mp3", volume: 0.4 };
+    case "punch":
+    case "zoom":
+      return { file: "pop.mp3", volume: 0.45 };
+    case "rise":
+    case "fade":
+    case "dip":
+      return { file: "pop.mp3", volume: 0.25 };
+    default:
+      return null;
+  }
+}
 
 interface SceneRendererProps {
   scene: Scene;
@@ -122,7 +174,7 @@ const SceneRenderer: React.FC<SceneRendererProps> = ({ scene, theme, project, pl
     case "cta":
       return <CTA scene={scene} theme={theme} project={project} platform={platform} bottomInset={bottomInset} />;
     case "browser":
-      return <BrowserFrame scene={scene} theme={theme} bottomInset={bottomInset} />;
+      return <BrowserFrame scene={scene} theme={theme} platform={platform} bottomInset={bottomInset} />;
     case "split":
       return <SplitComparison scene={scene} theme={theme} bottomInset={bottomInset} />;
     case "feature-list":
@@ -132,7 +184,7 @@ const SceneRenderer: React.FC<SceneRendererProps> = ({ scene, theme, project, pl
     case "file-tree":
       return <FileTree scene={scene} theme={theme} bottomInset={bottomInset} />;
     case "mobile":
-      return <MobileScreen scene={scene} theme={theme} bottomInset={bottomInset} />;
+      return <MobileScreen scene={scene} theme={theme} platform={platform} bottomInset={bottomInset} />;
     case "os-window":
       return <OSWindow scene={scene} theme={theme} bottomInset={bottomInset} />;
     case "hotkey":
@@ -143,6 +195,22 @@ const SceneRenderer: React.FC<SceneRendererProps> = ({ scene, theme, project, pl
       return <Clip scene={scene} theme={theme} bottomInset={bottomInset} />;
     case "benchmark":
       return <Benchmark scene={scene} theme={theme} bottomInset={bottomInset} />;
+    case "custom": {
+      const Custom = CUSTOM_SCENES[scene.component];
+      if (!Custom) {
+        // The CLI stages and registers referenced components; reaching this
+        // means a direct-render path skipped staging. Fail soft on one scene
+        // rather than killing the whole reel.
+        console.warn(`reelme: custom scene component not registered: ${scene.component}`);
+        return null;
+      }
+      return (
+        <>
+          <Custom theme={theme} project={project} platform={platform} bottomInset={bottomInset} caption={scene.caption} />
+          {scene.caption && <Caption text={scene.caption} theme={theme} startFrame={40} bottomInset={bottomInset} />}
+        </>
+      );
+    }
     default:
       return null;
   }

@@ -7,30 +7,105 @@
     "installCommand": "npx create-expo-app@latest",
     "repoUrl": "github.com/expo/expo",
     "primaryColor": "#4630eb",
+    "secondaryColor": "#7c3aed",
     "tone": "professional",
     "look": "keynote",
     "mode": "intro",
     "bgStyle": "light",
-    "platforms": ["github-readme", "instagram-feed", "instagram-story", "tiktok"],
-    "audio": { "track": "clean-horizon.mp3" },
+    "platforms": [
+      "github-readme",
+      "instagram-feed",
+      "instagram-story",
+      "tiktok"
+    ],
+    "audio": {
+      "track": "clean-horizon.mp3"
+    },
     "watermark": true,
     "logo": "logo.png"
   },
   "cuts": {
     "main": [
-      { "type": "problem", "hero": true, "align": "left", "kicker": "Expo", "headline": "One codebase. iOS, Android, and web." },
-      { "type": "mobile", "title": "my-app", "headline": "One React codebase, truly native apps.", "points": ["iOS and Android from one project", "Native performance, no compromises", "Live preview on a real device"], "caption": "The same React code, running natively." },
-      { "type": "feature-list", "align": "left", "headline": "Ship without the native headache", "items": [ { "text": "Over-the-air updates, no app-store wait", "icon": "cloud" }, { "text": "Native modules without opening Xcode", "icon": "package" }, { "text": "One command to build and submit", "icon": "upload" } ] },
-      { "type": "cta", "installCommand": "npx create-expo-app@latest", "repoUrl": "github.com/expo/expo", "caption": "Build once, run everywhere." }
+      {
+        "type": "problem",
+        "hero": true,
+        "align": "left",
+        "kicker": "Expo",
+        "headline": "One codebase. iOS, Android, and web."
+      },
+      {
+        "type": "mobile",
+        "title": "my-app",
+        "headline": "One React codebase, truly native apps.",
+        "points": [
+          "iOS and Android from one project",
+          "Native performance, no compromises",
+          "Live preview on a real device"
+        ],
+        "caption": "The same React code, running natively.",
+        "screenshot": "app-shot.png"
+      },
+      {
+        "type": "feature-list",
+        "align": "left",
+        "headline": "Ship without the native headache",
+        "items": [
+          {
+            "text": "Over-the-air updates, no app-store wait",
+            "icon": "cloud"
+          },
+          {
+            "text": "Native modules without opening Xcode",
+            "icon": "package"
+          },
+          {
+            "text": "One command to build and submit",
+            "icon": "upload"
+          }
+        ]
+      },
+      {
+        "type": "cta",
+        "installCommand": "npx create-expo-app@latest",
+        "repoUrl": "github.com/expo/expo",
+        "caption": "Build once, run everywhere."
+      }
     ],
     "vertical": [
-      { "type": "hook", "kicker": "Expo", "text": "iOS, Android, and web from one codebase.", "accent": "one codebase." },
-      { "type": "mobile", "title": "my-app", "headline": "One codebase, truly native.", "points": ["iOS + Android from one project", "Native performance"], "caption": "The same React code, running natively." },
-      { "type": "cta", "installCommand": "npx create-expo-app@latest", "repoUrl": "github.com/expo/expo" }
+      {
+        "type": "hook",
+        "kicker": "Expo",
+        "text": "iOS, Android, and web from one codebase.",
+        "accent": "one codebase."
+      },
+      {
+        "type": "mobile",
+        "title": "my-app",
+        "headline": "One codebase, truly native.",
+        "points": [
+          "iOS + Android from one project",
+          "Native performance"
+        ],
+        "caption": "The same React code, running natively.",
+        "screenshot": "app-shot.png"
+      },
+      {
+        "type": "cta",
+        "installCommand": "npx create-expo-app@latest",
+        "repoUrl": "github.com/expo/expo"
+      }
     ],
     "teaser": [
-      { "type": "hook", "text": "Native apps, without the native setup.", "accent": "without" },
-      { "type": "cta", "installCommand": "npx create-expo-app@latest", "repoUrl": "github.com/expo/expo" }
+      {
+        "type": "hook",
+        "text": "Native apps, without the native setup.",
+        "accent": "without"
+      },
+      {
+        "type": "cta",
+        "installCommand": "npx create-expo-app@latest",
+        "repoUrl": "github.com/expo/expo"
+      }
     ]
   }
 }

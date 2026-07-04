@@ -1,5 +1,5 @@
 import React from "react";
-import { AbsoluteFill, useCurrentFrame, interpolate } from "remotion";
+import { AbsoluteFill, useCurrentFrame, interpolate, Easing } from "remotion";
 import { CinematicLook } from "./look";
 
 interface Props {
@@ -12,34 +12,46 @@ interface Props {
   children: React.ReactNode;
 }
 
+// The arrival window: how long the camera keeps settling after the cut before
+// coming to a complete rest, as a fraction of the scene (capped in frames).
+const SETTLE_FRACTION = 0.55;
+const SETTLE_MAX_FRAMES = 90;
+
 /**
- * A virtual camera over a scene's content. Movement is pure zoom — in, out, or a
- * gentle breathe — anchored to the center so the composition never slides
- * sideways. Amplitudes are small so the frame breathes without softening text.
+ * A virtual camera over a scene's content. Each shot ARRIVES with a slow zoom
+ * that eases to a complete rest, then holds perfectly still. A zoom that runs
+ * for the whole scene re-rasterizes crisp text at a new sub-pixel scale every
+ * frame, which reads as a constant vibration on bold type — so all movement is
+ * front-loaded into the arrival while the eye is still adjusting to the cut,
+ * and the hold (where the viewer actually reads) stays rock solid. Zoom only,
+ * anchored to center, so the composition never slides sideways.
  */
 export const Camera: React.FC<Props> = ({ look, durationInFrames, seed, disabled, children }) => {
   const frame = useCurrentFrame();
   if (disabled) return <AbsoluteFill>{children}</AbsoluteFill>;
+  void seed;
 
-  const p = interpolate(frame, [0, durationInFrames], [0, 1], {
+  const settleFrames = Math.min(Math.round(durationInFrames * SETTLE_FRACTION), SETTLE_MAX_FRAMES);
+  const p = interpolate(frame, [0, settleFrames], [0, 1], {
     extrapolateLeft: "clamp",
     extrapolateRight: "clamp",
+    easing: Easing.out(Easing.cubic),
   });
   const k = look.cameraIntensity;
 
   let scale = 1;
   switch (look.camera) {
     case "push":
-      scale = interpolate(p, [0, 1], [1.0, 1 + 0.05 * k]); // slow zoom in
+      scale = interpolate(p, [0, 1], [1 - 0.045 * k, 1.0]); // slow zoom in to rest
       break;
     case "drift":
-      scale = interpolate(p, [0, 1], [1.0, 1 + 0.03 * k]); // gentle zoom in
+      scale = interpolate(p, [0, 1], [1 - 0.03 * k, 1.0]); // gentle zoom in to rest
       break;
     case "pan":
-      scale = interpolate(p, [0, 1], [1 + 0.05 * k, 1.0]); // slow zoom out
+      scale = interpolate(p, [0, 1], [1 + 0.03 * k, 1.0]); // slow zoom out to rest
       break;
     case "float":
-      scale = 1 + (0.02 + 0.015 * Math.sin(frame / 42 + seed)) * k; // subtle breathe
+      scale = interpolate(p, [0, 1], [1 - 0.02 * k, 1.0]); // soft zoom in to rest
       break;
     case "still":
     default:

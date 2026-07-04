@@ -108,6 +108,7 @@ If a vertical platform is selected and `cuts.vertical` is missing, the CLI re-re
   installCommand: string;
   repoUrl: string;
   primaryColor: string;
+  secondaryColor?: string; // second brand hue for backdrops/gradients; derived from primaryColor when absent
   tone: "professional" | "playful" | "technical";
   platforms: PlatformId[];
   audio?: { track: string; volume?: number } | false;
@@ -149,6 +150,8 @@ The full bundled track list (set `project.audio.track` to one of these filenames
 
 Tone defaults: professional → Calm Keys, playful → Bright Sparks, technical → Circuit Pulse. The CLI validates `project.audio.track` against this list and copies only the chosen file into the render cache. GIF outputs do not include audio.
 
+When a track is chosen, scene cuts are quantized to the track's beat grid (the CLI injects the track's BPM into the render), and subtle self-synthesized SFX play under scene transitions. Setting `audio: false` disables the music, the SFX, and the beat quantization together.
+
 ### Fonts
 
 `font` options: `Inter`, `Space Grotesk`, `DM Sans`, `Syne`, `Plus Jakarta Sans`, `Nunito`, `IBM Plex Sans`
@@ -185,7 +188,7 @@ Edit rhythm and transitions are driven entirely by `project.look` — there is n
 
 Valid scene types:
 
-`problem` · `feature-list` · `code-reveal` · `terminal` · `data-flow` · `split` · `browser` · `stat-callout` · `benchmark` · `file-tree` · `mobile` · `os-window` · `hotkey` · `hook` · `clip` · `cta`
+`problem` · `feature-list` · `code-reveal` · `terminal` · `data-flow` · `split` · `browser` · `stat-callout` · `benchmark` · `file-tree` · `mobile` · `os-window` · `hotkey` · `hook` · `clip` · `custom` · `cta`
 
 Every scene except `hook` can include `caption?: string`. Captions should be 5-10 words and state the takeaway, not describe the pixels.
 
@@ -425,6 +428,37 @@ Use in vertical and teaser cuts, and as a strong 16:9/1:1 opener. Keep `text` sh
 ```
 
 `src` is a repo-relative `mp4`, `mov`, or `gif`. `frame` is `browser`, `mobile`, or `none`. `startFrom` and `durationInFrames` are frame counts.
+
+### `custom`
+
+```json
+{
+  "type": "custom",
+  "component": "reelme-scenes/pipeline.tsx",
+  "durationInFrames": 150,
+  "caption": "One brief. Every platform."
+}
+```
+
+A bespoke scene YOU author for this specific project — reserved for the one
+differentiating moment no stock scene can express (an animated diagram of the
+project's core idea, a signature visual). `component` is a repo-relative
+`.tsx` file with a default-exported React component; the CLI stages it and
+registers it at render time.
+
+Authoring rules (the component is copied to `src/custom/` in the render
+project, so template imports are one level up):
+
+- Default-export a component taking `CustomSceneProps` from
+  `"../custom-scenes"` (`theme`, `project`, `platform`, `bottomInset`).
+- Build on `"../components/primitives/Stage"` — never paint an opaque
+  full-frame background (the film's continuous backdrop must show through).
+- Use `theme` colors/fonts only; use `spring({ config: theme.motion })` so
+  motion inherits the look; no infinite loops or oscillation during holds.
+- Respect the type floors (headline >=84px, supporting >=44px, labels >=32px
+  at 1080-wide) and keep the composition hero + supporting mass, no voids.
+- At most 1-2 custom scenes per reel. If a stock scene expresses the idea,
+  use the stock scene.
 
 ### `cta`
 

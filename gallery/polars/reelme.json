@@ -11,17 +11,90 @@
     "look": "noir",
     "mode": "intro",
     "bgStyle": "deep",
-    "platforms": ["github-readme", "linkedin", "x"],
-    "audio": { "track": "midnight-protocol.mp3" },
+    "platforms": [
+      "github-readme",
+      "linkedin",
+      "x"
+    ],
+    "audio": {
+      "track": "midnight-protocol.mp3"
+    },
     "watermark": true,
     "logo": "logo.png"
   },
   "cuts": {
     "main": [
-      { "type": "stat-callout", "layout": "hero", "headline": "vs pandas, on big data", "stats": [ { "value": "30×", "label": "faster than pandas on large group-bys, per the project's benchmarks." }, { "value": "0", "label": "glue code — one expression API" } ], "caption": "Lazy, multi-threaded, Arrow-native." },
-      { "type": "code-reveal", "language": "python", "code": "import polars as pl\n\n(pl.scan_csv(\"trades.csv\")\n   .filter(pl.col(\"amount\") > 100)\n   .group_by(\"country\")\n   .agg(pl.col(\"amount\").sum())\n   .collect())", "highlightLine": 5, "caption": "Write the query; Polars plans the execution." },
-      { "type": "data-flow", "nodes": [ { "id": "q", "label": "Your query" }, { "id": "opt", "label": "Optimizer" }, { "id": "par", "label": "Parallel engine" }, { "id": "out", "label": "Result" } ], "edges": [ { "from": "q", "to": "opt" }, { "from": "opt", "to": "par" }, { "from": "par", "to": "out" } ], "caption": "The lazy API optimizes the whole query before it runs." },
-      { "type": "cta", "installCommand": "pip install polars", "repoUrl": "github.com/pola-rs/polars", "caption": "Leave pandas behind." }
+      {
+        "type": "stat-callout",
+        "layout": "hero",
+        "headline": "vs pandas, on big data",
+        "stats": [
+          {
+            "value": "30×",
+            "label": "faster than pandas on large group-bys, per the project's benchmarks."
+          },
+          {
+            "value": "0",
+            "label": "glue code — one expression API"
+          }
+        ],
+        "caption": "Lazy, multi-threaded, Arrow-native."
+      },
+      {
+        "type": "code-reveal",
+        "language": "python",
+        "code": "import polars as pl\n\n(pl.scan_csv(\"trades.csv\")\n   .filter(pl.col(\"amount\") > 100)\n   .group_by(\"country\")\n   .agg(pl.col(\"amount\").sum())\n   .collect())",
+        "highlightLine": 5,
+        "caption": "Write the query; Polars plans the execution."
+      },
+      {
+        "type": "data-flow",
+        "nodes": [
+          {
+            "id": "q",
+            "label": "Your query"
+          },
+          {
+            "id": "opt",
+            "label": "Optimizer"
+          },
+          {
+            "id": "par",
+            "label": "Parallel engine"
+          },
+          {
+            "id": "out",
+            "label": "Result"
+          }
+        ],
+        "edges": [
+          {
+            "from": "q",
+            "to": "opt"
+          },
+          {
+            "from": "opt",
+            "to": "par"
+          },
+          {
+            "from": "par",
+            "to": "out"
+          }
+        ],
+        "caption": "The lazy API optimizes the whole query before it runs."
+      },
+      {
+        "type": "browser",
+        "url": "pola.rs",
+        "image": "site-hero.png",
+        "caption": "575M+ downloads. 38k+ GitHub stars."
+      },
+      {
+        "type": "cta",
+        "installCommand": "pip install polars",
+        "repoUrl": "github.com/pola-rs/polars",
+        "caption": "Leave pandas behind."
+      }
     ]
   }
 }

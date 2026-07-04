@@ -39,6 +39,10 @@ function scenesForCut(cut: "main" | "vertical"): Scene[] {
   return brief.cuts.main;
 }
 
+// With a bundled track, cuts are quantized to its beat grid on EVERY platform
+// (including silent gif output) so all renders of a cut share identical timing.
+const briefBpm = brief.project.audio ? brief.project.audio.bpm : undefined;
+
 const verticalFallback = platformIds.filter(
   (id) => cutForPlatform(id) === "vertical" && !brief.cuts.vertical?.length
 );
@@ -53,7 +57,7 @@ const compositions = platformIds.map((id) => {
   const preset = PLATFORMS[id];
   const scenes = scenesForCut(cutForPlatform(id));
   if (preset.maxDurationSec !== undefined) {
-    const seconds = calcTotalDuration(scenes) / preset.fps;
+    const seconds = calcTotalDuration(scenes, preset.fps, briefBpm) / preset.fps;
     if (seconds > preset.maxDurationSec) {
       console.warn(
         `reelme: the ${preset.label} cut runs ${seconds.toFixed(1)}s, over the platform's ` +
@@ -66,7 +70,7 @@ const compositions = platformIds.map((id) => {
     id: `Reel-${id}`,
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     component: Reel as React.FC<any>,
-    durationInFrames: calcTotalDuration(scenes),
+    durationInFrames: calcTotalDuration(scenes, preset.fps, briefBpm),
     fps: preset.fps,
     width: preset.width,
     height: preset.height,
@@ -77,9 +81,9 @@ const compositions = platformIds.map((id) => {
 // Teaser pass: one Reel-<platform>-teaser composition per selected social
 // platform (gif outputs excluded), same dimensions as the platform preset.
 const teaser = brief.cuts.teaser;
-if (teaser && teaser.length > 0 && calcTotalDuration(teaser) > TEASER_MAX_FRAMES) {
+if (teaser && teaser.length > 0 && calcTotalDuration(teaser, 30, briefBpm) > TEASER_MAX_FRAMES) {
   console.warn(
-    `reelme: the teaser cut runs ${calcTotalDuration(teaser)} frames, over the ${TEASER_MAX_FRAMES}-frame ` +
+    `reelme: the teaser cut runs ${calcTotalDuration(teaser, 30, briefBpm)} frames, over the ${TEASER_MAX_FRAMES}-frame ` +
       `(10s) ceiling. Rendering anyway — a teaser should be hook + CTA, nothing more.`
   );
 }
@@ -94,7 +98,7 @@ const teaserCompositions =
             id: `Reel-${id}-teaser`,
             // eslint-disable-next-line @typescript-eslint/no-explicit-any
             component: Reel as React.FC<any>,
-            durationInFrames: calcTotalDuration(teaser),
+            durationInFrames: calcTotalDuration(teaser, preset.fps, briefBpm),
             fps: preset.fps,
             width: preset.width,
             height: preset.height,

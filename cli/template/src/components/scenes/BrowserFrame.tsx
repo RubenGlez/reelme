@@ -2,15 +2,17 @@ import React from "react";
 import { AbsoluteFill, useCurrentFrame, useVideoConfig, spring, interpolate, Img, staticFile } from "remotion";
 import { BrowserScene as BrowserBrief } from "../../brief";
 import { Theme } from "../../theme";
+import { PlatformPreset } from "../../platforms";
 import { Caption } from "../primitives/Caption";
 
 interface Props {
   scene: BrowserBrief;
   theme: Theme;
+  platform?: PlatformPreset;
   bottomInset?: number;
 }
 
-export const BrowserFrame: React.FC<Props> = ({ scene, theme, bottomInset = 0 }) => {
+export const BrowserFrame: React.FC<Props> = ({ scene, theme, platform, bottomInset = 0 }) => {
   const frame = useCurrentFrame();
   const { fps } = useVideoConfig();
 
@@ -39,7 +41,7 @@ export const BrowserFrame: React.FC<Props> = ({ scene, theme, bottomInset = 0 })
           width: "100%",
           opacity: windowOpacity,
           scale: String(windowScale),
-          boxShadow: "0 24px 80px rgba(0,0,0,0.6)",
+          boxShadow: `0 30px 90px -18px ${theme.accent}59, 0 24px 80px rgba(0,0,0,0.6)`,
           borderRadius: 12,
           overflow: "hidden",
         }}
@@ -103,10 +105,24 @@ export const BrowserFrame: React.FC<Props> = ({ scene, theme, bottomInset = 0 })
           }}
         >
           {scene.image ? (
-            <Img
-              src={staticFile(scene.image)}
-              style={{ width: "100%", height: "100%", objectFit: "cover" }}
-            />
+            // Slow push into the real screenshot so it reads as footage, not a
+            // pasted still (mirrors MobileScreen's ken-burns). Frozen for gif:
+            // a moving full-window image re-encodes every frame and can triple
+            // the file size.
+            <AbsoluteFill
+              style={{
+                transform:
+                  platform?.output.codec === "gif"
+                    ? undefined
+                    : `scale(${interpolate(frame, [0, 240], [1.0, 1.09], { extrapolateRight: "clamp" })}) translateY(${interpolate(frame, [0, 240], [0, -2.5], { extrapolateRight: "clamp" })}%)`,
+                transformOrigin: "center top",
+              }}
+            >
+              <Img
+                src={staticFile(scene.image)}
+                style={{ width: "100%", height: "100%", objectFit: "cover", objectPosition: "top", display: "block" }}
+              />
+            </AbsoluteFill>
           ) : (
             // Wireframe placeholder
             <div style={{ width: "100%", height: "100%", padding: 24, display: "flex", flexDirection: "column", gap: 16 }}>

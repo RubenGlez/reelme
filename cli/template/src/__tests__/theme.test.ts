@@ -44,10 +44,13 @@ describe("buildTheme", () => {
       expect(theme.motion.stiffness).toBe(100);
     });
 
-    it("playful has low damping (bouncy)", () => {
+    it("playful is fast and light but settled (no visible overshoot)", () => {
       const theme = buildTheme("#6366f1", undefined, undefined, "playful");
-      expect(theme.motion.damping).toBe(11);
+      expect(theme.motion.damping).toBe(18);
       expect(theme.motion.stiffness).toBe(130);
+      // Near-critical damping ratio: energy from speed, not bounce.
+      const zeta = theme.motion.damping / (2 * Math.sqrt(theme.motion.stiffness * theme.motion.mass));
+      expect(zeta).toBeGreaterThan(0.85);
     });
 
     it("technical has high damping (tight)", () => {

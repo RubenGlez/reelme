@@ -79,7 +79,6 @@ export const RevealText: React.FC<RevealTextProps> = ({
         lineHeight,
         letterSpacing,
         maxWidth,
-        textShadow: glow ? "0 6px 40px rgba(0,0,0,0.45)" : undefined,
       }}
     >
       {words.map((word, i) => {
@@ -92,12 +91,18 @@ export const RevealText: React.FC<RevealTextProps> = ({
           extrapolateRight: "clamp",
         });
         const isEmph = emphIndices.has(i);
+        // The clip mask exists only for the rise. Once the word is at rest the
+        // mask is released and the glow fades in — a soft 40px shadow inside an
+        // overflow-hidden span gets sheared into visible rectangles, so the two
+        // must never coexist (gallery feedback: "shadow looks cut off").
+        const settled = y < 1;
+        const shadowAlpha = glow && settled ? interpolate(p, [0.991, 1], [0, 0.45], { extrapolateLeft: "clamp", extrapolateRight: "clamp" }) : 0;
         return (
           <React.Fragment key={i}>
             <span
               style={{
                 display: "inline-block",
-                overflow: "hidden",
+                overflow: settled ? "visible" : "hidden",
                 paddingBottom: "0.14em",
                 marginBottom: "-0.14em",
                 verticalAlign: "bottom",
@@ -109,6 +114,7 @@ export const RevealText: React.FC<RevealTextProps> = ({
                   translate: `0 ${y}%`,
                   opacity,
                   color: isEmph ? theme.accent : undefined,
+                  textShadow: shadowAlpha > 0 ? `0 6px 40px rgba(0,0,0,${shadowAlpha.toFixed(3)})` : undefined,
                 }}
               >
                 {word}

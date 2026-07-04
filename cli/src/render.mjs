@@ -146,6 +146,13 @@ function copyAudioTrack(cacheDir, brief) {
   const audioDir = join(cacheDir, "public", "audio");
   mkdirSync(audioDir, { recursive: true });
   cpSync(source, join(audioDir, track));
+
+  // Cut SFX ride along whenever music is enabled (Root.tsx plays them under
+  // scene transitions; audio: false disables both together).
+  const sfxDir = join(AUDIO_DIR, "sfx");
+  if (existsSync(sfxDir)) {
+    cpSync(sfxDir, join(audioDir, "sfx"), { recursive: true });
+  }
 }
 
 function copyLogo(repoRoot, cacheDir, brief) {

@@ -84,11 +84,39 @@ Wait for the answer before proceeding.
 
 Mark each field as confident or uncertain. Interview only for gaps.
 
+## Step 2.5: Source real assets
+
+Real product pixels are the single biggest quality lever — a reel built on
+real footage reads as a launch; one built only on synthetic mock scenes reads
+as a template. Actively source assets before the interview, in this order:
+
+1. **Existing media in the repo.** Scan the README and `assets/`, `docs/`,
+   `media/`, `screenshots/`, `.github/` for gifs, mp4s, and screenshots the
+   project already uses to present itself. These are pre-curated by the
+   author — prefer them.
+2. **A screen recording from the user.** If the project has a UI and no
+   usable media exists, ask for a 5–15s recording in the interview (one flow,
+   no dead time).
+3. **Auto-capture.** If the project has a runnable web UI, a docs site, or a
+   marketing page, offer to capture screenshots or a short recording yourself
+   with Playwright — full recipe and quality rules in
+   [`references/asset-capture.md`](references/asset-capture.md).
+4. **Real terminal output for CLIs.** If the project is a CLI, run the real
+   commands (safe, read-only ones) and paste their real output into
+   `terminal` scenes. Never invent command output when the real tool is one
+   `npx`/`cargo run` away — invented output is the terminal-scene equivalent
+   of fake UI copy.
+
+Only fall back to fully synthetic scenes when none of the above produced
+anything. When real assets exist, build the reel around them: `clip`,
+`browser`, and `mobile` scenes carry the footage; synthetic scenes support it.
+
 ## Step 3: Interview
 
 Always ask for missing or preference-only fields in one compact numbered list:
 
 - `primaryColor` - brand color as a hex value, e.g. `#6366f1`
+- `secondaryColor` - optional second brand hue for backdrops and gradients. Pull it from the project's real branding (logo, site accent pair) rather than inventing one; a real pair reads far less generic than the derived fallback.
 - `logo` - optional repo-relative logo path
 - `bgStyle` - `deep` (near-black), `branded` (brand-tinted), or `light` (white-based)
 - `look` - art-direction preset (`keynote`, `noir`, `arcade`, `blueprint`, `editorial`); defaults from tone. Sets lighting, camera move, grade, grain, and cut rhythm. Suggest the tone default but pick a distinct look per reel so a project's videos don't all feel the same.
@@ -116,11 +144,28 @@ Audio choices come from the bundled track list (the nine tracks in the tables be
 
 When writing the brief, set `project.audio` explicitly to `{ "track": "<filename>" }` or `false`. Audio is the chosen music bed only; `audio: false` renders silent.
 
-## Step 4: Propose the outline
+## Step 4: Storyboard, then propose the outline
 
 Read [`references/narrative.md`](references/narrative.md) before deciding scene order, scene count, and which scenes carry the story.
 
-Present the proposed video before writing anything:
+Storyboard BEFORE proposing — a shot list is cheap to rewrite; eight authored
+scenes are not. Build a beat table for yourself first:
+
+| Beat | ~Time | Visual | On-screen text |
+|---|---|---|---|
+| hook | 0-3s | ... | ... |
+
+Storyboard rules:
+
+- **Product on screen fast.** When real assets exist (Step 2.5), real product
+  pixels appear within the first ~3 seconds — the hook can BE the footage.
+- **One differentiating moment gets the longest beat.** Find the single thing
+  only this project does and give it peak time; everything else supports it.
+- **Anchor on a before/after when the project replaces something** (a slow
+  tool, a pile of config): show the pain state briefly, then the payoff.
+- **One idea per beat.** If a beat needs two sentences to describe, split it.
+
+Then present the proposed video before writing anything:
 
 > **Narrative:** [one sentence on the story]
 >
@@ -148,6 +193,14 @@ If yes, include `cuts.teaser`, usually `[hook, cta]` with at most one proof scen
 ## Step 5: Build `reelme.json`
 
 Read [`references/scene-schemas.md`](references/scene-schemas.md) before writing or editing scene JSON, and [`references/copywriting.md`](references/copywriting.md) before writing the on-screen text (headlines, captions, hook, feature labels, CTA).
+
+**Bespoke scenes.** When the project's ONE differentiating moment can't be
+expressed by any stock scene (an animated diagram of its core mechanism, a
+signature visual), author a `custom` scene: write a repo-relative `.tsx`
+component following the authoring rules in scene-schemas, reference it from
+the brief, and hold it to the same review bar as everything else (Step 6.5).
+At most 1-2 per reel — bespoke is for the moment that sells the project, not
+for decoration.
 
 Write `reelme.json` at the repo root using schema v2:
 
@@ -261,6 +314,34 @@ After a successful render, confirm the output files in `reelme-out/`:
 - Social/video platforms: `<platform>.mp4`
 - GitHub README: `github-readme.gif`
 - Teasers when `cuts.teaser` exists: `<platform>-teaser.mp4` for non-GIF platforms
+
+## Step 6.5: Review the render before delivering
+
+Never hand over a render you haven't looked at. Extract a contact sheet and
+review the actual frames:
+
+```bash
+ffmpeg -y -loglevel error -i reelme-out/<platform>.mp4 \
+  -vf "fps=1,scale=300:-1,tile=6x6" -frames:v 1 /tmp/reel-sheet.png
+```
+
+Read the sheet and grade it against this checklist (each item is a defect the
+template CAN still produce with bad brief content):
+
+1. **Composition** — no frame where a single empty region dominates; every
+   scene has a hero AND supporting mass; framed content commands the frame.
+2. **Legibility at feed size** — view the sheet at thumbnail scale: every
+   headline, caption, and window text still readable? Text never clipped,
+   wrapped awkwardly, or overflowing its container?
+3. **Pacing** — no beat visibly identical across 4+ consecutive sampled
+   frames (a dead hold); the differentiating moment gets the longest beat.
+4. **Brand fidelity** — colors, logo, and any real screenshots match the
+   project's actual branding; no invented UI copy or invented numbers.
+
+If anything fails: fix the brief (copy length, scene choice, asset crop,
+accent color), re-render, re-review. Iterate until the sheet passes — two or
+three rounds is normal, zero rounds is a smell. When subagents are available,
+run the four checks as parallel reviewers and collect their findings.
 
 Share concise distribution guidance:
 

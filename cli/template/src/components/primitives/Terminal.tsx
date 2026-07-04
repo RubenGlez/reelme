@@ -1,5 +1,5 @@
 import React from "react";
-import { useCurrentFrame } from "remotion";
+import { useCurrentFrame, useVideoConfig } from "remotion";
 import { Theme } from "../../theme";
 
 interface TerminalLine {
@@ -23,7 +23,12 @@ export const Terminal: React.FC<TerminalProps> = ({
   framesPerChar = 2.0,
 }) => {
   const frame = useCurrentFrame();
+  const { width: frameWidth } = useVideoConfig();
   const elapsed = frame - startFrame;
+  // Type scales with the frame so the window commands wide canvases instead of
+  // floating small in big margins (22px mono on a 1920 frame reads as a
+  // thumbnail). ch-based sizing below inherits this automatically.
+  const fontSize = Math.max(24, Math.round(frameWidth * 0.0155));
 
   // Size the window to its widest physical line so a short command doesn't sit
   // in a huge empty box. Width is fixed from the full text (not the partial
@@ -34,6 +39,10 @@ export const Terminal: React.FC<TerminalProps> = ({
     return Math.max(max, widest + prefix);
   }, 0);
   const cols = Math.min(Math.max(maxChars, 18), 78);
+  // Height is reserved for every line up front so the window arrives at its
+  // final size and only the text inside it reveals — a box that inflates line
+  // by line reads as broken chrome, not as typing (gallery feedback).
+  const totalRows = lines.reduce((n, line) => n + line.text.split("\n").length, 0);
 
   const visibleLines: Array<{ text: string; isOutput: boolean; partialText: string }> = [];
 
@@ -64,12 +73,20 @@ export const Terminal: React.FC<TerminalProps> = ({
     <div
       style={{
         background: "#0d1117",
-        borderRadius: 10,
+        borderRadius: 12,
         overflow: "hidden",
         fontFamily: theme.fontMono,
-        fontSize: 22,
-        boxShadow: "0 8px 48px rgba(0,0,0,0.6)",
-        width: `min(calc(${cols}ch + 48px), 100%)`,
+        fontSize,
+        // Contact shadow + a brand-light halo: the window casts onto the stage
+        // and the stage's light appears to come FROM it, so the content sits
+        // in the film instead of floating over it.
+        boxShadow: `0 30px 90px -18px ${theme.accent}59, 0 24px 60px rgba(0,0,0,0.55)`,
+        outline: "1px solid rgba(255,255,255,0.09)",
+        // A definite length (no percentages): inside a shrink-wrapped flex
+        // parent a % width resolves against the parent's content size — i.e.
+        // the partially typed text — which made the window grow as it typed.
+        width: `calc(${cols}ch + 48px)`,
+        maxWidth: "100%",
       }}
     >
       <div
@@ -87,7 +104,7 @@ export const Terminal: React.FC<TerminalProps> = ({
         <span style={{ marginLeft: 8, color: "#8b949e", fontSize: 13 }}>terminal</span>
       </div>
 
-      <div style={{ padding: "20px 24px", minHeight: 120 }}>
+      <div style={{ padding: "20px 24px", minHeight: Math.max(120, totalRows * fontSize * 1.6 + 6 * totalRows + 40) }}>
         {visibleLines.map((line, i) => {
           const isTyping =
             !line.isOutput &&
@@ -104,7 +121,7 @@ export const Terminal: React.FC<TerminalProps> = ({
                 <span
                   style={{
                     display: "inline-block",
-                    width: 10,
+                    width: Math.round(fontSize * 0.45),
                     height: "1em",
                     background: theme.accent,
                     verticalAlign: "text-bottom",

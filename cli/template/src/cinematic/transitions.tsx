@@ -8,7 +8,9 @@ import { CinematicLook, TransitionStyle } from "./look";
 const RHYTHM: Record<string, TransitionStyle[]> = {
   keynote: ["fade", "rise", "fade", "rise"],
   noir: ["dip", "fade", "dip", "rise"],
-  arcade: ["whip", "flip", "zoom", "whip"],
+  // No flip: a hinged swing reads as a gimmick next to the rest of the edit
+  // (gallery feedback) — arcade's energy now comes from fast zooms and whips.
+  arcade: ["zoom", "whip", "zoom", "fade"],
   blueprint: ["cut", "wipe", "cut", "whip"],
   editorial: ["fade", "wipe", "rise", "fade"],
 };
@@ -66,7 +68,7 @@ export const Enter: React.FC<EnterProps> = ({ style, look, fromBlack, seed, chil
       break;
     case "punch":
       opacity = interpolate(frame, [0, win * 0.6], [0, 1], ease);
-      scale = String(interpolate(p, [0, 1], [1.12, 1]));
+      scale = String(interpolate(p, [0, 1], [1.07, 1]));
       break;
     case "zoom":
       opacity = p;

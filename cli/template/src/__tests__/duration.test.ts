@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { sceneDuration, calcTotalDuration, SCENE_DURATION_MAP, SCENE_TAIL, TEASER_MAX_FRAMES } from "../duration";
+import { sceneDuration, sceneDurationsOnGrid, calcTotalDuration, SCENE_DURATION_MAP, SCENE_TAIL, TEASER_MAX_FRAMES } from "../duration";
 import { CAPTION_HOLD, codeRevealCaptionStart, terminalCaptionStart } from "../timing";
 import { Cuts, Scene } from "../brief";
 
@@ -62,18 +62,25 @@ describe("sceneDuration", () => {
     }
   });
 
-  it("hook scene is exactly 50 frames with no tail", () => {
-    const hook: Scene = { type: "hook", text: "Stop scrolling." };
-    expect(sceneDuration(hook)).toBe(50);
+  it("hook duration scales with word count so long hooks stay readable", () => {
+    // 2 words → below the floor; the floor guarantees even a terse hook lands.
+    expect(sceneDuration({ type: "hook", text: "Stop scrolling." })).toBe(70);
+    // 8 words → 40 + 8*8 = 104 (~3.5s at 30fps to reveal and read).
+    expect(sceneDuration({ type: "hook", text: "Turn a JSON brief into a launch video." })).toBe(104);
+    // A rambling hook is capped: it's a hook, not a scene.
+    const long: Scene = { type: "hook", text: Array.from({ length: 30 }, () => "word").join(" ") };
+    expect(sceneDuration(long)).toBe(120);
   });
 
-  it("hook duration is within 1.5–2s at 30fps and below the smallest non-hook total", () => {
-    const hook: Scene = { type: "hook", text: "Hook." };
-    const duration = sceneDuration(hook);
-    expect(duration).toBeGreaterThanOrEqual(45); // 1.5s at 30fps
-    expect(duration).toBeLessThanOrEqual(60);    // 2s at 30fps
-    // smallest non-hook total is hotkey (1 key) = 110 + SCENE_TAIL
-    expect(duration).toBeLessThan(110 + SCENE_TAIL);
+  it("hook duration stays within 2.3–4s at 30fps and below the smallest non-hook total", () => {
+    const texts = ["Hook.", "Search the Linux kernel in 0.08s.", Array.from({ length: 30 }, () => "w").join(" ")];
+    for (const text of texts) {
+      const duration = sceneDuration({ type: "hook", text });
+      expect(duration).toBeGreaterThanOrEqual(70);  // ~2.3s at 30fps
+      expect(duration).toBeLessThanOrEqual(120);    // 4s at 30fps
+      // smallest non-hook total is hotkey (1 key) = 110 + SCENE_TAIL
+      expect(duration).toBeLessThan(110 + SCENE_TAIL);
+    }
   });
 
   it("uses default clip duration when durationInFrames is not set", () => {
@@ -112,6 +119,38 @@ describe("sceneDuration", () => {
     expect(sceneDuration({ type: "os-window", items: [] })).toBe(80 + SCENE_TAIL);
     expect(sceneDuration({ type: "os-window", items: [{ label: "A" }, { label: "B" }] })).toBe(120 + SCENE_TAIL);
     expect(sceneDuration({ type: "os-window", searchQuery: "test", items: [{ label: "A" }] })).toBe(20 + (4 * 3 + 10) + 20 + 60 + SCENE_TAIL);
+  });
+});
+
+describe("sceneDurationsOnGrid", () => {
+  const scenes: Scene[] = [
+    { type: "hook", text: "Fast." },
+    { type: "feature-list", items: ["a", "b"] },
+    { type: "cta", installCommand: "npm i x", repoUrl: "github.com/x/x" },
+  ];
+
+  it("passes natural durations through when no bpm is given", () => {
+    expect(sceneDurationsOnGrid(scenes, 30)).toEqual(scenes.map(sceneDuration));
+  });
+
+  it("lands every cumulative cut on a beat and never shortens a scene", () => {
+    for (const bpm of [88, 92, 104, 126]) {
+      const beat = (60 / bpm) * 30;
+      const grid = sceneDurationsOnGrid(scenes, 30, bpm);
+      let cursor = 0;
+      grid.forEach((duration, i) => {
+        expect(duration).toBeGreaterThanOrEqual(sceneDuration(scenes[i]) - 0.001);
+        cursor += duration;
+        // Each cut sits on the nearest frame to a whole-beat boundary.
+        const beats = cursor / beat;
+        expect(Math.abs(beats - Math.round(beats)) * beat).toBeLessThanOrEqual(0.5);
+      });
+    }
+  });
+
+  it("matches calcTotalDuration's quantized total", () => {
+    const grid = sceneDurationsOnGrid(scenes, 30, 126);
+    expect(calcTotalDuration(scenes, 30, 126)).toBe(grid.reduce((a, b) => a + b, 0));
   });
 });
 

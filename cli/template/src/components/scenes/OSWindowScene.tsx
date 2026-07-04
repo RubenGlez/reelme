@@ -47,7 +47,7 @@ export const OSWindow: React.FC<Props> = ({ scene, theme, bottomInset = 0 }) => 
           overflow: "hidden",
           background: theme.surface,
           border: `1px solid ${theme.border}`,
-          boxShadow: "0 40px 100px rgba(0,0,0,0.45), 0 0 0 0.5px rgba(255,255,255,0.05)",
+          boxShadow: `0 30px 90px -18px ${theme.accent}59, 0 40px 100px rgba(0,0,0,0.45), 0 0 0 0.5px rgba(255,255,255,0.05)`,
           scale: String(windowScale),
           opacity: windowOpacity,
         }}

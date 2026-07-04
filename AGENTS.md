@@ -13,6 +13,13 @@ Non-obvious conventions for working in this repo. (Project context, decisions, a
 - A continuous atmosphere is rendered behind every scene, so scene roots are intentionally `background: "transparent"` — the stage shows through. When adding or editing a scene, do not paint an opaque full-frame fill on its root, or you'll hide the atmosphere. Framed panels (browser/phone/window bodies, the install pill) keep a solid `theme.bg` on purpose.
 - New scenes should use the shared `Stage` root (`components/primitives/Stage.tsx`): it bakes in the transparent background, a standard safe inset, and centered-by-default content, so the convention above can't be forgotten by hand. Compose for the whole frame — center a single block so leftover space stays symmetric, or balance a hero against secondary mass with `direction="row"`. Never anchor content to one edge with a void opposite, and give supporting text/graphics real weight (layout floors: headline ≥84px, supporting ≥44px, labels ≥32px at 1080-wide).
 - `project.look` defaults from `tone`. The legacy `project.transition` field is ignored.
+- Motion is settled by design: springs stay near-critical (no visible overshoot), the camera only moves during a scene's arrival and holds perfectly still after (a continuous zoom re-rasterizes text every frame and reads as vibration), and framed chrome (terminal/code windows) opens at its final size — never sized by partially revealed content.
+- Each look stages the reel on a distinct backdrop system (`look.backdrop` in `cinematic/look.ts`); backdrops draw from `theme.accent` + `theme.accent2` (brief `project.secondaryColor`, derived when absent).
+
+## Audio and custom scenes
+
+- The bundled tracks are procedurally generated (`cli/assets/audio/generate-tracks.mjs`); their BPMs live in `cli/assets/audio/manifest.json`, which is the single source of truth. The CLI injects the chosen track's `bpm` into the staged brief so the template quantizes scene cuts to the beat — briefs never hand-write `bpm`. Cut SFX are curated ElevenLabs cues (provenance and license in `cli/assets/audio/sfx/SOURCES.md`; the procedural generator `generate-sfx.mjs --force` is the CC0 fallback) and ride along whenever music is enabled.
+- `custom` scenes are skill-authored repo-relative `.tsx` components. The CLI copies them into the cache and regenerates `src/custom-scenes.ts` as an import barrel at stage time (Remotion bundles statically, so a JSON path can't become a component any other way). The template's committed `custom-scenes.ts` must stay an empty registry.
 
 ## Gallery briefs are the render eval suite
 
@@ -23,7 +30,9 @@ node scripts/eval-gallery.mjs            # all briefs
 node scripts/eval-gallery.mjs ripgrep    # one brief
 ```
 
-Each render re-syncs the template `src/` into the cache, so the eval reflects your local `cli/template` edits without a `reelme clean` first. It renders each brief with the local CLI and passes when every platform renders with exit 0. Remotion output isn't bit-deterministic, so this is a smoke eval — the committed `gallery/<name>/<name>.gif` files are the visual reference for manual review. Add a new entry by dropping a `gallery/<name>/reelme.json` (rendering reelme itself is a natural candidate).
+Each render re-syncs the template `src/` into the cache, so the eval reflects your local `cli/template` edits without a `reelme clean` first. It renders each brief with the local CLI and passes when every platform renders with exit 0. Remotion output isn't bit-deterministic, so this is a smoke eval — the committed `gallery/<name>/<name>.gif` files are the visual reference for manual review.
+
+Gallery briefs intentionally exercise the asset paths: `hono`/`polars`/`expo` carry real captured screenshots (`site-hero.png` / `app-shot.png`, taken with the Playwright recipe in `skills/reelme/references/asset-capture.md`), and `reelme` carries a bespoke `custom` scene (`gallery/reelme/scenes/platform-fanout.tsx`). Renders need these files present — they're committed alongside the briefs.
 
 ## Release
 

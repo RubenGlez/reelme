@@ -11,6 +11,8 @@ export interface Theme {
   bg: string;
   surface: string;
   accent: string;
+  /** Second brand hue for backdrops/gradients; derived when not supplied. */
+  accent2: string;
   accentMuted: string;
   text: string;
   textMuted: string;
@@ -23,7 +25,9 @@ export interface Theme {
 
 const MOTION_PROFILES: Record<string, MotionProfile> = {
   professional: { damping: 22, stiffness: 100, mass: 1.0 },
-  playful:      { damping: 11, stiffness: 130, mass: 0.7 },
+  // Near-critical damping: playful = fast and light, not bouncy — visible
+  // spring overshoot reads as a toy, not a launch film (gallery feedback).
+  playful:      { damping: 18, stiffness: 130, mass: 0.7 },
   technical:    { damping: 30, stiffness: 140, mass: 1.2 },
 };
 
@@ -39,8 +43,12 @@ export function buildTheme(
   monoFont?: string,
   tone?: string,
   bgStyle?: "deep" | "branded" | "light",
+  secondaryHex?: string,
 ): Theme {
   const accent = chroma(primaryHex);
+  // A real brand pair when the brief supplies one; otherwise an analogous hue
+  // (+40°) — close enough to feel intentional, far enough to add color depth.
+  const accent2 = secondaryHex ? chroma(secondaryHex) : accent.set("hsl.h", "+40");
   const isLightBg = bgStyle === "light";
 
   let bg: string;
@@ -76,6 +84,7 @@ export function buildTheme(
     bg,
     surface,
     accent: accent.hex(),
+    accent2: accent2.hex(),
     accentMuted,
     text,
     textMuted,

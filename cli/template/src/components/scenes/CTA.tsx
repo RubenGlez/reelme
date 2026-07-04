@@ -88,8 +88,10 @@ export const CTA: React.FC<Props> = ({ scene, theme, project, platform, bottomIn
       </div>
 
       {/* The install command in the film's own terminal, typed out — consistent
-          with the reel's other terminal scenes instead of a web-style pill. */}
-      <div style={{ opacity: cmdOpacity, translate: `0 ${cmdY}px` }}>
+          with the reel's other terminal scenes instead of a web-style pill.
+          The wrapper stretches to the stage width so the Terminal sizes against
+          a definite box instead of shrink-wrapping the partially typed text. */}
+      <div style={{ opacity: cmdOpacity, translate: `0 ${cmdY}px`, alignSelf: "stretch", display: "flex", justifyContent: "center" }}>
         <Terminal lines={[{ text: scene.installCommand }]} theme={theme} startFrame={termStart} />
       </div>
 

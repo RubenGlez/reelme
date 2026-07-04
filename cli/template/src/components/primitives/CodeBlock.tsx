@@ -61,19 +61,30 @@ export const CodeBlock: React.FC<CodeBlockProps> = ({
   framesPerLine = 9,
 }) => {
   const frame = useCurrentFrame();
-  const { fps } = useVideoConfig();
+  const { fps, width: frameWidth } = useVideoConfig();
   const elapsed = frame - startFrame;
   const lines = code.split("\n");
+  // Scale type with the frame so the editor window commands wide canvases
+  // (ch-based width sizing inherits this automatically).
+  const fontSize = Math.max(22, Math.round(frameWidth * 0.0135));
   const visibleCount = Math.max(0, Math.min(lines.length, Math.floor(elapsed / framesPerLine) + 1));
 
+  // Size the window to the longest line of the FULL snippet (not the partial
+  // reveal) so it arrives at its final width and never stretches to fill the
+  // frame — an editor window several times wider than its code reads as empty
+  // chrome (gallery feedback). 83px covers gutter, line numbers, and padding.
+  const cols = Math.min(Math.max(lines.reduce((m, l) => Math.max(m, l.length), 0), 24), 88);
+
   return (
-    <div style={{ fontFamily: theme.fontMono, fontSize: 20, lineHeight: 1.7 }}>
+    <div style={{ fontFamily: theme.fontMono, fontSize, lineHeight: 1.7, width: `calc(${cols}ch + 83px)`, maxWidth: "100%" }}>
       <div
         style={{
           background: "#0d1117",
-          borderRadius: 10,
+          borderRadius: 12,
           overflow: "hidden",
-          boxShadow: "0 8px 48px rgba(0,0,0,0.6)",
+          // Contact shadow + brand-light halo so the window sits in the stage.
+          boxShadow: `0 30px 90px -18px ${theme.accent}59, 0 24px 60px rgba(0,0,0,0.55)`,
+          outline: "1px solid rgba(255,255,255,0.09)",
         }}
       >
         {/* Title bar */}
@@ -95,9 +106,11 @@ export const CodeBlock: React.FC<CodeBlockProps> = ({
           </span>
         </div>
 
-        {/* Code lines */}
+        {/* Code lines. All rows are laid out from frame 0 (unrevealed ones
+            invisible) so the window opens at its final height — the reveal
+            happens inside stable chrome instead of inflating it. */}
         <div style={{ padding: "20px 0" }}>
-          {lines.slice(0, visibleCount).map((line, i) => {
+          {lines.map((line, i) => {
             const lineNum = i + 1;
             const isHighlight = highlightLine !== undefined && lineNum === highlightLine;
             const highlightOpacity =
@@ -115,6 +128,7 @@ export const CodeBlock: React.FC<CodeBlockProps> = ({
                 style={{
                   display: "flex",
                   padding: "0 24px",
+                  visibility: i < visibleCount ? "visible" : "hidden",
                   background: isHighlight
                     ? `rgba(${hexToRgb(theme.accent)}, ${0.15 * highlightOpacity})`
                     : "transparent",
@@ -128,7 +142,7 @@ export const CodeBlock: React.FC<CodeBlockProps> = ({
                     color: "#484f58",
                     minWidth: 32,
                     userSelect: "none",
-                    fontSize: 16,
+                    fontSize: Math.round(fontSize * 0.8),
                     paddingTop: 1,
                   }}
                 >

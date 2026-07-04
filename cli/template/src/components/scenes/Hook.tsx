@@ -19,10 +19,11 @@ export const Hook: React.FC<Props> = ({ scene, theme, platform }) => {
 
   const fontSize = width * 0.1 * typeScale(platform);
   // The whole block eases out of a slight over-scale so the words don't just
-  // appear — they land. A touch of continuous drift keeps the hold alive.
+  // appear — they land. No continuous drift on the hold: a sub-pixel sine on
+  // giant type reads as vibration, not life (gallery feedback); the Atmosphere
+  // behind carries the motion instead.
   const settle = spring({ frame, fps, config: { damping: 26, stiffness: 90, mass: 1 } });
   const scale = interpolate(settle, [0, 1], [1.06, 1]);
-  const drift = Math.sin(frame / 40) * 0.4;
 
   return (
     <AbsoluteFill
@@ -34,7 +35,7 @@ export const Hook: React.FC<Props> = ({ scene, theme, platform }) => {
         padding: left ? "0 0 0 140px" : "0 80px",
       }}
     >
-      <div style={{ transform: `scale(${scale}) translateY(${drift}px)`, transformOrigin: left ? "left center" : "center", willChange: "transform" }}>
+      <div style={{ transform: `scale(${scale})`, transformOrigin: left ? "left center" : "center", willChange: "transform" }}>
         {scene.kicker && <Kicker text={scene.kicker} theme={theme} startFrame={0} align={left ? "left" : "center"} />}
         <RevealText
           text={scene.text}
