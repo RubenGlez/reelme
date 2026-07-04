@@ -1,5 +1,7 @@
 ![reelme banner](./assets/reelme_banner.png)
 
+[![latest release](https://img.shields.io/github/v/release/RubenGlez/reelme)](https://github.com/RubenGlez/reelme/releases/latest)
+
 `reelme` is an agent skill that generates launch videos for any dev project. Point it at any repo, answer a few questions, and get platform-ready MP4s and GIFs for socials, your README, and release announcements.
 
 ![A launch video for ripgrep, made with reelme](./gallery/ripgrep/ripgrep.gif)
