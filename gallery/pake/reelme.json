@@ -12,7 +12,7 @@
     "mode": "intro",
     "bgStyle": "branded",
     "platforms": ["github-readme", "tiktok", "instagram-reel"],
-    "audio": { "track": "sunny-loop.mp3" },
+    "audio": { "track": "sunny-bounce.mp3" },
     "watermark": true
   },
   "cuts": {

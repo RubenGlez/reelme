@@ -134,13 +134,13 @@ If assets are provided, verify each path exists and has a supported extension:
 
 Use repo-relative paths in the brief. The CLI copies referenced `clip.src`, `mobile.screenshot`, and `browser.image` files into the render cache at render time.
 
-Audio choices come from the bundled track list (the nine tracks in the tables below; the full list with filenames is in [`references/scene-schemas.md`](references/scene-schemas.md#audio)). The CLI copies only the chosen track into the render cache at render time. Default by project tone:
+Audio choices come from the bundled track list (the six CC0 tracks in the tables below; the full list with filenames is in [`references/scene-schemas.md`](references/scene-schemas.md#audio)). The CLI copies only the chosen track into the render cache at render time. Default by project tone:
 
 | tone | default | alternatives |
 |---|---|---|
-| `professional` | Calm Keys (`calm-keys.mp3`) | Steady Launch, Clean Horizon, Midnight Protocol |
-| `playful` | Bright Sparks (`bright-sparks.mp3`) | Pixel Bounce, Sunny Loop |
-| `technical` | Circuit Pulse (`circuit-pulse.mp3`) | Vector Grid, Midnight Protocol, Pixel Bounce |
+| `professional` | Lofi Dusk (`lofi-dusk.mp3`) | Warm Memories, Light Steps |
+| `playful` | Sunny Bounce (`sunny-bounce.mp3`) | Light Steps, Neon Pulse |
+| `technical` | Neon Pulse (`neon-pulse.mp3`) | Night Drive |
 
 When writing the brief, set `project.audio` explicitly to `{ "track": "<filename>" }` or `false`. Audio is the chosen music bed only; `audio: false` renders silent.
 
@@ -217,7 +217,7 @@ Write `reelme.json` at the repo root using schema v2:
     "tone": "professional",
     "platforms": ["x", "github-readme"],
     "mode": "intro",
-    "audio": { "track": "calm-keys.mp3" },
+    "audio": { "track": "lofi-dusk.mp3" },
     "watermark": true,
     "bgStyle": "deep"
   },

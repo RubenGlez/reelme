@@ -1,113 +1,76 @@
 [
   {
-    "file": "calm-keys.mp3",
-    "title": "Calm Keys",
-    "artist": "ReelMe procedural audio generator",
-    "source": "https://github.com/RubenGlez/reelme/blob/main/cli/assets/audio/generate-tracks.mjs#calm-keys",
+    "file": "lofi-dusk.mp3",
+    "title": "Lofi Dusk",
+    "artist": "holizna",
+    "source": "https://freesound.org/s/852231/",
     "license": "CC0",
     "tones": [
       "professional"
     ],
-    "duration": 32,
-    "bpm": 92
+    "duration": 35,
+    "bpm": 82
   },
   {
-    "file": "steady-launch.mp3",
-    "title": "Steady Launch",
-    "artist": "ReelMe procedural audio generator",
-    "source": "https://github.com/RubenGlez/reelme/blob/main/cli/assets/audio/generate-tracks.mjs#steady-launch",
-    "license": "CC0",
-    "tones": [
-      "professional",
-      "technical"
-    ],
-    "duration": 32,
-    "bpm": 104
-  },
-  {
-    "file": "clean-horizon.mp3",
-    "title": "Clean Horizon",
-    "artist": "ReelMe procedural audio generator",
-    "source": "https://github.com/RubenGlez/reelme/blob/main/cli/assets/audio/generate-tracks.mjs#clean-horizon",
+    "file": "warm-memories.mp3",
+    "title": "Warm Memories",
+    "artist": "xkeril",
+    "source": "https://freesound.org/s/826622/",
     "license": "CC0",
     "tones": [
       "professional"
     ],
-    "duration": 32,
-    "bpm": 88
+    "duration": 20,
+    "bpm": 108
   },
   {
-    "file": "bright-sparks.mp3",
-    "title": "Bright Sparks",
-    "artist": "ReelMe procedural audio generator",
-    "source": "https://github.com/RubenGlez/reelme/blob/main/cli/assets/audio/generate-tracks.mjs#bright-sparks",
-    "license": "CC0",
-    "tones": [
-      "playful"
-    ],
-    "duration": 32,
-    "bpm": 118
-  },
-  {
-    "file": "pixel-bounce.mp3",
-    "title": "Pixel Bounce",
-    "artist": "ReelMe procedural audio generator",
-    "source": "https://github.com/RubenGlez/reelme/blob/main/cli/assets/audio/generate-tracks.mjs#pixel-bounce",
-    "license": "CC0",
-    "tones": [
-      "playful",
-      "technical"
-    ],
-    "duration": 32,
-    "bpm": 126
-  },
-  {
-    "file": "sunny-loop.mp3",
-    "title": "Sunny Loop",
-    "artist": "ReelMe procedural audio generator",
-    "source": "https://github.com/RubenGlez/reelme/blob/main/cli/assets/audio/generate-tracks.mjs#sunny-loop",
-    "license": "CC0",
-    "tones": [
-      "playful"
-    ],
-    "duration": 32,
-    "bpm": 112
-  },
-  {
-    "file": "circuit-pulse.mp3",
-    "title": "Circuit Pulse",
-    "artist": "ReelMe procedural audio generator",
-    "source": "https://github.com/RubenGlez/reelme/blob/main/cli/assets/audio/generate-tracks.mjs#circuit-pulse",
-    "license": "CC0",
-    "tones": [
-      "technical"
-    ],
-    "duration": 32,
-    "bpm": 124
-  },
-  {
-    "file": "vector-grid.mp3",
-    "title": "Vector Grid",
-    "artist": "ReelMe procedural audio generator",
-    "source": "https://github.com/RubenGlez/reelme/blob/main/cli/assets/audio/generate-tracks.mjs#vector-grid",
-    "license": "CC0",
-    "tones": [
-      "technical"
-    ],
-    "duration": 32,
-    "bpm": 116
-  },
-  {
-    "file": "midnight-protocol.mp3",
-    "title": "Midnight Protocol",
-    "artist": "ReelMe procedural audio generator",
-    "source": "https://github.com/RubenGlez/reelme/blob/main/cli/assets/audio/generate-tracks.mjs#midnight-protocol",
+    "file": "neon-pulse.mp3",
+    "title": "Neon Pulse",
+    "artist": "newagesoup",
+    "source": "https://freesound.org/s/415922/",
     "license": "CC0",
     "tones": [
       "technical",
+      "playful"
+    ],
+    "duration": 17,
+    "bpm": 112
+  },
+  {
+    "file": "night-drive.mp3",
+    "title": "Night Drive",
+    "artist": "waveplaySFX",
+    "source": "https://freesound.org/s/211555/",
+    "license": "CC0",
+    "tones": [
+      "technical"
+    ],
+    "duration": 30,
+    "bpm": 128
+  },
+  {
+    "file": "sunny-bounce.mp3",
+    "title": "Sunny Bounce",
+    "artist": "mistermender",
+    "source": "https://freesound.org/s/512340/",
+    "license": "CC0",
+    "tones": [
+      "playful"
+    ],
+    "duration": 58,
+    "bpm": 126
+  },
+  {
+    "file": "light-steps.mp3",
+    "title": "Light Steps",
+    "artist": "Jamessi",
+    "source": "https://freesound.org/s/410520/",
+    "license": "CC0",
+    "tones": [
+      "playful",
       "professional"
     ],
-    "duration": 32,
-    "bpm": 98
+    "duration": 35,
+    "bpm": 110
   }
 ]

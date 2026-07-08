@@ -138,17 +138,14 @@ The full bundled track list (set `project.audio.track` to one of these filenames
 
 | filename | title | tones |
 |---|---|---|
-| `calm-keys.mp3` | Calm Keys | professional |
-| `steady-launch.mp3` | Steady Launch | professional, technical |
-| `clean-horizon.mp3` | Clean Horizon | professional |
-| `bright-sparks.mp3` | Bright Sparks | playful |
-| `pixel-bounce.mp3` | Pixel Bounce | playful, technical |
-| `sunny-loop.mp3` | Sunny Loop | playful |
-| `circuit-pulse.mp3` | Circuit Pulse | technical |
-| `vector-grid.mp3` | Vector Grid | technical |
-| `midnight-protocol.mp3` | Midnight Protocol | technical, professional |
+| `lofi-dusk.mp3` | Lofi Dusk | professional |
+| `warm-memories.mp3` | Warm Memories | professional |
+| `neon-pulse.mp3` | Neon Pulse | technical, playful |
+| `night-drive.mp3` | Night Drive | technical |
+| `sunny-bounce.mp3` | Sunny Bounce | playful |
+| `light-steps.mp3` | Light Steps | playful, professional |
 
-Tone defaults: professional → Calm Keys, playful → Bright Sparks, technical → Circuit Pulse. The CLI validates `project.audio.track` against this list and copies only the chosen file into the render cache. GIF outputs do not include audio.
+Tone defaults: professional → Lofi Dusk, playful → Sunny Bounce, technical → Neon Pulse. The CLI validates `project.audio.track` against this list and copies only the chosen file into the render cache. GIF outputs do not include audio.
 
 When a track is chosen, scene cuts are quantized to the track's beat grid (the CLI injects the track's BPM into the render), and subtle self-synthesized SFX play under scene transitions. Setting `audio: false` disables the music, the SFX, and the beat quantization together.
 

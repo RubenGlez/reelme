@@ -7,8 +7,8 @@ const audioDir = join(dirname(fileURLToPath(import.meta.url)), "../../../assets/
 const manifest = JSON.parse(readFileSync(join(audioDir, "manifest.json"), "utf8"));
 
 describe("audio manifest", () => {
-  it("ships 8-12 tracks", () => {
-    expect(manifest).toHaveLength(9);
+  it("ships two curated tracks per tone", () => {
+    expect(manifest).toHaveLength(6);
   });
 
   it("has complete provenance and package-safe files", () => {

@@ -12,7 +12,7 @@
     "mode": "intro",
     "bgStyle": "deep",
     "platforms": ["github-readme", "x", "youtube"],
-    "audio": { "track": "circuit-pulse.mp3" },
+    "audio": { "track": "neon-pulse.mp3" },
     "watermark": true
   },
   "cuts": {
