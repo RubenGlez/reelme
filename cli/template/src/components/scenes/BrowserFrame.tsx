@@ -12,7 +12,7 @@ interface Props {
   bottomInset?: number;
 }
 
-export const BrowserFrame: React.FC<Props> = ({ scene, theme, platform, bottomInset = 0 }) => {
+export const BrowserFrame: React.FC<Props> = ({ scene, theme, bottomInset = 0 }) => {
   const frame = useCurrentFrame();
   const { fps } = useVideoConfig();
 
@@ -105,19 +105,10 @@ export const BrowserFrame: React.FC<Props> = ({ scene, theme, platform, bottomIn
           }}
         >
           {scene.image ? (
-            // Slow push into the real screenshot so it reads as footage, not a
-            // pasted still (mirrors MobileScreen's ken-burns). Frozen for gif:
-            // a moving full-window image re-encodes every frame and can triple
-            // the file size.
-            <AbsoluteFill
-              style={{
-                transform:
-                  platform?.output.codec === "gif"
-                    ? undefined
-                    : `scale(${interpolate(frame, [0, 240], [1.0, 1.09], { extrapolateRight: "clamp" })}) translateY(${interpolate(frame, [0, 240], [0, -2.5], { extrapolateRight: "clamp" })}%)`,
-                transformOrigin: "center top",
-              }}
-            >
+            // Held static: the screenshot reads as the real page, not a slowly
+            // zooming still. (A moving full-window image also re-encodes every
+            // frame and can triple the gif's file size.)
+            <AbsoluteFill style={{ transformOrigin: "center top" }}>
               <Img
                 src={staticFile(scene.image)}
                 style={{ width: "100%", height: "100%", objectFit: "cover", objectPosition: "top", display: "block" }}

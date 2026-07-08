@@ -18,7 +18,7 @@ const PHONE_H = 808;
 const NOTCH_H = 32;
 const RADIUS = 46;
 
-export const MobileScreen: React.FC<Props> = ({ scene, theme, platform, bottomInset = 0 }) => {
+export const MobileScreen: React.FC<Props> = ({ scene, theme, bottomInset = 0 }) => {
   const frame = useCurrentFrame();
   const { fps, width, height } = useVideoConfig();
   const portrait = height > width;
@@ -52,7 +52,7 @@ export const MobileScreen: React.FC<Props> = ({ scene, theme, platform, bottomIn
       }}
     >
       <div style={{ scale: String(enterScale * fit), transformOrigin: "top left" }}>
-        <PhoneFrame scene={scene} theme={theme} frame={frame} fps={fps} isGif={platform?.output.codec === "gif"} />
+        <PhoneFrame scene={scene} theme={theme} frame={frame} fps={fps} />
       </div>
     </div>
   );
@@ -161,7 +161,7 @@ const CopyColumn: React.FC<{
 };
 
 /** The fixed-size device. Scaled to the frame by its parent. */
-const PhoneFrame: React.FC<{ scene: MobileBrief; theme: Theme; frame: number; fps: number; isGif?: boolean }> = ({ scene, theme, frame, fps, isGif }) => {
+const PhoneFrame: React.FC<{ scene: MobileBrief; theme: Theme; frame: number; fps: number }> = ({ scene, theme, frame, fps }) => {
   return (
     <div
       style={{
@@ -239,14 +239,13 @@ const PhoneFrame: React.FC<{ scene: MobileBrief; theme: Theme; frame: number; fp
         {/* Content */}
         <div style={{ flex: 1, overflow: "hidden", position: "relative" }}>
           {scene.screenshot ? (
-            // Frozen for gif: a moving screenshot re-encodes the whole screen
-            // area every frame and balloons the file.
-            <KenBurns frame={isGif ? 0 : frame}>
-              <Img
-                src={staticFile(scene.screenshot)}
-                style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }}
-              />
-            </KenBurns>
+            // Held static: the screenshot reads as the app's real screen, not a
+            // slowly zooming still. (A moving screenshot also re-encodes the
+            // whole screen area every frame and balloons the gif.)
+            <Img
+              src={staticFile(scene.screenshot)}
+              style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }}
+            />
           ) : (
             <MockFeed theme={theme} frame={frame} fps={fps} />
           )}
@@ -283,17 +282,6 @@ const PhoneFrame: React.FC<{ scene: MobileBrief; theme: Theme; frame: number; fp
         </div>
       </div>
     </div>
-  );
-};
-
-/** Slow ken-burns push so a real screenshot reads as alive footage, not a still. */
-const KenBurns: React.FC<{ frame: number; children: React.ReactNode }> = ({ frame, children }) => {
-  const s = interpolate(frame, [0, 240], [1.0, 1.1], { extrapolateRight: "clamp" });
-  const y = interpolate(frame, [0, 240], [0, -3], { extrapolateRight: "clamp" });
-  return (
-    <AbsoluteFill style={{ transform: `scale(${s}) translateY(${y}%)`, transformOrigin: "center top" }}>
-      {children}
-    </AbsoluteFill>
   );
 };
 

@@ -2,7 +2,8 @@
 
 The three cue files in this directory were generated with the
 [ElevenLabs sound-effects generator](https://elevenlabs.io/sound-effects)
-(free tier) on 2026-07-04, then trimmed and loudness-normalized
+(free tier) — `whoosh.mp3` and `rise.mp3` on 2026-07-04, `pop.mp3` on
+2026-07-08 — then trimmed and loudness-normalized
 (`loudnorm I=-23:TP=-2`) to sit under the bundled music beds:
 
 | file | prompt (abridged) | timing spec |
