@@ -62,6 +62,7 @@ Read these for project context:
 - `.harness/engineering/features/platform-selector.md`
 - `.harness/engineering/features/real-asset-ingestion.md`
 - `.harness/engineering/features/teaser-cut.md`
+- `.harness/engineering/features/video-quality-overhaul.md`
 - `.harness/engineering/implementation-plan.md`
 - `.harness/engineering/video-craft-rubric.md`
 - `.harness/product/CONTEXT.md`
@@ -69,5 +70,6 @@ Read these for project context:
 - `.harness/product/product.md`
 - `.harness/product/roadmap.md`
 - `.harness/product/ux.md`
+- `.harness/qa/adversarial-audit-2026-07-03.md`
 - `.harness/qa/report.md`
 <!-- doctier:end -->

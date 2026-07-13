@@ -5,6 +5,23 @@ All notable changes to this project are documented here.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+### Added
+- Five distinct per-look cinematic backdrop systems (mesh, spotlight, sweep, structural grid, field) so different briefs read as different productions.
+- `project.secondaryColor` for real two-color brand palettes.
+- Real-asset capture guidance: the skill sources real screenshots and media before the interview, and the gallery now uses real captures for several projects.
+- Beat-synced editing: scene cuts quantize to the background track's tempo, with curated cut sound effects (whoosh, pop, rise) riding the music and rising into the closing call-to-action.
+- A `custom` scene type for bespoke, skill-authored scene components a stock scene can't express.
+
+### Changed
+- Audio is now 6 curated CC0 (public-domain) music beds from Freesound — real recordings, zero-attribution, commercial-safe — replacing the earlier synthetic tracks; each bed is an exact whole-beat loop so it stays on-beat when looped.
+- Settled motion: the camera moves only on a scene's arrival then holds perfectly still (a continuous zoom re-rasterized text and read as vibration), springs are near-critically damped (no overshoot), and terminal/code windows open at their final size instead of growing as content types in.
+- Real screenshots in the phone and browser frames now hold still instead of slowly zooming.
+
+### Fixed
+- Rebuilt the data-flow and file-tree scenes for legibility.
+
 ## [0.4.0] - 2026-07-03
 
 ### Added
