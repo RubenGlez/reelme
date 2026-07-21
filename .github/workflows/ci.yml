@@ -38,6 +38,10 @@ jobs:
         run: pnpm test
         working-directory: cli/template
 
+      - name: Audit
+        run: pnpm audit --audit-level=high --prod
+        working-directory: cli/template
+
   cli:
     name: CLI
     runs-on: ubuntu-latest
