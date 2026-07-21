@@ -22,9 +22,6 @@
   "engines": {
     "node": ">=18"
   },
-  "optionalDependencies": {
-    "gifsicle": "^7.0.1"
-  },
   "keywords": [
     "launch-video",
     "remotion",

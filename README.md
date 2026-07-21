@@ -18,7 +18,7 @@ npx skills add RubenGlez/reelme
 
 Works in any [Agent Skills](https://agentskills.io)-compatible agent: Claude Code, Cursor, Gemini CLI, OpenAI Codex, and more.
 
-**Requirements:** Node.js >=18 and [pnpm](https://pnpm.io) (the CLI installs render dependencies with pnpm on first run)
+**Requirements:** Node.js >=18 and [pnpm](https://pnpm.io) (the CLI installs render dependencies with pnpm on first run). [gifsicle](https://www.lcdf.org/gifsicle/) is optional: install it on your PATH for roughly half-size GIFs. Without it GIFs still render, just unoptimized.
 
 The skill invokes the `reelme` CLI automatically. You don't need to install it separately.
 

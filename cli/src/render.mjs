@@ -5,10 +5,7 @@
 import { cpSync, existsSync, mkdirSync, readFileSync, rmSync } from "node:fs";
 import { basename, dirname, join, resolve, relative, isAbsolute } from "node:path";
 import { spawnSync } from "node:child_process";
-import { createRequire } from "node:module";
 import { AUDIO_DIR, ensureScaffold, loadPlatforms, readBrief, runShell, fail } from "./cache.mjs";
-
-const require = createRequire(import.meta.url);
 
 // Reject asset paths that escape their base dir. A reelme.json is authored by an
 // agent and gets committed/shared, so a `../../…` src/logo would otherwise copy
@@ -26,27 +23,15 @@ function safeJoin(baseDir, relPath, label) {
   return dest;
 }
 
-// Resolve the gifsicle binary: prefer the optionalDependency's bundled build,
-// fall back to a system install on PATH. Returns null when neither is present.
-function gifsicleBin() {
-  try {
-    const mod = require("gifsicle");
-    // The package exports the binary path; under Node's require-ESM it arrives
-    // as a namespace ({ default: path }) rather than a bare string.
-    const p = typeof mod === "string" ? mod : mod?.default;
-    if (typeof p === "string" && existsSync(p)) return p;
-  } catch {
-    // optionalDependency not installed — fall through to a PATH lookup.
-  }
-  return "gifsicle";
-}
-
 // Lossy gif pass. Remotion's native gif is already well quantized, but a
 // gifsicle --lossy run roughly halves it again with text left crisp. Our
 // atmosphere gradients band under palette/colour reduction, so we keep the full
-// palette and only apply --lossy. Best-effort: a missing gifsicle is non-fatal.
+// palette and only apply --lossy. gifsicle is read from PATH: the npm package
+// that used to vendor the binary is unmaintained and pulled an unpatchable
+// critical advisory (decompress GHSA-mp2f-45pm-3cg9) into every install.
+// Best-effort: a missing gifsicle is non-fatal.
 function optimizeGif(file) {
-  const res = spawnSync(gifsicleBin(), ["-b", "-O3", "--lossy=60", file], { stdio: "ignore" });
+  const res = spawnSync("gifsicle", ["-b", "-O3", "--lossy=60", file], { stdio: "ignore" });
   if (res.error || res.status !== 0) {
     console.warn("reelme: note — gif left unoptimized (install gifsicle for ~50% smaller files).");
   }
