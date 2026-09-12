@@ -43,33 +43,17 @@ Gallery briefs intentionally exercise the asset paths: `hono`/`polars`/`expo` ca
 
 Managed by doctier — do not edit between the markers.
 
-Read these for project context:
+Entry points (read these first):
 
-- `.harness/adr/0001-cuts-replace-format.md`
-- `.harness/adr/0002-bundled-cc0-audio.md`
-- `.harness/adr/0003-hybrid-skill-plus-thin-cli.md`
-- `.harness/adr/0004-skill-in-subdirectory.md`
-- `.harness/adr/0005-cinematic-render-layer.md`
 - `.harness/engineering/architecture.md`
-- `.harness/engineering/features/benchmark-scene.md`
-- `.harness/engineering/features/cc0-audio-track.md`
-- `.harness/engineering/features/cinematic-engine.md`
-- `.harness/engineering/features/composition-variety.md`
-- `.harness/engineering/features/copy-positioning-rewrite.md`
-- `.harness/engineering/features/hook-first-vertical.md`
-- `.harness/engineering/features/made-with-reelme-watermark.md`
-- `.harness/engineering/features/oss-gallery.md`
-- `.harness/engineering/features/platform-selector.md`
-- `.harness/engineering/features/real-asset-ingestion.md`
-- `.harness/engineering/features/teaser-cut.md`
-- `.harness/engineering/features/video-quality-overhaul.md`
 - `.harness/engineering/implementation-plan.md`
-- `.harness/engineering/video-craft-rubric.md`
-- `.harness/product/CONTEXT.md`
-- `.harness/product/competitors.md`
 - `.harness/product/product.md`
-- `.harness/product/roadmap.md`
-- `.harness/product/ux.md`
-- `.harness/qa/adversarial-audit-2026-07-03.md`
-- `.harness/qa/report.md`
+
+Further docs, by directory:
+
+- `.harness/adr/` (5 docs)
+- `.harness/engineering/` (2 docs)
+- `.harness/engineering/features/` (12 docs)
+- `.harness/product/` (4 docs)
+- `.harness/qa/` (2 docs)
 <!-- doctier:end -->
