@@ -9,14 +9,14 @@
     "test": "vitest run"
   },
   "dependencies": {
-    "@remotion/cli": "4.0.410",
-    "@remotion/gif": "4.0.410",
-    "@remotion/google-fonts": "4.0.410",
+    "@remotion/cli": "4.0.540",
+    "@remotion/gif": "4.0.540",
+    "@remotion/google-fonts": "4.0.540",
     "chroma-js": "^3.1.2",
     "lucide-react": "^0.511.0",
     "react": "^18.3.0",
     "react-dom": "^18.3.0",
-    "remotion": "4.0.410"
+    "remotion": "4.0.540"
   },
   "devDependencies": {
     "@types/chroma-js": "^2.4.4",
