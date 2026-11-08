@@ -1,8 +1,8 @@
 # Implementation plan — reelme v2
 
-Scope: the v2 launch-video repositioning, per the frozen backlog in `.harness/product/roadmap.md` (decided 2026-06-12). This plan defines WHAT ships and in WHICH order; feature specs and the code itself define HOW. Each task is scoped to one agent session.
+Scope: the v2 launch-video repositioning, per the frozen backlog in `.rubstack/product/roadmap.md` (decided 2026-06-12). This plan defines WHAT ships and in WHICH order; feature specs and the code itself define HOW. Each task is scoped to one agent session.
 
-Key architecture decisions are recorded in `.harness/adr/`:
+Key architecture decisions are recorded in `.rubstack/adr/`:
 
 - ADR 0001 — `cuts` replace `format`, no backwards compatibility
 - ADR 0002 — bundled curated CC0 audio, no runtime audio API
@@ -190,6 +190,6 @@ Mostly using the product, not building it. This phase is also the quality gate: 
 
 ### Task 4.3 — Success criteria and launch checklist
 **Goal**: Define numeric success criteria before the dogfood launch, and the checklist that gates it.
-**Scope**: `.harness/product/` doc (e.g. `launch.md`): numeric targets for the first 2 weeks (stars, repo clones via GitHub traffic API, mentions/replies, per-platform engagement), measurement method for each, and the launch checklist (gallery live, watermark verified in published videos, decision rule from the roadmap: if launch moves nothing, the answer is distribution work or accepting modest scope, not more features).
+**Scope**: `.rubstack/product/` doc (e.g. `launch.md`): numeric targets for the first 2 weeks (stars, repo clones via GitHub traffic API, mentions/replies, per-platform engagement), measurement method for each, and the launch checklist (gallery live, watermark verified in published videos, decision rule from the roadmap: if launch moves nothing, the answer is distribution work or accepting modest scope, not more features).
 **Acceptance criteria**: Every criterion has a number and a concrete measurement source; checklist is actionable (each item verifiable yes/no); reviewed and accepted before any launch post goes out.
 **Depends on**: Task 4.2 (criteria reference the gallery and growth loop being live).
