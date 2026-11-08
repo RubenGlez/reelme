@@ -1,6 +1,6 @@
 # reelme — agent notes
 
-Non-obvious conventions for working in this repo. (Project context, decisions, and specs live in `.harness/`, which is gitignored.)
+Non-obvious conventions for working in this repo. (Project context, decisions, and specs live in `.rubstack/`, tracked doctier-encrypted.)
 
 ## Layout
 
@@ -45,15 +45,14 @@ Managed by doctier — do not edit between the markers.
 
 Entry points (read these first):
 
-- `.harness/engineering/architecture.md`
-- `.harness/engineering/implementation-plan.md`
-- `.harness/product/product.md`
+- `.rubstack/engineering/architecture.md`
+- `.rubstack/engineering/implementation-plan.md`
+- `.rubstack/product/product.md`
 
 Further docs, by directory:
 
-- `.harness/adr/` (5 docs)
-- `.harness/engineering/` (2 docs)
-- `.harness/engineering/features/` (12 docs)
-- `.harness/product/` (4 docs)
-- `.harness/qa/` (2 docs)
+- `.rubstack/adr/` (5 docs)
+- `.rubstack/engineering/` (2 docs)
+- `.rubstack/product/` (4 docs)
+- `.rubstack/qa/` (2 docs)
 <!-- doctier:end -->
